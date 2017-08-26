@@ -1,0 +1,4 @@
+- Control flow graphs
+- Dominators
+- Back edges
+- Natural loops
