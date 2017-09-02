@@ -28,8 +28,8 @@ stmt:
   | NAME GETS mem            { Fetch ($1, $3) }
   | mem GETS scalar          { Store ($1, $3) }
   | NAME COL                 { Label $1 }
-  | GOTO NAME                { Jump (Name $2) }
-  | IF expr GOTO NAME        { Cond ($2, Name $4) }
+  | GOTO NAME                { Jump (Target $2) }
+  | IF expr GOTO NAME        { Cond ($2, Target $4) }
   | RECV scalar              { Receive (Some $2) }
   | RECV                     { Receive None }
   | RET scalar               { Return (Some $2) }

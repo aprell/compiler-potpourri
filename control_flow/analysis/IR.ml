@@ -21,7 +21,7 @@ and scalar =
 
 and mem = Mem of { base : name;  index : scalar }
 
-and label = Name of name
+and label = Target of name
 
 and binop = Plus | Minus | Mul | Div | Mod
 
