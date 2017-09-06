@@ -1,5 +1,4 @@
 open Basic
-open Utils
 
 module IntSet = Set.Make (struct
   type t = int
@@ -43,7 +42,7 @@ let construct_cfg (basic_blocks : basic_block list) : cfg =
   let graph =
     basic_blocks
     |> Array.of_list
-    |> Array.mapi (fun i n ->
+    |> Array.map (fun n ->
         { block = n;
           succ = IntSet.empty;
           pred = IntSet.empty; })

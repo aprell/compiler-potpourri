@@ -9,7 +9,7 @@ and source_info =
     source_loc : int * int; }
 
 (* Constructor for basic blocks *)
-let basic_block ?(source_info) ~name =
+let basic_block ?source_info ~name =
   Basic_block (name, source_info)
 
 let to_string (Basic_block (name, source_info)) : string =
