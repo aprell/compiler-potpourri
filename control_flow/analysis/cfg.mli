@@ -34,6 +34,7 @@ module IntSet :
 type cfg = node array
 
 and node = {
+  index : int;
   block : Basic.basic_block;
   mutable succ : IntSet.t;
   mutable pred : IntSet.t;

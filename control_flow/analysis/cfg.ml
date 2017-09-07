@@ -8,88 +8,72 @@ end)
 type cfg = node array
 
 and node =
-  { block : basic_block;
+  { index : int;
+    block : basic_block;
     mutable succ : IntSet.t;
     mutable pred : IntSet.t; }
 
+(* Add an edge from node a to node b *)
+let ( => ) a b =
+  a.succ <- IntSet.add b.index a.succ;
+  b.pred <- IntSet.add a.index b.pred
+
 let define_cfg ~(nodes : int list) ~(edges : (int * int) list) : cfg =
-  let graph =
-    nodes
-    |> Array.of_list
-    |> Array.map (fun n ->
-      { block = basic_block ("B" ^ string_of_int n);
-        succ = IntSet.empty;
-        pred = IntSet.empty; })
+  let basic_blocks =
+    List.map (fun i ->
+        let name = "B" ^ string_of_int i in
+        basic_block name
+      ) nodes
   in
-  (* Implicit entry and exit nodes *)
+  let graph =
+    basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
+    |> Array.of_list
+    |> Array.mapi (fun index block ->
+        { index; block; succ = IntSet.empty; pred = IntSet.empty; })
+  in
   let entry = 0 in
-  let exit = Array.length graph + 1 in
   List.iter (fun (a, b) ->
-      (* Add b as a successor of a, except when a = entry *)
-      if a <> entry then begin
-        let succ = graph.(a - 1).succ in
-        graph.(a - 1).succ <- IntSet.add b succ
-      end;
-      (* Add a as a predecessor of b, except when b = exit *)
-      if b <> exit then begin
-        let pred = graph.(b - 1).pred in
-        graph.(b - 1).pred <- IntSet.add a pred
-      end
+      graph.(a) => graph.(b)
     ) ((entry, 1) :: edges);
   graph
 
 let construct_cfg (basic_blocks : basic_block list) : cfg =
   let graph =
-    basic_blocks
+    basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
-    |> Array.map (fun n ->
-        { block = n;
-          succ = IntSet.empty;
-          pred = IntSet.empty; })
+    |> Array.mapi (fun index block ->
+        { index; block; succ = IntSet.empty; pred = IntSet.empty; })
   in
+  (* Create a list that associates labels with basic blocks *)
   let labels =
-    basic_blocks
-    |> List.mapi (fun i (Basic_block (_, source_info)) ->
+    List.mapi (fun i (Basic_block (_, source_info)) ->
         match source_info with
-        | Some { entry; _ } ->
-          (entry, i)
+        | Some { entry = label; _ } ->
+          (label, i + 1)
         | None ->
-          invalid_arg "Basic block lacks source information")
+          invalid_arg "Basic block lacks source information"
+      ) basic_blocks
   in
-  (* Implicit entry and exit nodes *)
   let entry = 0 in
-  let exit = Array.length graph + 1 in
+  let exit = Array.length graph - 1 in
   (* Add an edge from entry to the first basic block *)
-  let pred = graph.(0).pred in
-  graph.(0).pred <- IntSet.add entry pred;
+  graph.(entry) => graph.(1);
   (* Connect basic blocks *)
-  Array.iteri (fun i { block = Basic_block (_, source_info); succ; pred } ->
+  Array.iteri (fun i { block = Basic_block (_, source_info); succ; pred; _ } ->
       match source_info with
       | Some { exits; _ } ->
         List.iter (function
             | "fall-through" ->
-              (* Add an edge from this basic block to the next one
-               * This basic block's number is i + 1, so the next one's number
-               * is i + 2. *)
-              let succ = graph.(i).succ in
-              graph.(i).succ <- IntSet.add (i + 2) succ;
-              let pred = graph.(i + 1).pred in
-              graph.(i + 1).pred <- IntSet.add (i + 1) pred
+              graph.(i) => graph.(i + 1)
             | "exit" ->
-              (* Add an edge from this basic block to exit
-               * Exit is not stored as a separate basic block *)
-              let succ = graph.(i).succ in
-              graph.(i).succ <- IntSet.add exit succ
+              graph.(i) => graph.(exit)
             | label ->
-              (* Add an edge from this basic block to the one starting with label *)
               let target = List.assoc label labels in
-              let succ = graph.(i).succ in
-              graph.(i).succ <- IntSet.add (target + 1) succ;
-              let pred = graph.(target).pred in
-              graph.(target).pred <- IntSet.add (i + 1) pred
+              graph.(i) => graph.(target)
           ) exits
       | None ->
-        invalid_arg "Basic block lacks source information"
+        if i <> entry && i <> exit then
+          invalid_arg "Basic block lacks source information"
     ) graph;
   graph
 
@@ -108,7 +92,7 @@ let equal (a : cfg) (b : cfg) : bool =
 
 let inspect ?dom_sets ?back_edges (graph : cfg) =
   let entry = 0 in
-  let exit = Array.length graph + 1 in
+  let exit = Array.length graph - 1 in
   let names nodes =
     nodes
     |> IntSet.elements
@@ -124,8 +108,8 @@ let inspect ?dom_sets ?back_edges (graph : cfg) =
   in
   (* Print nodes *)
   let open Printf in
-  Array.iteri (fun i { block = Basic_block (name, _); succ; pred } ->
-      printf "%3s:\n\t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = [%s]\n" name
+  Array.iteri (fun i { block = Basic_block (name, _); succ; pred; _ } ->
+      printf "%5s:\n\t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = [%s]\n" name
         "successors"   (names succ)
         "predecessors" (names pred)
         "dominators"   dom_info.(i)
