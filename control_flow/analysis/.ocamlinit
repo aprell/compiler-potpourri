@@ -2,3 +2,4 @@
 #load_rec "parse.cmo"
 #load "basic.cmo"
 #load "cfg.cmo"
+#load "dom.cmo"

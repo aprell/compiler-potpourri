@@ -1,4 +1,4 @@
-PROGS = test_basic test_cfg
+PROGS = test_basic test_cfg test_dom
 
 
 
