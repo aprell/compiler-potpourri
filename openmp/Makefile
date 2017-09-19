@@ -9,7 +9,7 @@ vec3: CFLAGS += -pthread
 
 vec2 vec3: omp.c
 
-check:
+check: all
 	@set -e; \
 	for vec in vec1 vec2 vec3; do \
 		echo "Running $$vec:"; \
