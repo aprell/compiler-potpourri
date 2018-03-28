@@ -4,6 +4,7 @@ local fun = require "fun"
 
 local map = fun.map
 local concat = table.concat
+local unpack = unpack or table.unpack
 
 local function sum(t)
     return fun.fold(fun["+"], 0, t)

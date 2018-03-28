@@ -3,6 +3,7 @@ package.path = "../utils/?.lua;" .. package.path
 local fun = require "fun"
 local concat = table.concat
 local getlocal = debug.getlocal
+local unpack = unpack or table.unpack
 
 -- Verbose output with -v or --verbose
 local output = arg[1] or "default"

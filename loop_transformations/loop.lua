@@ -1,3 +1,5 @@
+local unpack = unpack or table.unpack
+
 local function indent(lvl, width)
     return string.rep(" ", lvl * (width or 4))
 end
