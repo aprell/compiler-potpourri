@@ -30,4 +30,13 @@ cfg.fib = {
      exit = { pred = { "B5", "B6" } },
 }
 
+cfg.simple = {
+    entry = { succ = { "B1" } },
+       B1 = { succ = { "B2", "B3" }, pred = { "entry" } },
+       B2 = { succ = { "B4" }, pred = { "B1" } },
+       B3 = { succ = { "B4" }, pred = { "B1" } },
+       B4 = { succ = { "exit" }, pred = { "B2", "B3" } },
+     exit = { pred = { "B4" } },
+}
+
 return cfg

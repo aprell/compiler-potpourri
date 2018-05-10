@@ -6,7 +6,7 @@ local Set = require "set"
 
 function dominators(graph)
     print("Computing dominators")
-    local traversal = dfs(graph)
+    local traversal = dfs_reverse_postorder(graph)
     -- Initialization
     for i, name in ipairs(traversal) do
         local node = graph[name]

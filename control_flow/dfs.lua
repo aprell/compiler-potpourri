@@ -1,3 +1,7 @@
+package.path = "../utils/?.lua;" .. package.path
+
+local Set = require "set"
+
 function invert(graph)
     local inv = {}
     for name, node in pairs(graph) do
@@ -8,26 +12,57 @@ function invert(graph)
     return inv
 end
 
-function mark_unvisited(graph)
-    for _, node in pairs(graph) do
-        node.visited = false
+function dfs_preorder(graph, name)
+    name = name or "entry"
+    visited = Set {}
+    order = {}
+    local function visit(name)
+        visited:add(name)
+        if name == "exit" then return end
+        if name ~= "entry" then
+            table.insert(order, name)
+        end
+        for _, succ in ipairs(graph[name].succ) do
+            if not visited[succ] then visit(succ) end
+        end
     end
-    return graph
+    visit(name)
+    return order
 end
 
-function dfs(graph, name, nodes)
+function dfs_postorder(graph, name)
     name = name or "entry"
-    nodes = nodes or {}
-    if name == "exit" then return nodes end
-    local node = graph[name]
-    if not node.visited then
-        node.visited = true
-        for _, succ in ipairs(node.succ) do
-            dfs(graph, succ, nodes)
+    visited = Set {}
+    order = {}
+    local function visit(name)
+        visited:add(name)
+        if name == "exit" then return end
+        for _, succ in ipairs(graph[name].succ) do
+            if not visited[succ] then visit(succ) end
         end
         if name ~= "entry" then
-            table.insert(nodes, 1, name)
+            table.insert(order, name)
         end
     end
-    return nodes
+    visit(name)
+    return order
+end
+
+-- Topologically sorts the nodes of a DAG
+function dfs_reverse_postorder(graph, name)
+    name = name or "entry"
+    visited = Set {}
+    order = {}
+    local function visit(name)
+        visited:add(name)
+        if name == "exit" then return end
+        for _, succ in ipairs(graph[name].succ) do
+            if not visited[succ] then visit(succ) end
+        end
+        if name ~= "entry" then
+            table.insert(order, 1, name)
+        end
+    end
+    visit(name)
+    return order
 end
