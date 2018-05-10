@@ -46,6 +46,33 @@ function dominators(graph)
     end
 end
 
+function immediate_dominators(graph)
+    print("Determining immediate dominators")
+    local function immediate_dominator(node)
+        if node.idom ~= nil then return node.idom end
+        local idom = node.dom:intersect(Set(node.pred))
+        if #idom == 0 then
+            -- The immediate dominator is not a direct predecessor
+            idom = node.dom
+            for _, pred in ipairs(node.pred) do
+                -- Intersect the immediate dominators of all predecessors
+                idom = idom:intersect(immediate_dominator(graph[pred]))
+            end
+        end
+        assert(#idom == 1)
+        -- Cache result
+        node.idom = idom
+        return idom
+    end
+    for name, node in pairs(graph) do
+        -- Exclude the first basic block after entry
+        if node.dom and #node.dom > 1 then
+            -- Immediate dominators are stored as singleton sets
+            print(("%s idom %s"):format(next(immediate_dominator(node)), name))
+        end
+    end
+end
+
 function back_edges(graph)
     print("Identifying back edges")
     for name, node in pairs(graph) do

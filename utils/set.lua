@@ -20,6 +20,15 @@ local function to_string(set)
     return "{" .. table.concat(to_list(set), ", ") .. "}"
 end
 
+-- Cardinality
+local function size(set)
+    local sz = 0
+    for _ in pairs(set) do
+        sz = sz + 1
+    end
+    return sz
+end
+
 local function add(set, e)
     set[e] = true
 end
@@ -70,6 +79,7 @@ end
 local obj_mt = {
     __index = Set,
     __tostring = to_string,
+    __len = size,
     __add = union,
     __mul = intersection,
     __sub = difference,
@@ -85,6 +95,7 @@ local class_mt = {
     end
 }
 
+Set.size = size
 Set.add = add
 Set.union = union
 Set.intersect = intersection
@@ -103,6 +114,9 @@ assert(not (s1 <= s2))
 assert(s1 * s2 <= s1)
 assert(s1 < s1 + s2)
 assert(s1 - s2 == Set {3})
+assert(size(s1) == 3)
+assert(size(s1 + s2) == 4)
+assert(size(s1 * Set {}) == 0)
 --]]
 
 return Set
