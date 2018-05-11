@@ -53,10 +53,11 @@ function immediate_dominators(graph)
         local idom = node.dom:intersect(Set(node.pred))
         if #idom == 0 then
             -- The immediate dominator is not a direct predecessor
-            idom = node.dom
             for _, pred in ipairs(node.pred) do
-                -- Intersect the immediate dominators of all predecessors
-                idom = idom:intersect(immediate_dominator(graph[pred]))
+                -- The immediate dominator is shared by at least one but not
+                -- necessarily every predecessor
+                idom = node.dom:intersect(immediate_dominator(graph[pred]))
+                if #idom == 1 then break end
             end
         end
         assert(#idom == 1)
