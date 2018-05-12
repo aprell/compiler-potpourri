@@ -12,3 +12,9 @@ Programs, scripts, and tools for a compilers course
 ### Papers
 - [Compiler Transformations for High-Performance Computing](http://dl.acm.org/citation.cfm?id=197406)
 - [Advanced Compiler Optimizations for Supercomputers](http://dl.acm.org/citation.cfm?id=7904)
+- [A Catalogue of Optimizing Transformations](https://www.clear.rice.edu/comp512/Lectures/Papers/1971-allen-catalog.pdf)
+- [A Simple, Fast Dominance Algorithm](https://www.cs.rice.edu/~keith/Embed/dom.pdf)
+- [Iterative Data-Flow Analysis, Revisited](https://scholarship.rice.edu/handle/1911/96324)
+
+### Articles
+- [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
