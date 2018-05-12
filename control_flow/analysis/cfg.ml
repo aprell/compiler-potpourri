@@ -90,7 +90,7 @@ let equal (a : cfg) (b : cfg) : bool =
         not (IntSet.equal node_a.succ node_b.succ) ||
         not (IntSet.equal node_a.pred node_b.pred)) ab)
 
-let inspect ?dom_sets ?back_edges (graph : cfg) =
+let inspect ?dom_sets ?idoms ?back_edges (graph : cfg) =
   let entry = 0 in
   let exit = Array.length graph - 1 in
   let names nodes =
@@ -106,13 +106,20 @@ let inspect ?dom_sets ?back_edges (graph : cfg) =
     | Some doms -> Array.map names doms
     | None -> Array.make (Array.length graph) "?"
   in
+  let idom_info = match idoms with
+    | Some idoms -> Array.map names idoms
+    | None -> Array.make (Array.length graph) "?"
+  in
   (* Print nodes *)
   let open Printf in
   Array.iteri (fun i { block = Basic_block (name, _); succ; pred; _ } ->
-      printf "%5s:\n\t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = [%s]\n" name
+      printf
+        "%5s:\n \t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = %s\n"
+        name
         "successors"   (names succ)
         "predecessors" (names pred)
         "dominators"   dom_info.(i)
+        "immediate dominator" idom_info.(i)
     ) graph;
   (* Print back edges, if known *)
   match back_edges with

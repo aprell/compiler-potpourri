@@ -19,8 +19,9 @@ let fib_cfg_2 =
 
 let inspect_control_flow graph =
   let dom_sets = dominators graph in
+  let idoms = immediate_dominators graph dom_sets in
   let back_edges = back_edges graph dom_sets in
-  inspect graph ~dom_sets ~back_edges
+  inspect graph ~dom_sets ~idoms ~back_edges
 
 let () =
   inspect_control_flow fib_cfg_1;

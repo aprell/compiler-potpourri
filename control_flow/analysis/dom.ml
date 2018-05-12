@@ -32,6 +32,32 @@ let dominators (graph : cfg) : IntSet.t array =
   done;
   doms
 
+let immediate_dominators (graph : cfg) (dom_sets : IntSet.t array) : IntSet.t array =
+  let num_basic_blocks = Array.length graph in
+  let entry = 0 in
+  let rec immediate_dominator node =
+    if node = entry then
+      IntSet.empty
+    else
+      let doms = dom_sets.(node) in
+      let pred = graph.(node).pred in
+      let idom = ref (IntSet.inter doms pred) in
+      if IntSet.is_empty !idom then (
+        (* The immediate dominator is not a direct predecessor *)
+        try IntSet.iter (fun p ->
+            let idom' = IntSet.inter (immediate_dominator p) doms in
+            if not (IntSet.is_empty idom') then (
+              idom := idom';
+              raise Exit
+            )
+          ) pred
+        with Exit -> ()
+      );
+      assert (IntSet.cardinal !idom = 1);
+      !idom
+  in
+  Array.init num_basic_blocks immediate_dominator
+
 (* Find all edges i => n with n dom i in a graph *)
 let back_edges (graph : cfg) (dom_sets : IntSet.t array) : (int * int) list =
   (* dom_sets.(i) are the dominators of node graph.(i) *)
