@@ -37,3 +37,8 @@ let ( -- ) i j =
 *)
 let ( ^^ ) pref lst =
   List.map (fun n -> pref ^ string_of_int n) lst
+
+module IntSet = Set.Make (struct
+  type t = int
+  let compare = Pervasives.compare
+end)

@@ -1,3 +1,5 @@
-val dominators : Cfg.cfg -> Cfg.IntSet.t array
-val immediate_dominators : Cfg.cfg -> Cfg.IntSet.t array -> Cfg.IntSet.t array
-val back_edges : Cfg.cfg -> Cfg.IntSet.t array -> (int * int) list
+open Utils
+
+val dominators : Cfg.cfg -> IntSet.t array
+val immediate_dominators : Cfg.cfg -> IntSet.t array -> IntSet.t array
+val back_edges : Cfg.cfg -> IntSet.t array -> (int * int) list

@@ -1,4 +1,5 @@
 open Cfg
+open Utils
 
 let dominators (graph : cfg) : IntSet.t array =
   let num_basic_blocks = Array.length graph in
