@@ -25,7 +25,7 @@ let dominators (graph : cfg) : IntSet.t array =
           (* Union resulting set with {B} *)
           |> IntSet.union (IntSet.singleton i)
         in
-        if dom' <> dom then changed := true;
+        if not (IntSet.equal dom' dom) then changed := true;
         doms.(i) <- dom'
       ) doms;
     incr num_iter
