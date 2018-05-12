@@ -3,3 +3,4 @@
 #load "basic.cmo"
 #load "cfg.cmo"
 #load "dom.cmo"
+#load "inspect.cmo"

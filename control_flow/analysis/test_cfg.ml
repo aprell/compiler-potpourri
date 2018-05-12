@@ -1,6 +1,7 @@
 open Basic
 open Cfg
 open Parse
+open Inspect
 
 let fib_cfg_1 =
   define_cfg

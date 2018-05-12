@@ -13,10 +13,3 @@ val define_cfg : nodes:int list -> edges:(int * int) list -> cfg
 val construct_cfg : Basic.basic_block list -> cfg
 val discard_source_info : cfg -> cfg
 val equal : cfg -> cfg -> bool
-
-val inspect :
-  ?dom_sets:IntSet.t array ->
-  ?idoms:IntSet.t array ->
-  ?back_edges:(int * int) list ->
-  cfg ->
-  unit
