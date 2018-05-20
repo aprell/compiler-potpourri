@@ -7,7 +7,7 @@ let inspect ?dom_sets ?idoms ?back_edges (graph : cfg) =
   let exit = Array.length graph - 1 in
   let names nodes =
     nodes
-    |> IntSet.elements
+    |> Nodes.elements
     |> List.map (fun n ->
         if n = entry then "Entry"
         else if n = exit then "Exit"

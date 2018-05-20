@@ -1,5 +1,5 @@
-open Basic
 open Parse
+open Basic
 
 let print_basic_blocks filename =
   parse_file filename

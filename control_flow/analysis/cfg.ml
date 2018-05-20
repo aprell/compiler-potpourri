@@ -4,17 +4,17 @@ open Utils
 type cfg = node array
 
 and node =
-  { index : int;
+  { index : Nodes.elt;
     block : basic_block;
-    mutable succ : IntSet.t;
-    mutable pred : IntSet.t; }
+    mutable succ : Nodes.t;
+    mutable pred : Nodes.t; }
 
 (* Add an edge from node a to node b *)
 let ( => ) a b =
-  a.succ <- IntSet.add b.index a.succ;
-  b.pred <- IntSet.add a.index b.pred
+  a.succ <- Nodes.add b.index a.succ;
+  b.pred <- Nodes.add a.index b.pred
 
-let define_cfg ~(nodes : int list) ~(edges : (int * int) list) : cfg =
+let define_cfg ~(nodes : Nodes.elt list) ~(edges : (Nodes.elt * Nodes.elt) list) : cfg =
   let basic_blocks =
     List.map (fun i ->
         let name = "B" ^ string_of_int i in
@@ -25,7 +25,7 @@ let define_cfg ~(nodes : int list) ~(edges : (int * int) list) : cfg =
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
-        { index; block; succ = IntSet.empty; pred = IntSet.empty; })
+        { index; block; succ = Nodes.empty; pred = Nodes.empty; })
   in
   let entry = 0 in
   List.iter (fun (a, b) ->
@@ -38,7 +38,7 @@ let construct_cfg (basic_blocks : basic_block list) : cfg =
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
-        { index; block; succ = IntSet.empty; pred = IntSet.empty; })
+        { index; block; succ = Nodes.empty; pred = Nodes.empty; })
   in
   (* Create a list that associates labels with basic blocks *)
   let labels =
@@ -83,5 +83,5 @@ let equal (a : cfg) (b : cfg) : bool =
     let ab = Array.map2 (fun node_a node_b -> (node_a, node_b)) a b in
     not (Array.exists (fun (node_a, node_b) ->
         node_a.block <> node_b.block ||
-        not (IntSet.equal node_a.succ node_b.succ) ||
-        not (IntSet.equal node_a.pred node_b.pred)) ab)
+        not (Nodes.equal node_a.succ node_b.succ) ||
+        not (Nodes.equal node_a.pred node_b.pred)) ab)

@@ -1,5 +1,8 @@
+open Cfg
 open Utils
 
-val dominators : Cfg.cfg -> IntSet.t array
-val immediate_dominators : Cfg.cfg -> IntSet.t array -> IntSet.t array
-val back_edges : Cfg.cfg -> IntSet.t array -> (int * int) list
+val dominators : cfg -> Nodes.t array
+
+val immediate_dominators : cfg -> Nodes.t array -> Nodes.t array
+
+val back_edges : cfg -> Nodes.t array -> (Nodes.elt * Nodes.elt) list

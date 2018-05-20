@@ -1,7 +1,7 @@
+open Parse
 open Basic
 open Cfg
 open Dom
-open Parse
 open Inspect
 
 let fib_cfg_1 =
