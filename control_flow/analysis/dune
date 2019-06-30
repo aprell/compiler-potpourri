@@ -1,0 +1,16 @@
+;; TODO: Fix warnings 6 and 27
+(env
+ (dev
+  (flags (:standard -warn-error -6-27))))
+
+(ocamllex
+  (modules lexer))
+
+(menhir
+  (modules parser))
+
+(executables
+  (names
+    test_basic
+    test_cfg
+    test_dom))

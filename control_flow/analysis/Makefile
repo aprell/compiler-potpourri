@@ -2,20 +2,22 @@ PROGS = test_basic test_cfg test_dom
 
 
 
-PROGS_BYTE = $(addsuffix .byte,$(PROGS))
-PROGS_NATIVE = $(addsuffix .native,$(PROGS))
+PROGS_EXE = $(addsuffix .exe,$(PROGS))
 
-default: $(PROGS_BYTE)
+all: $(PROGS_EXE)
 
-all: default $(PROGS_NATIVE)
+$(PROGS_EXE):
+	dune build $@
 
-$(PROGS_BYTE) $(PROGS_NATIVE):
-	ocamlbuild -use-menhir $@
+test:
+	@echo "\n--- test_parse ----------"
+	@./test_parse.sh
+	@echo "\n--- test_utils ----------"
+	@./test_utils.sh
+	@echo
 
 clean:
-	ocamlbuild -clean
+	dune clean
 	rm -rf _test
 
-# Let ocamlbuild handle the dependencies
-.PHONY: $(PROGS_BYTE) $(PROGS_NATIVE)
-.PHONY: default all clean
+.PHONY: all clean test

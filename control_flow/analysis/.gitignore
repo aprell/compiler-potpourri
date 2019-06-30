@@ -19,3 +19,6 @@ _test/
 # oasis generated files
 setup.data
 setup.log
+
+# dune auto-generates .merlin file
+.merlin
