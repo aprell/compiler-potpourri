@@ -55,7 +55,7 @@ let construct_cfg (basic_blocks : basic_block list) : cfg =
   (* Add an edge from entry to the first basic block *)
   graph.(entry) => graph.(1);
   (* Connect basic blocks *)
-  Array.iteri (fun i { block = Basic_block (_, source_info); succ; pred; _ } ->
+  Array.iteri (fun i { block = Basic_block (_, source_info); _ } ->
       match source_info with
       | Some { exits; _ } ->
         List.iter (function

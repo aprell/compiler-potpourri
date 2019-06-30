@@ -9,7 +9,7 @@ and source_info =
     source_loc : int * int; }
 
 (* Constructor for basic blocks *)
-let basic_block ?source_info ~name =
+let basic_block ?source_info name =
   Basic_block (name, source_info)
 
 let to_string (Basic_block (name, source_info)) : string =
@@ -31,7 +31,7 @@ let basic_blocks (code : stmt list) : basic_block list =
       match stmt with
       | Jump (Target target) ->
         (* End current basic block *)
-        let block = basic_block ~name:(gen_sym ()) ~source_info:
+        let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = [target];
               source_loc = (start, line); }
@@ -40,7 +40,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         ("fall-through", line + 1, line + 1, block :: blocks)
       | Cond (_, Target target) ->
         (* End current basic block *)
-        let block = basic_block ~name:(gen_sym ()) ~source_info:
+        let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = [target; "fall-through"];
               source_loc = (start, line); }
@@ -49,7 +49,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         ("fall-through", line + 1, line + 1, block :: blocks)
       | Return _ ->
         (* End current basic block *)
-        let block = basic_block ~name:(gen_sym ()) ~source_info:
+        let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = ["exit"];
               source_loc = (start, line); }
@@ -62,7 +62,7 @@ let basic_blocks (code : stmt list) : basic_block list =
           (lab, start, line + 1, blocks)
         else
           (* End previous basic block *)
-          let block = basic_block ~name:(gen_sym ()) ~source_info:
+          let block = basic_block (gen_sym ()) ~source_info:
               { entry = label;
                 exits = [lab];
                 source_loc = (start, line - 1); }

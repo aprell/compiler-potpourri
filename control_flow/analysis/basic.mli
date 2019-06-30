@@ -6,7 +6,7 @@ and source_info = {
   source_loc : int * int;
 }
 
-val basic_block : ?source_info:source_info -> name:IR.name -> basic_block
+val basic_block : ?source_info:source_info -> IR.name -> basic_block
 
 val to_string : basic_block -> string
 
