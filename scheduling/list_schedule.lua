@@ -91,18 +91,28 @@ local function advance_cycle()
     end
 end
 
+local function length(sched)
+    local len = 0
+    for cycle, instr in ipairs(sched) do
+        -- cycle is the starting time/cycle for every instruction i in instr
+        -- (possibly empty if no instruction can be scheduled for execution)
+        len = math.max(len, table.unpack(map(function (i)
+            return cycle + i.delay-1
+        end, instr)))
+    end
+    return len
+end
+
 local function to_string(sched)
     local t = {}
     t[#t+1] = "-------+--------------"
     t[#t+1] = " Cycle | Instructions "
     t[#t+1] = "-------+--------------"
-    local cycle = 1
-    for _, list in ipairs(sched) do
-        t[#t+1] = (" %3d   |   [%s]"):format(cycle, concat(map(id, list), ", "))
-        cycle = cycle + 1
+    for cycle, instr in ipairs(sched) do
+        t[#t+1] = (" %3d   |   [%s]"):format(cycle, concat(map(id, instr), ", "))
     end
     t[#t+1] = "-------+--------------"
-    t[#t+1] = (" => %d cycles"):format(cycle-1 + sched[#sched][1].delay-1)
+    t[#t+1] = (" => %d cycles"):format(length(sched))
     t[#t+1] = "----------------------"
     return concat(t, "\n")
 end
