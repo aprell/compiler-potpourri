@@ -1,23 +1,36 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address,undefined
+CC := gcc
+CFLAGS += -Wall -Wextra -Werror -fsanitize=address,undefined
+LDFLAGS += -fsanitize=address,undefined
 
-all: vec1 vec2 vec3
+SRCS := vec1.c vec2.c vec3.c omp.c
+OBJS := $(SRCS:.c=.o)
+BINS := vec1 vec2 vec3
 
-vec1: CFLAGS += -fopenmp
-vec2: CFLAGS += -fopenmp
+all: $(BINS)
+
+vec1 vec2: CFLAGS += -fopenmp
+vec1 vec2: LDFLAGS += -fopenmp
 vec3: CFLAGS += -pthread
+vec3: LDFLAGS += -pthread
 
-vec2 vec3: omp.c
+vec2 vec3: omp.o
 
 check: all
 	@set -e; \
-	for vec in vec1 vec2 vec3; do \
+	for vec in $(BINS); do \
 		echo "Running $$vec:"; \
 		./$$vec; \
 		echo; \
 	done
 
 clean:
-	rm -f vec1 vec2 vec3
+	rm -f depend $(OBJS) $(BINS)
+
+depend: $(SRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -MM $^ > depend
+
+ifneq ($(MAKECMDGOALS),clean)
+  -include depend
+endif
 
 .PHONY: all check clean
