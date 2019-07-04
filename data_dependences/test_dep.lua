@@ -14,8 +14,12 @@ for i = 0, n do
     end
 end
 
+assert(next(A.deps) == nil)
+assert(next(B.deps) == nil)
+print(C.deps)
+
 --[[
-> lua test_dep.lua | sort | uniq
+> lua test_dep.lua
 S1 anti S1, d = (0, 0, 0)
 S1 flow S1, d = (0, 0, 1)
 S1 output S1, d = (0, 0, 1)

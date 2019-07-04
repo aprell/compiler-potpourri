@@ -7,6 +7,9 @@ for i = 1, 16 do
     S"S1"  def(a[i+3])  use(a[i])  use(b[i])
 end
 
+print(a.deps)
+assert(next(b.deps) == nil)
+
 --[[
 S1 flow S1, d = (3)
 --]]
@@ -22,6 +25,9 @@ for is = 1, 16, 5 do
         S"S1"  def(a[i+3])  use(a[i])  use(b[i])
     end
 end
+
+print(a.deps)
+assert(next(b.deps) == nil)
 
 --[[
 S1 flow S1, d = (0, 3)
