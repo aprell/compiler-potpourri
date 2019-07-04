@@ -8,17 +8,28 @@ local unpack = unpack or table.unpack
 -- Verbose output with -v or --verbose
 local output = arg[1] or "default"
 
-local mt = {
+local array_mt = {
     __index = function (a, i)
         table.insert(a.last_ref, i)
         return a
     end
 }
 
+local array_deps_mt = {
+    __tostring = function (deps)
+        local t = {}
+        for dep in pairs(deps) do
+            t[#t + 1] = dep
+        end
+        return table.concat(t, "\n")
+    end
+}
+
 -- Constructor for arrays
 function array(name)
     local a = {name = name, array = {}, last_ref = {}}
-    return setmetatable(a, mt)
+    a.deps = setmetatable({}, array_deps_mt)
+    return setmetatable(a, array_mt)
 end
 
 -- Hack hack
@@ -69,10 +80,10 @@ function def(a)
                 "(" .. concat(curr_iter, ", ") .. ")", curr_stmt,
                 a.name .. "[" .. concat(a.last_ref, "][") .. "]",
                 "(" .. concat(prev_iter, ", ") .. ")", prev_stmt)
-            else
-                printf("%s output %s, d = %s",
-                prev_stmt, curr_stmt, "(" .. concat(dist, ", ") .. ")")
             end
+            local dep = ("%s output %s, d = %s"):format(prev_stmt, curr_stmt,
+                "(" .. concat(dist, ", ") .. ")")
+            a.deps[dep] = (a.deps[dep] or 0) + 1
         end
         if value.last_use ~= nil then
             -- Write After Read
@@ -83,10 +94,10 @@ function def(a)
                 "(" .. concat(curr_iter, ", ") .. ")", curr_stmt,
                 a.name .. "[" .. concat(a.last_ref, "][") .. "]",
                 "(" .. concat(prev_iter, ", ") .. ")", prev_stmt)
-            else
-                printf("%s anti %s, d = %s",
-                prev_stmt, curr_stmt, "(" .. concat(dist, ", ") .. ")")
             end
+            local dep = ("%s anti %s, d = %s"):format(prev_stmt, curr_stmt,
+                "(" .. concat(dist, ", ") .. ")")
+            a.deps[dep] = (a.deps[dep] or 0) + 1
         end
     else
         a.array[index] = {}
@@ -109,10 +120,10 @@ function use(a)
                 "(" .. concat(curr_iter, ", ") .. ")", curr_stmt,
                 a.name .. "[" .. concat(a.last_ref, "][") .. "]",
                 "(" .. concat(prev_iter, ", ") .. ")", prev_stmt)
-            else
-                printf("%s flow %s, d = %s",
-                prev_stmt, curr_stmt, "(" .. concat(dist, ", ") .. ")")
             end
+            local dep = ("%s flow %s, d = %s"):format(prev_stmt, curr_stmt,
+                "(" .. concat(dist, ", ") .. ")")
+            a.deps[dep] = (a.deps[dep] or 0) + 1
         end
     else
         a.array[index] = {}
