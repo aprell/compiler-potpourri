@@ -6,9 +6,9 @@ local C = array "C"
 
 local n = 10
 
-for i = 0, n do
-    for j = 0, n do
-        for k = 0, n do
+for i in range(0, n) do
+    for j in range(0, n) do
+        for k in range(0, n) do
             S"S1"  use(C[i][j])  def(C[i][j])  use(A[i][k])  use(B[k][j])
         end
     end
