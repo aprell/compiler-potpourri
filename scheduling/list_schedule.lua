@@ -96,7 +96,7 @@ local function length(sched)
     for cycle, instr in ipairs(sched) do
         -- cycle is the starting time/cycle for every instruction i in instr
         -- (possibly empty if no instruction can be scheduled for execution)
-        len = math.max(len, table.unpack(map(function (i)
+        len = math.max(len, unpack(map(function (i)
             return cycle + i.delay-1
         end, instr)))
     end
