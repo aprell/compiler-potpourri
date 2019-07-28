@@ -27,3 +27,48 @@ and relop = EQ | NE | LT | GT | LE | GE
 and label = name
 
 and name = string
+
+let string_of_binop = function
+  | Plus -> "+"
+  | Minus -> "-"
+  | Mul -> "*"
+  | Div -> "/"
+  | Mod -> "%"
+
+let string_of_relop = function
+  | EQ -> "=="
+  | NE -> "!="
+  | LT -> "<"
+  | GT -> ">"
+  | LE -> "<="
+  | GE -> ">="
+
+let rec string_of_expr = function
+  | Const n -> string_of_int n
+  | Ref (Var x) -> x
+  | Binop (op, e1, e2) ->
+    string_of_expr e1 ^ " " ^ string_of_binop op ^ " " ^ string_of_expr e2
+  | Relop (op, e1, e2) ->
+    string_of_expr e1 ^ " " ^ string_of_relop op ^ " " ^ string_of_expr e2
+
+let string_of_stmt stmt =
+  let indent = String.make 4 ' ' in
+  match stmt with
+  | Move (Var x, e) ->
+    indent ^ x ^ " := " ^ string_of_expr e
+  | Load (Var x, Mem { base = Addr base; offset }) ->
+    indent ^ x ^ " := " ^ base ^ "[" ^ string_of_expr offset ^ "]"
+  | Store (Mem { base = Addr base; offset }, e) ->
+    indent ^ base ^ "[" ^ string_of_expr offset ^ "] := " ^ string_of_expr e
+  | Label l ->
+    l ^ ":"
+  | Jump l ->
+    indent ^ "goto " ^ l
+  | Cond (e, l) ->
+    indent ^ "if " ^ string_of_expr e ^ " goto " ^ l
+  | Receive (Var x) ->
+    indent ^ "receive " ^ x
+  | Return (Some e) ->
+    indent ^ "return " ^ string_of_expr e
+  | Return None ->
+    indent ^ "return"
