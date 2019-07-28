@@ -33,8 +33,6 @@ rule read = parse
   | "goto"      { GOTO }
   | "receive"   { RECV }
   | "return"    { RET }
-  | "input"     { INPUT }
-  | "output"    { OUTPUT }
   | "["         { LBRACKET }
   | "]"         { RBRACKET }
   | ident as id { NAME id }

@@ -29,7 +29,7 @@ let basic_blocks (code : stmt list) : basic_block list =
   let gen_sym = gen_sym 1 in
   List.fold_left (fun (label, start, line, blocks) stmt ->
       match stmt with
-      | Jump (Target target) ->
+      | Jump target ->
         (* End current basic block *)
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
@@ -38,7 +38,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         in
         (* Next line starts a new basic block *)
         ("fall-through", line + 1, line + 1, block :: blocks)
-      | Cond (_, Target target) ->
+      | Cond (_, target) ->
         (* End current basic block *)
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;

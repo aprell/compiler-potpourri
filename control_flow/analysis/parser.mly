@@ -11,9 +11,13 @@
 %token IF
 %token GOTO
 %token RECV RET
-%token INPUT OUTPUT
 %token LBRACKET RBRACKET
 %token EOF
+
+%left EQ NE
+%left LT GT LE GE
+%left PLUS MINUS
+%left MUL DIV MOD
 
 %start <IR.stmt> prog
 
@@ -24,33 +28,26 @@ prog:
   ;
 
 stmt:
-  | NAME GETS expr           { Move ($1, $3) }
-  | NAME GETS mem            { Fetch ($1, $3) }
-  | mem GETS scalar          { Store ($1, $3) }
+  | NAME GETS expr           { Move (Var $1, $3) }
+  | NAME GETS mem            { Load (Var $1, $3) }
+  | mem GETS expr            { Store ($1, $3) }
   | NAME COL                 { Label $1 }
-  | GOTO NAME                { Jump (Target $2) }
-  | IF expr GOTO NAME        { Cond ($2, Target $4) }
-  | RECV scalar              { Receive (Some $2) }
-  | RECV                     { Receive None }
-  | RET scalar               { Return (Some $2) }
+  | GOTO NAME                { Jump $2 }
+  | IF expr GOTO NAME        { Cond ($2, $4) }
+  | RECV NAME                { Receive (Var $2) }
+  | RET expr                 { Return (Some $2) }
   | RET                      { Return None }
-  | INPUT scalar             { Input $2 }
-  | OUTPUT scalar            { Output $2 }
   ;
 
 expr:
-  | scalar                   { Val $1 }
-  | scalar binop scalar      { Binop ($2, $1, $3) }
-  | scalar relop scalar      { Relop ($2, $1, $3) }
-  ;
-
-scalar:
   | INT                      { Const $1 }
-  | NAME                     { Var $1 }
+  | NAME                     { Ref (Var $1) }
+  | expr binop expr          { Binop ($2, $1, $3) }
+  | expr relop expr          { Relop ($2, $1, $3) }
   ;
 
 mem:
-  | NAME LBRACKET scalar RBRACKET { Mem { base = $1; index = $3 } }
+  | NAME LBRACKET expr RBRACKET { Mem { base = Addr $1; offset = $3 } }
 
 %inline binop:
   | PLUS  { Plus }
