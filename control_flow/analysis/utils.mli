@@ -2,9 +2,19 @@ val input_lines : in_channel -> string list
 
 val read_file : string -> string list
 
+val unlines : string list -> string
+
 val ( -- ) : int -> int -> int list
 
 val ( ^^ ) : string -> int list -> string list
+
+val take : int -> 'a list -> 'a list
+
+val drop : int -> 'a list -> 'a list
+
+val split : int -> 'a list -> 'a list * 'a list
+
+val sublist : int -> int -> 'a list -> 'a list
 
 module Nodes : sig
   type elt = int
