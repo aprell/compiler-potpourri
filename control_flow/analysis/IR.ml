@@ -51,8 +51,8 @@ let rec string_of_expr = function
   | Relop (op, e1, e2) ->
     string_of_expr e1 ^ " " ^ string_of_relop op ^ " " ^ string_of_expr e2
 
-let string_of_stmt stmt =
-  let indent = String.make 4 ' ' in
+let string_of_stmt ?(indent = 0) stmt =
+  let indent = String.make indent ' ' in
   match stmt with
   | Move (Var x, e) ->
     indent ^ x ^ " := " ^ string_of_expr e
