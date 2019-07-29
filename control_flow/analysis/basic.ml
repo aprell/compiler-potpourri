@@ -37,54 +37,58 @@ let gen_sym init =
 
 let basic_blocks (code : stmt list) : basic_block list =
   let gen_sym = gen_sym 1 in
-  List.fold_left (fun (label, start, line, blocks) stmt ->
+  List.fold_left (fun (label, start, line, code, blocks) stmt ->
       match stmt with
       | Jump target ->
         (* End current basic block *)
+        let stmts, code = split (line - start + 1) code in
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = [target];
-              stmts = sublist (start - 1) line code;
-              source_loc = (start, line); }
+              source_loc = (start, line);
+              stmts; }
         in
         (* Next line starts a new basic block *)
-        ("fall-through", line + 1, line + 1, block :: blocks)
+        ("fall-through", line + 1, line + 1, code, block :: blocks)
       | Cond (_, target) ->
         (* End current basic block *)
+        let stmts, code = split (line - start + 1) code in
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = [target; "fall-through"];
-              stmts = sublist (start - 1) line code;
-              source_loc = (start, line); }
+              source_loc = (start, line);
+              stmts; }
         in
         (* Next line starts a new basic block *)
-        ("fall-through", line + 1, line + 1, block :: blocks)
+        ("fall-through", line + 1, line + 1, code, block :: blocks)
       | Return _ ->
         (* End current basic block *)
+        let stmts, code = split (line - start + 1) code in
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = ["exit"];
-              stmts = sublist (start - 1) line code;
-              source_loc = (start, line); }
+              source_loc = (start, line);
+              stmts; }
         in
         (* Next line starts a new basic block *)
-        ("fall-through", line + 1, line + 1, block :: blocks)
+        ("fall-through", line + 1, line + 1, code, block :: blocks)
       | Label lab ->
         if start = line then
           (* Extend basic block *)
-          (lab, start, line + 1, blocks)
+          (lab, start, line + 1, code, blocks)
         else
           (* End previous basic block *)
+          let stmts, code = split (line - start) code in
           let block = basic_block (gen_sym ()) ~source_info:
               { entry = label;
                 exits = [lab];
-                stmts = sublist (start - 1) (line - 1) code;
-                source_loc = (start, line - 1); }
+                source_loc = (start, line - 1);
+                stmts; }
           in
           (* This line starts a new basic block *)
-          (lab, line, line + 1, block :: blocks)
+          (lab, line, line + 1, code, block :: blocks)
       | _ ->
         (* Extend basic block *)
-        (label, start, line + 1, blocks)
-    ) ("entry", 1, 1, []) code
-  |> fun (_, _, _, blocks) -> List.rev blocks
+        (label, start, line + 1, code, blocks)
+    ) ("entry", 1, 1, code, []) code
+  |> fun (_, _, _, _, blocks) -> List.rev blocks
