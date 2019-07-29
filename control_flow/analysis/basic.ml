@@ -1,10 +1,12 @@
 open IR
+open Utils
 
 type basic_block = Basic_block of name * source_info option
 
 and source_info =
   { entry : name;
     exits : name list;
+    stmts : stmt list;
     (* Line range *)
     source_loc : int * int; }
 
@@ -12,10 +14,18 @@ and source_info =
 let basic_block ?source_info name =
   Basic_block (name, source_info)
 
+let add_line_numbers =
+  List.map2 (Printf.sprintf "%3d %s")
+
 let to_string (Basic_block (name, source_info)) : string =
   match source_info with
-  | Some { source_loc = (a, b); _ } ->
-    Printf.sprintf "%s: [%d, %d]" name a b
+  | Some { stmts; source_loc = (a, b); _ } ->
+    Printf.sprintf "[%s]\n%s"
+      name
+      (stmts
+       |> List.map (string_of_stmt ~indent:4)
+       |> add_line_numbers (a -- b)
+       |> unlines)
   | None -> name
 
 let gen_sym init =
@@ -34,6 +44,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = [target];
+              stmts = sublist (start - 1) line code;
               source_loc = (start, line); }
         in
         (* Next line starts a new basic block *)
@@ -43,6 +54,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = [target; "fall-through"];
+              stmts = sublist (start - 1) line code;
               source_loc = (start, line); }
         in
         (* Next line starts a new basic block *)
@@ -52,6 +64,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         let block = basic_block (gen_sym ()) ~source_info:
             { entry = label;
               exits = ["exit"];
+              stmts = sublist (start - 1) line code;
               source_loc = (start, line); }
         in
         (* Next line starts a new basic block *)
@@ -65,6 +78,7 @@ let basic_blocks (code : stmt list) : basic_block list =
           let block = basic_block (gen_sym ()) ~source_info:
               { entry = label;
                 exits = [lab];
+                stmts = sublist (start - 1) (line - 1) code;
                 source_loc = (start, line - 1); }
           in
           (* This line starts a new basic block *)
