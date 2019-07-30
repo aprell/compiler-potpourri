@@ -2,17 +2,8 @@ LIB := control_flow
 
 PROGS := test_cfg test_dom
 
-
-
 all: $(LIB) $(PROGS)
 
-$(LIB):
-	dune build $(addsuffix .a,$@)
+.PHONY: all
 
-$(PROGS):
-	dune build $(addsuffix .exe,$@)
-
-clean:
-	dune clean
-
-.PHONY: all clean
+include ../../utils/common.mk
