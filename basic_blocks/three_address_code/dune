@@ -1,0 +1,9 @@
+(ocamllex
+  (modules lexer))
+
+(menhir
+  (modules parser))
+
+(library
+  (name three_address_code)
+  (public_name three_address_code))

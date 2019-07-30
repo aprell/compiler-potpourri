@@ -1,23 +1,18 @@
-PROGS = test_basic test_cfg test_dom
+LIB := control_flow
+
+PROGS := test_cfg test_dom
 
 
 
-PROGS_EXE = $(addsuffix .exe,$(PROGS))
+all: $(LIB) $(PROGS)
 
-all: $(PROGS_EXE)
+$(LIB):
+	dune build $(addsuffix .a,$@)
 
-$(PROGS_EXE):
-	dune build $@
-
-test:
-	@echo "\n--- test_parse ----------"
-	@./test_parse.sh
-	@echo "\n--- test_utils ----------"
-	@./test_utils.sh
-	@echo
+$(PROGS):
+	dune build $(addsuffix .exe,$@)
 
 clean:
 	dune clean
-	rm -rf _test
 
-.PHONY: all clean test
+.PHONY: all clean

@@ -1,11 +1,14 @@
-(ocamllex
-  (modules lexer))
+(library
+  (name control_flow)
+  (modules cfg dom inspect utils)
+  (libraries basic))
 
-(menhir
-  (modules parser))
+(executable
+  (name test_cfg)
+  (modules test_cfg)
+  (libraries control_flow))
 
-(executables
-  (names
-    test_basic
-    test_cfg
-    test_dom))
+(executable
+  (name test_dom)
+  (modules test_dom)
+  (libraries control_flow))

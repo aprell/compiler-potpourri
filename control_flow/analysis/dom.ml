@@ -1,6 +1,8 @@
 open Cfg
 open Utils
 
+let ( -- ) = Basic__Utils.( -- )
+
 let dominators (graph : cfg) : Nodes.t array =
   let num_basic_blocks = Array.length graph in
   let entry = 0 in

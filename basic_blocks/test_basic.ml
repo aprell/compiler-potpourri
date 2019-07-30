@@ -1,4 +1,4 @@
-open Parse
+open Three_address_code__Parse
 open Basic
 
 let print_basic_blocks filename =

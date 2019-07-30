@@ -1,12 +1,12 @@
-open Parse
+open Three_address_code__Parse
 open Basic
-open Cfg
-open Inspect
+open Control_flow__Cfg
+open Control_flow__Inspect
 
 let fib_cfg_1 =
   define_cfg
     ~nodes:
-      Utils.(1--6)
+      Basic__Utils.(1--6)
     ~edges:
       (* Node 7 serves as exit node *)
       [ (1, 2); (1, 6); (2, 3); (3, 4);

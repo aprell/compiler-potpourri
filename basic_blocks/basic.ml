@@ -1,4 +1,4 @@
-open IR
+open Three_address_code__IR
 open Utils
 
 type basic_block = Basic_block of name * source_info option
@@ -25,7 +25,7 @@ let to_string (Basic_block (name, source_info)) : string =
       (stmts
        |> List.map (string_of_stmt ~indent:4)
        |> add_line_numbers (a -- b)
-       |> unlines)
+       |> String.concat "\n")
   | None -> name
 
 let gen_sym init =
@@ -91,4 +91,4 @@ let basic_blocks (code : stmt list) : basic_block list =
         (* Extend basic block *)
         (label, start, line + 1, code, blocks)
     ) ("entry", 1, 1, code, []) code
-  |> fun (_, _, _, _, blocks) -> List.rev blocks
+  |> fun (_, _, _, code, blocks) -> assert (code = []); List.rev blocks
