@@ -1,3 +1,4 @@
 (library
   (name data_flow)
+  (modules (:standard \ dom graphs))
   (libraries control_flow))
