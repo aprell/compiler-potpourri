@@ -1,5 +1,6 @@
 (library
   (name control_flow)
+  (public_name control_flow)
   (modules cfg dom inspect utils)
   (libraries basic))
 
