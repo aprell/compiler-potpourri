@@ -1,4 +1,4 @@
 (library
   (name data_flow)
-  (modules (:standard \ dom graphs))
+  (modules (:standard \ dom liveness graphs))
   (libraries control_flow))
