@@ -1,6 +1,0 @@
-- Three-address code
-- Basic blocks
-- Control flow graphs
-- Dominators
-- Back edges
-- Natural loops

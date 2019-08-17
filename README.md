@@ -1,5 +1,13 @@
 # pica-materials
-Programs, scripts, and tools for a compilers course
+Programs, scripts, and tools for a compilers course covering:
+- Three-address code
+- Basic blocks
+- Control flow graphs, dominators, and back edges of natural loops
+- Data flow analysis
+- Data dependences
+- Loop transformations
+- Parallel loops in OpenMP
+- List scheduling
 
 ## References
 
