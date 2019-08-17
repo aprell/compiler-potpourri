@@ -14,7 +14,7 @@ let fib_cfg_1 =
         (3, 5); (4, 3); (5, 7); (6, 7); ]
 
 let fib_cfg_2 =
-  parse_file "fib.ir"
+  parse_file "basic_blocks/fib.ir"
   |> basic_blocks
   |> construct_cfg
 
