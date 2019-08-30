@@ -1,6 +1,7 @@
 #ifndef LOOP_H
 #define LOOP_H
 
+#include <pthread.h>
 #include <stdbool.h>
 
 struct loop {
