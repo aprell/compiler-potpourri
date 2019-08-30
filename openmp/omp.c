@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "loop.h"
 #include "omp.h"
 
 struct omp_thread {
@@ -10,9 +11,11 @@ struct omp_thread {
 };
 
 struct omp_team {
+    pthread_mutex_t lock;
     struct omp_thread *threads;
-    int num_threads;
+    struct loop *work_share;
     pthread_barrier_t barrier;
+    int num_threads;
 } team;
 
 void omp_parallel_start(void (*fn)(void *data), void *data, int num_threads)
@@ -31,8 +34,10 @@ void omp_parallel_start(void (*fn)(void *data), void *data, int num_threads)
 
     team.threads = malloc(num_threads * sizeof(struct omp_thread));
     assert(team.threads && "Out of memory");
-    team.num_threads = num_threads;
+    pthread_mutex_init(&team.lock, NULL);
+    team.work_share = NULL;
     pthread_barrier_init(&team.barrier, NULL, num_threads);
+    team.num_threads = num_threads;
 
     team.threads[0].handle = pthread_self();
     team.threads[0].ID = 0;
@@ -52,6 +57,7 @@ void omp_parallel_end(void)
     }
 
     pthread_barrier_destroy(&team.barrier);
+    omp_work_share_destroy();
     free(team.threads);
 }
 
@@ -80,4 +86,61 @@ int omp_get_thread_num(void)
 int omp_get_num_threads(void)
 {
     return team.num_threads;
+}
+
+#define LOCKED(team) \
+    for (int i = (pthread_mutex_lock(&(team)->lock), 0); !i; pthread_mutex_unlock(&(team)->lock), i++)
+
+bool omp_work_share_init(int from, int to, int step)
+{
+    bool ret;
+
+    LOCKED(&team) {
+        if (!team.work_share) {
+            team.work_share = loop_init(from, to, step);
+            ret = true;
+        } else {
+            ret = false;
+        }
+    }
+
+    return ret;
+}
+
+bool omp_work_share_destroy(void)
+{
+    bool ret;
+
+    LOCKED(&team) {
+        if (team.work_share) {
+            loop_destroy(team.work_share);
+            team.work_share = NULL;
+            ret = true;
+        } else {
+            ret = false;
+        }
+    }
+
+    return ret;
+}
+
+bool omp_split_static(int *from, int *to)
+{
+    assert(team.work_share != NULL);
+
+    return loop_split_static(team.work_share, from, to);
+}
+
+bool omp_split_dynamic(int *from, int *to)
+{
+    assert(team.work_share != NULL);
+
+    return loop_split_dynamic(team.work_share, from, to);
+}
+
+bool omp_split_guided(int *from, int *to)
+{
+    assert(team.work_share != NULL);
+
+    return loop_split_guided(team.work_share, from, to);
 }

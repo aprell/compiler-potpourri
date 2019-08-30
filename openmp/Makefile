@@ -2,18 +2,18 @@ CC := gcc
 CFLAGS += -Wall -Wextra -Werror -fsanitize=address,undefined
 LDFLAGS += -fsanitize=address,undefined
 
-SRCS := vec1.c vec2.c vec3.c omp.c
+SRCS := vec1.c vec2.c vec3.c vec4.c omp.c loop.c
 OBJS := $(SRCS:.c=.o)
-BINS := vec1 vec2 vec3
+BINS := vec1 vec2 vec3 vec4
 
 all: $(BINS)
 
 vec1 vec2: CFLAGS += -fopenmp
 vec1 vec2: LDFLAGS += -fopenmp
-vec3: CFLAGS += -pthread
-vec3: LDFLAGS += -pthread
+vec3 vec4: CFLAGS += -pthread
+vec3 vec4: LDFLAGS += -pthread
 
-vec2 vec3: omp.o
+vec2 vec3 vec4: omp.o loop.o
 
 check: all
 	@set -e; \
