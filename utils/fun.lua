@@ -40,4 +40,10 @@ fun["*"] = function (a, b) return a * b end
 fun["/"] = function (a, b) return a / b end
 fun["%"] = function (a, b) return a % b end
 
+-- A few more convenience functions
+fun.id = function (a) return a end
+fun.fst = function (t) return t[1] end
+fun.snd = function (t) return t[2] end
+fun.pair = function (a, b) return {a, b} end
+
 return fun
