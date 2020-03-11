@@ -43,4 +43,22 @@ function Dependence.analyze(a, b)
     return result
 end
 
+local function ZIV_test(a, b)
+    return a:simplify() == b:simplify()
+end
+
+function Dependence.test(analysis)
+    for _, v in ipairs(analysis) do
+        if v.class == "ZIV" then
+            assert(not v.coupled)
+            if ZIV_test(table.unpack(v.subscript)) == false then
+                -- No dependence possible
+                return false
+            end
+        end -- TODO
+    end
+
+    return true
+end
+
 return Dependence
