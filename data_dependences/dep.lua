@@ -1,10 +1,6 @@
-package.path = "../utils/?.lua;" .. package.path
+local IterationVector = require "iteration_vector"
 
-require "range"
-
-local fun = require "fun"
 local concat = table.concat
-local getlocal = debug.getlocal
 local unpack = unpack or table.unpack
 
 local verbose_output = false
@@ -18,78 +14,6 @@ while #arg > 0 do
         normalize_iteration_vectors = true
     end
     table.remove(arg)
-end
-
-local array_mt = {
-    __index = function (a, i)
-        table.insert(a.last_ref, i)
-        return a
-    end
-}
-
-local array_deps_mt = {
-    __tostring = function (deps)
-        local t = {}
-        for dep in pairs(deps) do
-            t[#t + 1] = dep
-        end
-        return concat(t, "\n")
-    end
-}
-
--- Constructor for arrays
-function array(name)
-    local a = {name = name, array = {}, last_ref = {}}
-    a.deps = setmetatable({}, array_deps_mt)
-    return setmetatable(a, array_mt)
-end
-
--- Metatable for iteration and dependence distance vectors
-local vector_mt = {
-    __tostring = function (x)
-        return "(" .. concat(x, ", ") .. ")"
-    end
-}
-
--- Metatable for iteration vectors
-local iteration_vector_mt = {
-    -- Subtracting two iteration vectors gives a distance vector
-    __sub = function (x, y)
-        local d = fun.map2(fun['-'], x, y)
-        return setmetatable(d, vector_mt)
-    end,
-
-    __tostring = vector_mt.__tostring
-}
-
--- Normalize iteration vector i
-local function normalize(i)
-    assert(#i == #loops)
-    for level, loop in ipairs(loops) do
-        i[level] = math.floor((i[level] - loop.lo) / loop.step)
-    end
-    return i
-end
-
-local function current_iteration_vector()
-    local t = setmetatable({}, iteration_vector_mt)
-    local i = 1
-    while true do
-        local name = getlocal(3, i)
-        if not name then break end
-        if name == "(for generator)" then
-            assert(getlocal(3, i + 1) == "(for state)")
-            assert(getlocal(3, i + 2) == "(for control)")
-            t[#t + 1] = select(2, getlocal(3, i + 3))
-            i = i + 3
-        end
-        i = i + 1
-    end
-    if normalize_iteration_vectors then
-        return normalize(t)
-    else
-        return t
-    end
 end
 
 local function clear(a)
@@ -109,7 +33,10 @@ function S(name)
 end
 
 function def(a)
-    local curr_iter = current_iteration_vector()
+    local curr_iter = IterationVector:current()
+    if normalize_iteration_vectors then
+        curr_iter = curr_iter:normalize()
+    end
     local index = concat(a.last_ref, "_")
     local value = a.array[index]
     if value ~= nil then
@@ -147,7 +74,10 @@ function def(a)
 end
 
 function use(a)
-    local curr_iter = current_iteration_vector()
+    local curr_iter = IterationVector:current()
+    if normalize_iteration_vectors then
+        curr_iter = curr_iter:normalize()
+    end
     local index = concat(a.last_ref, "_")
     local value = a.array[index]
     if value ~= nil then

@@ -1,14 +1,16 @@
 require "dep"
 
-local a = array "a"
-local b = array "b"
+local Array = require "array"
+
+local A = Array "A"
+local B = Array "B"
 
 for i in range(1, 16) do
-    S"S1"  def(a[i+3])  use(a[i])  use(b[i])
+    S"S1"  def(A[i+3])  use(A[i])  use(B[i])
 end
 
-print(a.deps)
-assert(next(b.deps) == nil)
+print(A.deps)
+assert(next(B.deps) == nil)
 
 --[[
 > lua strip_mining.lua
@@ -17,18 +19,18 @@ S1 flow S1, d = (3)
 
 print "--- After strip mining ----------"
 
-a = array "a"
-b = array "b"
+A = Array "A"
+B = Array "B"
 
 -- See ../loop_transformations/test_strip_mine.lua
 for is in range(1, 16, 5) do
     for i in range(is, math.min(16, is + 4)) do
-        S"S1"  def(a[i+3])  use(a[i])  use(b[i])
+        S"S1"  def(A[i+3])  use(A[i])  use(B[i])
     end
 end
 
-print(a.deps)
-assert(next(b.deps) == nil)
+print(A.deps)
+assert(next(B.deps) == nil)
 
 --[[
 > lua strip_mining.lua

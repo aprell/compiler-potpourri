@@ -1,8 +1,10 @@
 require "dep"
 
-local A = array "A"
-local B = array "B"
-local C = array "C"
+local Array = require "array"
+
+local A = Array "A"
+local B = Array "B"
+local C = Array "C"
 
 local n = 10
 
