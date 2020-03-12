@@ -42,7 +42,7 @@ test {
         "A[2*i + 2]",
         "A[2*i + 1]"
     },
-    expect = true
+    expect = false
 }
 
 test {
