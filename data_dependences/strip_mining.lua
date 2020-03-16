@@ -1,4 +1,4 @@
-require "dep"
+require "dependence"
 
 local Array = require "array"
 
