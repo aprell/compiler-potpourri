@@ -1,5 +1,6 @@
-# pica-materials
-Programs, scripts, and tools for a compilers course covering:
+# Compiler Potpourri
+
+A potpourri of programs, scripts, and tools for a compilers course covering:
 - Three-address code
 - Basic blocks
 - Control flow graphs, dominators, and back edges of natural loops
