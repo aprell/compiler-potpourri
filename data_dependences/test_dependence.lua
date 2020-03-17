@@ -1,4 +1,5 @@
 require "dependence"
+require "range"
 
 local Array = require "array"
 

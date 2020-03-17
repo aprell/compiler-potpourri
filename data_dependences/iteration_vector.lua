@@ -1,6 +1,6 @@
 package.path = "../utils/?.lua;" .. package.path
 
-require "range"
+local loop = require "loop"
 
 local fun = require "fun"
 local concat = table.concat
@@ -15,8 +15,7 @@ obj_mt = {
 
     -- Subtracting two iteration vectors gives a distance vector
     __sub = function (x, y)
-        local d = fun.map2(fun['-'], x, y)
-        return setmetatable(d, obj_mt)
+        return setmetatable(fun.map2(fun['-'], x, y), obj_mt)
     end,
 
     __tostring = function (x)
@@ -50,8 +49,8 @@ function IterationVector:current()
 end
 
 function IterationVector:normalize()
-    assert(#self == #loops)
-    for level, loop in ipairs(loops) do
+    assert(#self == #loop.loops)
+    for level, loop in ipairs(loop.loops) do
         self[level] = math.floor((self[level] - loop.lo) / loop.step)
     end
     return self
