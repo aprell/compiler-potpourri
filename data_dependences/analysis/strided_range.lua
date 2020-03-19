@@ -8,7 +8,7 @@ local obj_mt = {
     __index = StridedRange,
 
     __tostring = function (range)
-        return ("[%d%s:%d]%s"):format(
+        return ("[%s%s:%s]%s"):format(
             range.lower_bound,
             range.step ~= 1 and ":" .. range.step or "",
             range.upper_bound,
