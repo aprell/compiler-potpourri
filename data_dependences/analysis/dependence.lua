@@ -49,30 +49,39 @@ end
 
 local function SIV_test(a, b)
 
-    --+----------------------------------------------------+
-    --| Distinguish between strong and weak SIV subscripts |
-    --+----------------------------------------------------+
-    -- A strong SIV subscript has the form
-    --
-    --     [a * i + c_1] and [a * i' + c_2],
-    --
-    -- that is, the two occurrences of the index variable share the same
-    -- coefficient. There exists a dependence iff a * i + c_1 = a * i' + c_2,
-    -- or i' - i = (c_1 - c_2) / a is an integer and |i' - i| <= U - L, where U
-    -- and L are the upper and lower bounds of the loop.
-    --
-    -- A weak SIV subscript has the form
-    --
-    --     [a_1 * i + c_1] and [a_2 * i' + c_2],
-    --
-    -- where the coefficients have different values. Again, there exists a
-    -- dependence iff a_1 * i + c_1 = a_2 * i' + c_2. It makes sense to
-    -- consider a few special cases:
-    --
-    -- If a_1 = 0, the dependence equation reduces to i' = (c_1 - c_2) / a_2.
-    -- Likewise, if a_2 = 0, the dependence equation becomes i = (c_2 - c_1) /
-    -- a_1. What is left to check is whether the resulting value is an integer
-    -- within the loop bounds.
+    --[[
+
+    +----------------------------------------------------+
+    | Distinguish between strong and weak SIV subscripts |
+    +----------------------------------------------------+
+
+    A strong SIV subscript has the form
+
+        [a * i + c_1] and [a * i' + c_2],
+
+    that is, the two occurrences of the index variable share the same
+    coefficient. There exists a dependence iff a * i + c_1 = a * i' + c_2, or
+    i' - i = (c_1 - c_2) / a is an integer and |i' - i| <= U - L, where U and L
+    are the upper and lower bounds of the loop.
+
+    A weak SIV subscript has the form
+
+        [a_1 * i + c_1] and [a_2 * i' + c_2],
+
+    where the coefficients have different values. Again, there exists a
+    dependence iff a_1 * i + c_1 = a_2 * i' + c_2. It makes sense to consider a
+    few special cases:
+
+    If a_1 = 0, the dependence equation reduces to i' = (c_1 - c_2) / a_2.
+    Likewise, if a_2 = 0, the dependence equation becomes i = (c_2 - c_1) /
+    a_1. What is left to check is whether the resulting value is an integer
+    within the loop bounds.
+
+    Another special case is a_1 = -a_2, resulting in the dependence equation i'
+    + i = (c_1 - c_2) / a_2. Since i and i' must be integers (within the loop
+    bounds), we can prove independence if (c_1 - c_2) / a_2 is not an integer.
+
+    --]]
 
     local coeffs = fun.map(table.unpack, {a:coefficients(), b:coefficients()})
     assert(#coeffs == 2)
@@ -82,6 +91,7 @@ local function SIV_test(a, b)
 
     if coeffs[1] == coeffs[2] then
         -- Strong SIV subscript
+        -- d is the dependence distance
         local d = (consts[1] - consts[2]) / coeffs[1]
         if d ~= math.floor(d) then
             -- No integer solution
@@ -104,6 +114,15 @@ local function SIV_test(a, b)
                 -- No integer solution
                 return false
             end
+        elseif coeffs[1] == -coeffs[2] then
+            -- Weak-crossing SIV subscript
+            local i = (consts[1] - consts[2]) / coeffs[2]
+            if i ~= math.floor(i) then
+                -- No integer solution
+                return false
+            end
+        else -- SIV test for handling the general case
+            return true
         end
     end
 end
