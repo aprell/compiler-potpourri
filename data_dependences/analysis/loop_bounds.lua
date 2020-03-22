@@ -31,16 +31,18 @@ LoopBounds.bounds = parse.Ct (
     -- lower bound
     (number + variable) * (literal "<=" / 0) *
     -- loop index variable
-    variable * (literal "<=" / 0) *
+    variable * (literal "<=" + literal "<") *
     -- upper bound
     (number + variable)
 ) /
 function (expr)
+    assert(#expr == 4)
+    if expr[3] == "<" then expr[4] = expr[4] - 1 end
     return setmetatable({
         variable = expr[2],
         bounds = StridedRange {
             lower_bound = expr[1],
-            upper_bound = expr[3],
+            upper_bound = expr[4],
             -- step = 1
         }
     }, obj_mt)
@@ -55,7 +57,7 @@ end
 
 local i = LoopBounds "1 <= i <= 10"
 local j = LoopBounds "2 <= j <= 20"
-local k = LoopBounds "3 <= k <= 30"
+local k = LoopBounds "3 <= k <  30"
 
 local ijk = LoopBounds.collect(i, j, k)
 
@@ -64,6 +66,6 @@ assert(ijk.i.upper_bound == 10)
 assert(ijk.j.lower_bound == 2)
 assert(ijk.j.upper_bound == 20)
 assert(ijk.k.lower_bound == 3)
-assert(ijk.k.upper_bound == 30)
+assert(ijk.k.upper_bound == 29)
 
 return LoopBounds
