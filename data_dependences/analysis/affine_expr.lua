@@ -7,21 +7,48 @@ local literal = parse.literal
 local number = parse.number
 local variable = parse.variable
 
+--+----------------+
+--| Constant terms |
+--+----------------+
+
+local obj_mt = {
+    __tostring = function (term)
+        return tostring(term[1])
+    end,
+
+    __mul = function (a, b)
+        if type(b) == "table" then a, b = b, a end
+        return setmetatable({a[1] * b}, getmetatable(a))
+    end,
+
+    __unm = function (a)
+        return -1 * a
+    end
+}
+
 local constant_term = parse.Ct (
     number + variable
-)
+) /
+function (expr)
+    return setmetatable(expr, obj_mt)
+end
 
 --+--------------+
 --| Linear terms |
 --+--------------+
 
-local LinearTerm = {}
-
 local obj_mt = {
-    __index = LinearTerm,
-
     __tostring = function (term)
-        return (term[1] ~= 1 and term[1] or "") .. term[2]
+        return (term[1] == 1 and "" or term[1] == -1 and "-" or term[1]) .. term[2]
+    end,
+
+    __mul = function (a, b)
+        if type(b) == "table" then a, b = b, a end
+        return setmetatable({a[1] * b, a[2]}, getmetatable(a))
+    end,
+
+    __unm = function (a)
+        return -1 * a
     end
 }
 
@@ -54,15 +81,20 @@ local obj_mt = {
     __index = AffineExpr,
 
     __tostring = function (expr)
-        return table.concat(fun.map(function (e)
-            if #e == 2 then
-                if e[1] == 1 then return e[2]
-                else return e[1] .. e[2] end
+        local s = {}
+        local i = 1
+        while i <= #expr do
+            -- a + -b -> a - b
+            if expr[i] == "+" and expr[i+1][1] < 0 then
+                s[#s+1] = "-"
+                s[#s+1] = tostring(-expr[i+1])
+                i = i + 2
             else
-                assert(#e == 1)
-                return e[1]
+                s[#s+1] = tostring(expr[i])
+                i = i + 1
             end
-        end, expr), " + ")
+        end
+        return table.concat(s, " ")
     end
 }
 
@@ -76,13 +108,24 @@ setmetatable(AffineExpr, class_mt)
 
 AffineExpr.affine_expr = parse.Ct (
     linear_term *
-    ((literal "+" / 0) * linear_term) ^ 0 *
-    ((literal "+" / 0) * constant_term) ^ -1 +
+    ((literal "+" + literal "-") * linear_term) ^ 0 *
+    ((literal "+" + literal "-") * constant_term) ^ -1 +
     constant_term
 ) /
 function (expr)
+    for i = 1, #expr do
+        -- "a - b" -> "a + -b"
+        if expr[i] == "-" then
+            expr[i] = "+"
+            expr[i+1] = -expr[i+1]
+        end
+    end
     return setmetatable(expr, obj_mt)
 end
+
+-- To understand why the following two functions work, keep in mind that
+-- ("+")[1] or ("+")[2] evaluate to nil, because getmetatable("+").__index does
+-- not contain integer keys.
 
 function AffineExpr:coefficients()
     return fun.map(fun.fst, self)
@@ -132,14 +175,16 @@ assert(e1:variables()[1] == "i")
 assert(e1:constant() == 0)
 assert(e1:class() == "SIV")
 
-local e2 = AffineExpr "2*i + -3*j + -4"
+local e2 = AffineExpr "2*i - 3*j + 4*k - 5"
 
 assert(e2:coefficients()[1] ==  2)
 assert(e2:coefficients()[2] == -3)
-assert(e2:coefficients()[3] == -4)
+assert(e2:coefficients()[3] ==  4)
+assert(e2:coefficients()[4] == -5)
 assert(e2:variables()[1] == "i")
 assert(e2:variables()[2] == "j")
-assert(e2:constant() == -4)
+assert(e2:variables()[3] == "k")
+assert(e2:constant() == -5)
 assert(e2:class() == "MIV")
 
 return AffineExpr
