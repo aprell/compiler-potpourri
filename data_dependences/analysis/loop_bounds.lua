@@ -9,9 +9,9 @@ local variable = parse.variable
 
 local StridedRange = require "strided_range"
 
---+----------------+
---| Loop bounds    |
---+----------------+
+--+-------------+
+--| Loop bounds |
+--+-------------+
 
 local LoopBounds = {}
 
@@ -29,9 +29,9 @@ setmetatable(LoopBounds, class_mt)
 
 LoopBounds.bounds = parse.Ct (
     -- lower bound
-    (number + variable) * literal "<=" *
+    (number + variable) * (literal "<=" / 0) *
     -- loop index variable
-    variable * literal "<=" *
+    variable * (literal "<=" / 0) *
     -- upper bound
     (number + variable)
 ) /

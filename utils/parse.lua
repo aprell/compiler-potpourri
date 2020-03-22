@@ -9,7 +9,7 @@ parse.alphanum = parse.alpha + parse.num
 parse.space = parse.S " \t\n"
 
 function parse.literal(s)
-    return parse.space ^ 0 * parse.P (s) * parse.space ^ 0
+    return parse.space ^ 0 * parse.C (parse.P (s)) * parse.space ^ 0
 end
 
 parse.number = parse.C (

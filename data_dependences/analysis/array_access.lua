@@ -39,7 +39,7 @@ local class_mt = {
 setmetatable(ArrayAccess, class_mt)
 
 ArrayAccess.array_access = parse.Ct (
-    variable * (literal "[" * AffineExpr.affine_expr * literal "]") ^ 1
+    variable * ((literal "[" / 0) * AffineExpr.affine_expr * (literal "]" / 0)) ^ 1
 ) /
 function (expr)
     return setmetatable({

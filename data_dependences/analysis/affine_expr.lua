@@ -26,7 +26,7 @@ local obj_mt = {
 }
 
 local linear_term = parse.Ct (
-    (number * literal "*") ^ -1 * variable
+    (number * (literal "*" / 0)) ^ -1 * variable
 ) /
 function (expr)
     if #expr == 1 then
@@ -75,8 +75,9 @@ local class_mt = {
 setmetatable(AffineExpr, class_mt)
 
 AffineExpr.affine_expr = parse.Ct (
-    linear_term * (literal "+" * linear_term) ^ 0 *
-    (literal "+" * constant_term) ^ -1 +
+    linear_term *
+    ((literal "+" / 0) * linear_term) ^ 0 *
+    ((literal "+" / 0) * constant_term) ^ -1 +
     constant_term
 ) /
 function (expr)
