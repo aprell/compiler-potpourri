@@ -44,7 +44,7 @@ function Dependence.analyze(a, b)
 end
 
 local function ZIV_test(a, b)
-    return a:simplify() == b:simplify()
+    return a[1] - b[1] == 0
 end
 
 local function SIV_test(a, b)

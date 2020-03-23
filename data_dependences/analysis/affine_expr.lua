@@ -11,48 +11,95 @@ local variable = parse.variable
 --| Constant terms |
 --+----------------+
 
+local ConstantTerm = {}
+
+function ConstantTerm.eval(a, b, op)
+    if type(a) == "table" and type(b) == "table" then
+        assert(type(a[1]) == "number")
+        assert(type(b[1]) == "number")
+        return setmetatable({op(a[1], b[1])}, getmetatable(a))
+    elseif type(b) == "table" then
+        a, b = b, a
+    end
+    assert(type(a) == "table")
+    assert(type(a[1]) == "number")
+    return setmetatable({op(a[1], b)}, getmetatable(a))
+end
+
 local obj_mt = {
+    __index = ConstantTerm,
+
     __tostring = function (term)
         return tostring(term[1])
     end,
 
-    __mul = function (a, b)
-        if type(b) == "table" then a, b = b, a end
-        return setmetatable({a[1] * b}, getmetatable(a))
-    end,
+    __add = function (a, b) return ConstantTerm.eval(a, b, fun["+"]) end,
+    __sub = function (a, b) return ConstantTerm.eval(a, b, fun["-"]) end,
+    __mul = function (a, b) return ConstantTerm.eval(a, b, fun["*"]) end,
+    __unm = function (a) return -1 * a end
+}
 
-    __unm = function (a)
-        return -1 * a
+local class_mt = {
+    __call = function (t, s)
+        return t.constant_term:match(s)
     end
 }
 
-local constant_term = parse.Ct (
+setmetatable(ConstantTerm, class_mt)
+
+ConstantTerm.constant_term = parse.Ct (
     number + variable
 ) /
 function (expr)
     return setmetatable(expr, obj_mt)
 end
 
+do
+    local a = ConstantTerm "1"
+    local b = ConstantTerm "3"
+    local c = ConstantTerm "5"
+    assert((a + 2 * b - 4 * -c)[1] == 27)
+end
+
 --+--------------+
 --| Linear terms |
 --+--------------+
 
+local LinearTerm = {}
+
+function LinearTerm.eval(a, b, op)
+    if type(a) == "table" and type(b) == "table" then
+        assert(a[2] == b[2])
+        return setmetatable({op(a[1], b[1]), a[2]}, getmetatable(a))
+    elseif type(b) == "table" then
+        a, b = b, a
+    end
+    assert(type(a) == "table")
+    return setmetatable({op(a[1], b), a[2]}, getmetatable(a))
+end
+
 local obj_mt = {
+    __index = LinearTerm,
+
     __tostring = function (term)
         return (term[1] == 1 and "" or term[1] == -1 and "-" or term[1]) .. term[2]
     end,
 
-    __mul = function (a, b)
-        if type(b) == "table" then a, b = b, a end
-        return setmetatable({a[1] * b, a[2]}, getmetatable(a))
-    end,
+    __add = function (a, b) return LinearTerm.eval(a, b, fun["+"]) end,
+    __sub = function (a, b) return LinearTerm.eval(a, b, fun["-"]) end,
+    __mul = function (a, b) return LinearTerm.eval(a, b, fun["*"]) end,
+    __unm = function (a) return -1 * a end
+}
 
-    __unm = function (a)
-        return -1 * a
+local class_mt = {
+    __call = function (t, s)
+        return t.linear_term:match(s)
     end
 }
 
-local linear_term = parse.Ct (
+setmetatable(LinearTerm, class_mt)
+
+LinearTerm.linear_term = parse.Ct (
     (number * (literal "*" / 0)) ^ -1 * variable
 ) /
 function (expr)
@@ -62,6 +109,13 @@ function (expr)
         assert(#expr == 2)
         return setmetatable(expr, obj_mt)
     end
+end
+
+do
+    local a = LinearTerm "i"
+    local b = LinearTerm "2*i"
+    local c = LinearTerm "4*i"
+    assert(((a + 1) * b - 2 * -c + a)[1] == 13)
 end
 
 --+--------------------+
@@ -107,10 +161,10 @@ local class_mt = {
 setmetatable(AffineExpr, class_mt)
 
 AffineExpr.affine_expr = parse.Ct (
-    linear_term *
-    ((literal "+" + literal "-") * linear_term) ^ 0 *
-    ((literal "+" + literal "-") * constant_term) ^ -1 +
-    constant_term
+    LinearTerm.linear_term *
+    ((literal "+" + literal "-") * LinearTerm.linear_term) ^ 0 *
+    ((literal "+" + literal "-") * ConstantTerm.constant_term) ^ -1 +
+    ConstantTerm.constant_term
 ) /
 function (expr)
     for i = 1, #expr do
