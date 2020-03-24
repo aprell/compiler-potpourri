@@ -3,6 +3,8 @@ package.path = "../../utils/?.lua;" .. package.path
 local Set = require "set"
 local fun = require "fun"
 
+local unpack = unpack or table.unpack
+
 local Dependence = {}
 
 function Dependence.analyze(a, b)
@@ -42,6 +44,11 @@ function Dependence.analyze(a, b)
 
     return result
 end
+
+local function is_int(n)
+    return n == math.floor(n)
+end
+
 
 local function ZIV_test(a, b)
     return a[1] - b[1] == 0
@@ -83,7 +90,7 @@ local function SIV_test(a, b)
 
     --]]
 
-    local coeffs = fun.map(table.unpack, {a:coefficients(), b:coefficients()})
+    local coeffs = fun.map(unpack, {a:coefficients(), b:coefficients()})
     assert(#coeffs == 2)
 
     local consts = {a:constant(), b:constant()}
@@ -93,55 +100,56 @@ local function SIV_test(a, b)
         -- Strong SIV subscript
         -- d is the dependence distance
         local d = (consts[1] - consts[2]) / coeffs[1]
-        if d ~= math.floor(d) then
-            -- No integer solution
-            return false
-        end
+        return is_int(d)
     else -- Weak SIV subscript
         if coeffs[1] == 0 then
             -- Weak-zero SIV subscript
             assert(coeffs[2] ~= 0)
-            local i = (consts[1] - consts[2]) / coeffs[2]
-            if i ~= math.floor(i) then
-                -- No integer solution
-                return false
-            end
+            return is_int((consts[1] - consts[2]) / coeffs[2])
         elseif coeffs[2] == 0 then
             -- Weak-zero SIV subscript
             assert(coeffs[1] ~= 0)
-            local i = (consts[2] - consts[1]) / coeffs[1]
-            if i ~= math.floor(i) then
-                -- No integer solution
-                return false
-            end
+            return is_int((consts[2] - consts[1]) / coeffs[1])
         elseif coeffs[1] == -coeffs[2] then
             -- Weak-crossing SIV subscript
-            local i = (consts[1] - consts[2]) / coeffs[2]
-            if i ~= math.floor(i) then
-                -- No integer solution
-                return false
-            end
-        else -- SIV test for handling the general case
+            return is_int((consts[1] - consts[2]) / coeffs[2])
+        else -- SIV test for handling the general case (unimplemented)
             return true
         end
     end
+end
+
+local function gcd(a, b)
+    if b == 0 then return a else return gcd(b, a % b) end
+end
+
+local function MIV_test(a, b)
+    -- Note: fun.map(unpack, {...}) doesn't work here
+    local coeffs = {unpack(a:coefficients()), unpack(b:coefficients())}
+    local gcd_coeffs = fun.fold(gcd, coeffs[1], fun.map(math.abs, coeffs))
+    local const = b:constant() - a:constant()
+    return is_int(const / gcd_coeffs)
 end
 
 function Dependence.test(analysis)
     for _, v in ipairs(analysis) do
         if v.class == "ZIV" then
             assert(not v.coupled)
-            if ZIV_test(table.unpack(v.subscript)) == false then
+            if ZIV_test(unpack(v.subscript)) == false then
                 -- No dependence possible
                 return false
             end
         elseif v.class == "SIV" then
-            if SIV_test(table.unpack(v.subscript)) == false then
+            if SIV_test(unpack(v.subscript)) == false then
                 -- No dependence possible
                 return false
             end
         else
             assert(v.class == "MIV")
+            if MIV_test(unpack(v.subscript)) == false then
+                -- No dependence possible
+                return false
+            end
         end
     end
 
