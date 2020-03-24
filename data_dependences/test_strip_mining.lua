@@ -14,7 +14,7 @@ print(A.deps)
 assert(next(B.deps) == nil)
 
 --[[
-> lua strip_mining.lua
+> lua test_strip_mining.lua
 S1 flow S1, d = (3)
 --]]
 
@@ -34,11 +34,11 @@ print(A.deps)
 assert(next(B.deps) == nil)
 
 --[[
-> lua strip_mining.lua
+> lua test_strip_mining.lua
 S1 flow S1, d = (0, 3)
 S1 flow S1, d = (5, 3)
 
-> lua strip_mining.lua --normalize
+> lua test_strip_mining.lua --normalize
 S1 flow S1, d = (0, 3)
 S1 flow S1, d = (1, -2)
 --]]
