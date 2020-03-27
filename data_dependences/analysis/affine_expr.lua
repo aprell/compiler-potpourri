@@ -189,6 +189,12 @@ function AffineExpr:variables()
     return fun.map(fun.snd, self)
 end
 
+function AffineExpr:linear_terms()
+    return fun.filter(function (term)
+        return type(term) == "table" and #term == 2
+    end, self)
+end
+
 function AffineExpr:constant()
     if #self[#self] == 1 then return self[#self][1] else return 0 end
 end
