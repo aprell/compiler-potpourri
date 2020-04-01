@@ -35,8 +35,7 @@ stmt:
   | GOTO NAME                { Jump $2 }
   | IF expr GOTO NAME        { Cond ($2, $4) }
   | RECV NAME                { Receive (Var $2) }
-  | RET expr                 { Return (Some $2) }
-  | RET                      { Return None }
+  | RET option(expr)         { Return $2 }
   ;
 
 expr:
@@ -47,7 +46,8 @@ expr:
   ;
 
 mem:
-  | NAME LBRACKET expr RBRACKET { Mem { base = Addr $1; offset = $3 } }
+  | NAME delimited(LBRACKET, expr, RBRACKET)
+    { Mem { base = Addr $1; offset = $2 } }
 
 %inline binop:
   | PLUS  { Plus }
