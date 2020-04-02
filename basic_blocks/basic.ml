@@ -1,4 +1,5 @@
 open Three_address_code__IR
+open Three_address_code__Utils
 open Utils
 
 type basic_block = Basic_block of name * source_info option
@@ -28,21 +29,14 @@ let to_string (Basic_block (name, source_info)) : string =
        |> String.concat "\n")
   | None -> name
 
-let gen_sym init =
-  let count = ref init in
-  fun ?(pref = "B") () ->
-    let c = !count in
-    incr count;
-    pref ^ string_of_int c
-
 let basic_blocks (code : stmt list) : basic_block list =
-  let gen_sym = gen_sym 1 in
+  let gen_name = gen_sym "B" 1 in
   List.fold_left (fun (label, start, line, code, blocks) stmt ->
       match stmt with
       | Jump target ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = basic_block (gen_sym ()) ~source_info:
+        let block = basic_block (gen_name ()) ~source_info:
             { entry = label;
               exits = [target];
               source_loc = (start, line);
@@ -53,7 +47,7 @@ let basic_blocks (code : stmt list) : basic_block list =
       | Cond (_, target) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = basic_block (gen_sym ()) ~source_info:
+        let block = basic_block (gen_name ()) ~source_info:
             { entry = label;
               exits = [target; "fall-through"];
               source_loc = (start, line);
@@ -64,7 +58,7 @@ let basic_blocks (code : stmt list) : basic_block list =
       | Return _ ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = basic_block (gen_sym ()) ~source_info:
+        let block = basic_block (gen_name ()) ~source_info:
             { entry = label;
               exits = ["exit"];
               source_loc = (start, line);
@@ -79,7 +73,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         else
           (* End previous basic block *)
           let stmts, code = split (line - start) code in
-          let block = basic_block (gen_sym ()) ~source_info:
+          let block = basic_block (gen_name ()) ~source_info:
               { entry = label;
                 exits = [lab];
                 source_loc = (start, line - 1);
