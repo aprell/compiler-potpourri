@@ -12,4 +12,4 @@ let () =
   print_basic_blocks
     (match Sys.argv with
      | [| _; filename |] -> filename
-     | _ -> "fib.ir")
+     | _ -> "fib.hir")

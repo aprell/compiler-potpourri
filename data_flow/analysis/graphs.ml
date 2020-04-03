@@ -17,10 +17,10 @@ let fib =
       (1--6)
     ~edges:
       (* Node 7 serves as exit node *)
-      [ (1, 2); (1, 6); (2, 3); (3, 4);
-        (3, 5); (4, 3); (5, 7); (6, 7); ]
+      [ (1, 2); (1, 3); (2, 7); (3, 4);
+        (4, 5); (4, 6); (5, 4); (6, 7); ]
 
-let graph_of_IR ?(input = "control_flow/basic_blocks/fib.ir") () =
+let graph_of_IR ?(input = "control_flow/basic_blocks/fib.hir") () =
   parse_file input
   |> basic_blocks
   |> construct_cfg
