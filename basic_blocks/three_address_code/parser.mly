@@ -8,10 +8,14 @@
 %token EQ NE LT GT LE GE
 %token GETS
 %token COL
-%token IF
+%token IF ELSE
+%token WHILE
 %token GOTO
 %token RECV RET
+%token LPAREN RPAREN
+%token LBRACE RBRACE
 %token LBRACKET RBRACKET
+%token COMMA
 %token EOF
 
 %left EQ NE
@@ -19,12 +23,36 @@
 %left PLUS MINUS
 %left MUL DIV MOD
 
-%start <IR.stmt> prog
+%start <IR.stmt list> prog
+%start <IR.stmt> line
 
 %%
 
 prog:
-  | stmt EOF                 { $1 }
+  | proc EOF
+    { $1 |> lower }
+  | list(stmt) EOF
+    { $1 }
+  ;
+
+line:
+  | stmt EOF
+    { $1 }
+  ;
+
+proc:
+  | name = NAME; params = params; body = block
+    { Proc { name; params; body } }
+  ;
+
+params:
+  | delimited(LPAREN, separated_list(COMMA, NAME), RPAREN)
+    { List.map (fun x -> Var x) $1 }
+  ;
+
+block:
+  | delimited(LBRACE, list(stmt), RBRACE)
+    { $1 }
   ;
 
 stmt:
@@ -34,6 +62,9 @@ stmt:
   | NAME COL                 { Label $1 }
   | GOTO NAME                { Jump $2 }
   | IF expr GOTO NAME        { Cond ($2, $4) }
+  | IF expr block            { If ($2, $3, None) }
+  | IF expr block ELSE block { If ($2, $3, Some $5) }
+  | WHILE expr block         { Loop ($2, $3) }
   | RECV NAME                { Receive (Var $2) }
   | RET option(expr)         { Return $2 }
   ;

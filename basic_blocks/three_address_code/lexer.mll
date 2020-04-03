@@ -30,11 +30,18 @@ rule read = parse
   | ":="        { GETS }
   | ":"         { COL }
   | "if"        { IF }
+  | "else"      { ELSE }
+  | "while"     { WHILE }
   | "goto"      { GOTO }
   | "receive"   { RECV }
   | "return"    { RET }
+  | "("         { LPAREN }
+  | ")"         { RPAREN }
+  | "{"         { LBRACE }
+  | "}"         { RBRACE }
   | "["         { LBRACKET }
   | "]"         { RBRACKET }
+  | ","         { COMMA }
   | ident as id { NAME id }
   | int as i    { INT (int_of_string i) }
   | eof         { EOF }

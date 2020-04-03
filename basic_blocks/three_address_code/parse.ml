@@ -24,7 +24,11 @@ open Utils
 (*$>*)
 let parse_line line =
   let lexbuf = Lexing.from_string line in
+  Parser.line Lexer.read lexbuf
+
+let parse_prog lines =
+  let lexbuf = Lexing.from_string (String.concat "\n" lines) in
   Parser.prog Lexer.read lexbuf
 
 let parse_file name =
-  read_file name |> List.map parse_line
+  read_file name |> parse_prog
