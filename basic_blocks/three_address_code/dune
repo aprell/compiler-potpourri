@@ -6,4 +6,10 @@
 
 (library
   (name three_address_code)
-  (public_name three_address_code))
+  (public_name three_address_code)
+  (modules (:standard \ test_IR)))
+
+(executable
+  (name test_IR)
+  (modules test_IR)
+  (libraries three_address_code))

@@ -1,6 +1,8 @@
 LIB := three_address_code
 
-all: $(LIB)
+PROGS := test_IR
+
+all: $(LIB) $(PROGS)
 
 test:
 	@echo "\n--- test_parse ----------"
