@@ -85,4 +85,15 @@ let basic_blocks (code : stmt list) : basic_block list =
         (* Extend basic block *)
         (label, start, line + 1, code, blocks)
     ) ("entry", 1, 1, code, []) code
-  |> fun (_, _, _, code, blocks) -> assert (code = []); List.rev blocks
+  |> fun (label, start, line, code, blocks) ->
+  if code <> [] then
+    (* Close open basic block with an implicit return *)
+    let block = basic_block (gen_name ()) ~source_info:
+        { entry = label;
+          exits = ["exit"];
+          source_loc = (start, line - 1);
+          stmts = code; }
+    in
+    List.rev (block :: blocks)
+  else
+    List.rev blocks

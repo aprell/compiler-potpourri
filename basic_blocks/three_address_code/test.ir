@@ -1,0 +1,9 @@
+test:
+    receive a
+    receive b
+    if a <= b goto L1
+    return a
+    goto L2
+L1:
+    return b
+L2:
