@@ -9,8 +9,8 @@ let dominators (graph : cfg) : Nodes.t array =
   let exit = num_basic_blocks - 1 in
   (* Initialization *)
   let doms = Array.init num_basic_blocks (fun i ->
-      if i = entry then
-        Nodes.singleton entry
+      if i = entry || unreachable graph.(i) then
+        Nodes.singleton i
       else
         Nodes.of_list (entry -- exit))
   in
@@ -39,7 +39,7 @@ let immediate_dominators (graph : cfg) (dom_sets : Nodes.t array) : Nodes.t arra
   let num_basic_blocks = Array.length graph in
   let entry = 0 in
   let rec immediate_dominator node =
-    if node = entry then
+    if node = entry || unreachable graph.(node) then
       Nodes.empty
     else
       let doms = dom_sets.(node) in

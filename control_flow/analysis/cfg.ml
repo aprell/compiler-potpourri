@@ -33,6 +33,46 @@ let define_cfg ~(nodes : Nodes.elt list) ~(edges : (Nodes.elt * Nodes.elt) list)
     ) ((entry, 1) :: edges);
   graph
 
+(* Topologically sorts the nodes of a DAG *)
+let dfs_reverse_postorder (graph : cfg) =
+  let num_nodes = Array.length graph in
+  let visited = Array.make num_nodes false in
+  let order = ref [] in
+  let entry = 0 in
+  let exit = num_nodes - 1 in
+  let rec visit node =
+    visited.(node) <- true;
+    if node <> exit then (
+      let succ = graph.(node).succ in
+      Nodes.iter (fun s -> if not visited.(s) then visit s) succ
+    );
+    order := node :: !order;
+  in
+  visit entry;
+  !order
+
+let dfs_postorder (graph : cfg) =
+  dfs_reverse_postorder graph
+  |> List.rev
+
+let prune_unreachable_nodes (graph : cfg) : cfg =
+  let reachable_nodes = Nodes.of_list (dfs_reverse_postorder graph) in
+  let reachable node = Nodes.mem node reachable_nodes in
+  if Nodes.cardinal reachable_nodes < Array.length graph then
+    Array.iteri (fun i node ->
+        if not (reachable i) then (
+          node.succ <- Nodes.empty;
+          node.pred <- Nodes.empty
+        ) else (
+          assert (Nodes.for_all reachable node.succ);
+          node.pred <- Nodes.filter reachable node.pred
+        )
+      ) graph;
+  graph
+
+let unreachable node =
+  node.succ = Nodes.empty && node.pred = Nodes.empty
+
 let construct_cfg (basic_blocks : basic_block list) : cfg =
   let graph =
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
@@ -71,7 +111,7 @@ let construct_cfg (basic_blocks : basic_block list) : cfg =
         if i <> entry && i <> exit then
           invalid_arg "Basic block lacks source information"
     ) graph;
-  graph
+  prune_unreachable_nodes graph
 
 let discard_source_info (graph : cfg) : cfg =
   Array.map (fun ({ block = Basic_block (name, _); _ } as node) ->

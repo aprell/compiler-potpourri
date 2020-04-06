@@ -17,3 +17,9 @@ val construct_cfg : basic_block list -> cfg
 val discard_source_info : cfg -> cfg
 
 val equal : cfg -> cfg -> bool
+
+val dfs_reverse_postorder : cfg -> Nodes.elt list
+
+val dfs_postorder : cfg -> Nodes.elt list
+
+val unreachable : node -> bool

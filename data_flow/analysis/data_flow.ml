@@ -7,28 +7,6 @@ type 'a analysis =
     mutable global_in : 'a;
     mutable global_out : 'a; }
 
-(* Topologically sorts the nodes of a DAG *)
-let dfs_reverse_postorder (graph : cfg) =
-  let num_nodes = Array.length graph in
-  let visited = Array.make num_nodes false in
-  let order = ref [] in
-  let entry = 0 in
-  let exit = num_nodes - 1 in
-  let rec visit node =
-    visited.(node) <- true;
-    if node <> exit then (
-      let succ = graph.(node).succ in
-      Nodes.iter (fun s -> if not visited.(s) then visit s) succ
-    );
-    order := node :: !order;
-  in
-  visit entry;
-  !order
-
-let dfs_postorder (graph : cfg) =
-  dfs_reverse_postorder graph
-  |> List.rev
-
 (* Input signatures of functors Forward_flow and Backward_flow *)
 module type SetType = sig
   include Set.S
