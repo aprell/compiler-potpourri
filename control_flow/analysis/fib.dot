@@ -1,0 +1,11 @@
+digraph CFG {
+    Entry -> B1;
+    B1 -> B2;
+    B1 -> B3;
+    B2 -> Exit;
+    B3 -> B4;
+    B4 -> B5;
+    B4 -> B6;
+    B5 -> B4;
+    B6 -> Exit;
+}

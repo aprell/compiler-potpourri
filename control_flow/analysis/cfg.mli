@@ -23,3 +23,5 @@ val dfs_reverse_postorder : cfg -> Nodes.elt list
 val dfs_postorder : cfg -> Nodes.elt list
 
 val unreachable : node -> bool
+
+val output_dot : ?filename:string -> cfg -> unit

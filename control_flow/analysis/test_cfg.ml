@@ -19,6 +19,7 @@ let test () =
     |> construct_cfg
   in
   inspect fib_cfg_1;
+  output_dot fib_cfg_2 ~filename:"fib.dot";
   (* fib_cfg_1 lacks source information *)
   assert (not (equal fib_cfg_1 fib_cfg_2));
   assert (equal fib_cfg_1 (discard_source_info fib_cfg_2))
@@ -26,9 +27,13 @@ let test () =
 let () =
   match Sys.argv with
   | [| _; filename |] ->
-    parse_file filename
-    |> basic_blocks
-    |> construct_cfg
-    |> inspect
+    let cfg =
+      parse_file filename
+      |> basic_blocks
+      |> construct_cfg
+    in
+    inspect cfg;
+    output_dot cfg
+      ~filename:Filename.((remove_extension (basename filename)) ^ ".dot")
   | _ ->
     test ()

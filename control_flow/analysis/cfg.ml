@@ -125,3 +125,22 @@ let equal (a : cfg) (b : cfg) : bool =
         node_a.block <> node_b.block ||
         not (Nodes.equal node_a.succ node_b.succ) ||
         not (Nodes.equal node_a.pred node_b.pred)) ab)
+
+let output_dot ?filename (graph : cfg) =
+  let chan = match filename with
+    | Some filename -> open_out filename
+    | None -> stdout
+  in
+  let print ?(indent="") str =
+    output_string chan (indent ^ str ^ "\n")
+  in
+  let indent = String.make 4 ' ' in
+  print "digraph CFG {";
+  Array.iter (fun { block = Basic_block (x, _); succ; _; } ->
+      Nodes.iter (fun node ->
+          let Basic_block (y, _) = graph.(node).block in
+          print ~indent (x ^ " -> " ^ y ^ ";")
+        ) succ
+    ) graph;
+  print "}";
+  if chan <> stdout then close_out chan
