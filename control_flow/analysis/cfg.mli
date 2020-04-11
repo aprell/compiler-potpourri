@@ -9,7 +9,7 @@ and node = {
   mutable succ : Nodes.t;
   mutable pred : Nodes.t;
   mutable doms : Nodes.t;
-  mutable idom : Nodes.t;
+  mutable idom : Nodes.elt option;
 }
 
 val define_cfg : nodes:Nodes.elt list -> edges:(Nodes.elt * Nodes.elt) list -> cfg

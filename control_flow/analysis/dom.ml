@@ -34,7 +34,7 @@ let dominators (graph : cfg) : Nodes.t array =
   done;
   Array.map (fun { doms; _ } -> doms) graph
 
-let immediate_dominators (graph : cfg) : Nodes.t array =
+let immediate_dominators (graph : cfg) : Nodes.elt option array =
   let entry = 0 in
   let rec immediate_dominator node =
     if node.index = entry || unreachable node then
@@ -55,7 +55,14 @@ let immediate_dominators (graph : cfg) : Nodes.t array =
       assert (Nodes.cardinal !idom = 1);
       !idom
   in
-  Array.iter (fun node -> node.idom <- immediate_dominator node) graph;
+  Array.iter (fun node ->
+      node.idom <- (
+        match Nodes.elements (immediate_dominator node) with
+        | [idom] -> Some idom
+        | [] -> None
+        | _ -> assert false
+      )
+    ) graph;
   Array.map (fun { idom; _ } -> idom) graph
 
 (* Find all edges i => n with n dom i in a graph *)
