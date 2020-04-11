@@ -8,63 +8,60 @@ let dominators (graph : cfg) : Nodes.t array =
   let entry = 0 in
   let exit = num_basic_blocks - 1 in
   (* Initialization *)
-  let doms = Array.init num_basic_blocks (fun i ->
-      if i = entry || unreachable graph.(i) then
-        Nodes.singleton i
+  Array.iter (fun node ->
+      if node.index = entry || unreachable node then
+        node.doms <- Nodes.singleton node.index
       else
-        Nodes.of_list (entry -- exit))
-  in
+        node.doms <- Nodes.of_list (entry -- exit)
+    ) graph;
   (* Iteration *)
   let changed = ref true in
   let num_iter = ref 1 in
   while !changed do
     changed := false;
-    Array.iteri (fun i dom ->
-        let pred = graph.(i).pred in
-        let dom' =
-          dom
+    Array.iteri (fun i node ->
+        let doms' =
+          node.doms
           (* Intersect the dominators of all predecessors of B *)
-          |> Nodes.fold (fun p set -> Nodes.inter doms.(p) set) pred
+          |> Nodes.fold (fun p set -> Nodes.inter graph.(p).doms set) node.pred
           (* Union resulting set with {B} *)
           |> Nodes.union (Nodes.singleton i)
         in
-        if not (Nodes.equal dom' dom) then changed := true;
-        doms.(i) <- dom'
-      ) doms;
+        if not (Nodes.equal doms' node.doms) then changed := true;
+        node.doms <- doms'
+      ) graph;
     incr num_iter
   done;
-  doms
+  Array.map (fun { doms; _ } -> doms) graph
 
-let immediate_dominators (graph : cfg) (dom_sets : Nodes.t array) : Nodes.t array =
-  let num_basic_blocks = Array.length graph in
+let immediate_dominators (graph : cfg) : Nodes.t array =
   let entry = 0 in
   let rec immediate_dominator node =
-    if node = entry || unreachable graph.(node) then
+    if node.index = entry || unreachable node then
       Nodes.empty
     else
-      let doms = dom_sets.(node) in
-      let pred = graph.(node).pred in
-      let idom = ref (Nodes.inter doms pred) in
+      let idom = ref (Nodes.inter node.doms node.pred) in
       if Nodes.is_empty !idom then (
         (* The immediate dominator is not a direct predecessor *)
         try Nodes.iter (fun p ->
-            let idom' = Nodes.inter (immediate_dominator p) doms in
+            let idom' = Nodes.inter (immediate_dominator graph.(p)) node.doms in
             if not (Nodes.is_empty idom') then (
               idom := idom';
               raise Exit
             )
-          ) pred
+          ) node.pred
         with Exit -> ()
       );
       assert (Nodes.cardinal !idom = 1);
       !idom
   in
-  Array.init num_basic_blocks immediate_dominator
+  Array.iter (fun node -> node.idom <- immediate_dominator node) graph;
+  Array.map (fun { idom; _ } -> idom) graph
 
 (* Find all edges i => n with n dom i in a graph *)
-let back_edges (graph : cfg) (dom_sets : Nodes.t array) : (Nodes.elt * Nodes.elt) list =
-  (* dom_sets.(i) are the dominators of node graph.(i) *)
-  let dom n i = Nodes.mem n dom_sets.(i) in
+let back_edges (graph : cfg) : (Nodes.elt * Nodes.elt) list =
+  (* graph.(i).doms are the dominators of node with index i *)
+  let dom n i = Nodes.mem n graph.(i).doms in
   let back_edges = ref [] in
   Array.iter (fun { index = i; succ; _ } ->
       Nodes.iter (fun n ->

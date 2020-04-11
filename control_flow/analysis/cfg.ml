@@ -7,7 +7,9 @@ and node =
   { index : Nodes.elt;
     block : basic_block;
     mutable succ : Nodes.t;
-    mutable pred : Nodes.t; }
+    mutable pred : Nodes.t;
+    mutable doms : Nodes.t;
+    mutable idom : Nodes.t; }
 
 (* Add an edge from node a to node b *)
 let ( => ) a b =
@@ -25,7 +27,8 @@ let define_cfg ~(nodes : Nodes.elt list) ~(edges : (Nodes.elt * Nodes.elt) list)
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
-        { index; block; succ = Nodes.empty; pred = Nodes.empty; })
+        { index; block; succ = Nodes.empty; pred = Nodes.empty;
+          doms = Nodes.empty; idom = Nodes.empty; })
   in
   let entry = 0 in
   List.iter (fun (a, b) ->
@@ -78,7 +81,8 @@ let construct_cfg (basic_blocks : basic_block list) : cfg =
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
-        { index; block; succ = Nodes.empty; pred = Nodes.empty; })
+        { index; block; succ = Nodes.empty; pred = Nodes.empty;
+          doms = Nodes.empty; idom = Nodes.empty; })
   in
   (* Create a list that associates labels with basic blocks *)
   let labels =
@@ -124,7 +128,9 @@ let equal (a : cfg) (b : cfg) : bool =
     not (Array.exists (fun (node_a, node_b) ->
         node_a.block <> node_b.block ||
         not (Nodes.equal node_a.succ node_b.succ) ||
-        not (Nodes.equal node_a.pred node_b.pred)) ab)
+        not (Nodes.equal node_a.pred node_b.pred) ||
+        not (Nodes.equal node_a.doms node_b.doms) ||
+        not (Nodes.equal node_a.idom node_b.idom)) ab)
 
 let output_dot ?filename (graph : cfg) =
   let chan = match filename with

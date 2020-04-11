@@ -8,6 +8,8 @@ and node = {
   block : basic_block;
   mutable succ : Nodes.t;
   mutable pred : Nodes.t;
+  mutable doms : Nodes.t;
+  mutable idom : Nodes.t;
 }
 
 val define_cfg : nodes:Nodes.elt list -> edges:(Nodes.elt * Nodes.elt) list -> cfg

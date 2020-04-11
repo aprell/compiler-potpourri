@@ -3,6 +3,11 @@ open Basic
 open Control_flow__Cfg
 open Control_flow__Inspect
 
+let graph_of_input filename =
+  parse_file filename
+  |> basic_blocks
+  |> construct_cfg
+
 let test () =
   let fib_cfg_1 =
     define_cfg
@@ -13,11 +18,7 @@ let test () =
         [ (1, 2); (1, 3); (2, 7); (3, 4);
           (4, 5); (4, 6); (5, 4); (6, 7); ]
   in
-  let fib_cfg_2 =
-    parse_file "basic_blocks/fib.hir"
-    |> basic_blocks
-    |> construct_cfg
-  in
+  let fib_cfg_2 = graph_of_input "basic_blocks/fib.hir" in
   inspect fib_cfg_1;
   output_dot fib_cfg_2 ~filename:"fib.dot";
   (* fib_cfg_1 lacks source information *)
@@ -27,11 +28,7 @@ let test () =
 let () =
   match Sys.argv with
   | [| _; filename |] ->
-    let cfg =
-      parse_file filename
-      |> basic_blocks
-      |> construct_cfg
-    in
+    let cfg = graph_of_input filename in
     inspect cfg;
     output_dot cfg
       ~filename:Filename.((remove_extension (basename filename)) ^ ".dot")
