@@ -4,9 +4,8 @@ open Utils
 let ( -- ) = Basic__Utils.( -- )
 
 let dominators (graph : cfg) : Nodes.t array =
-  let num_basic_blocks = Array.length graph in
   let entry = 0 in
-  let exit = num_basic_blocks - 1 in
+  let exit = Array.length graph - 1 in
   (* Initialization *)
   Array.iter (fun node ->
       if node.index = entry || unreachable node then
@@ -19,13 +18,13 @@ let dominators (graph : cfg) : Nodes.t array =
   let num_iter = ref 1 in
   while !changed do
     changed := false;
-    Array.iteri (fun i node ->
+    Array.iter (fun node ->
         let doms' =
           node.doms
           (* Intersect the dominators of all predecessors of B *)
           |> Nodes.fold (fun p set -> Nodes.inter graph.(p).doms set) node.pred
           (* Union resulting set with {B} *)
-          |> Nodes.union (Nodes.singleton i)
+          |> Nodes.union (Nodes.singleton node.index)
         in
         if not (Nodes.equal doms' node.doms) then changed := true;
         node.doms <- doms'

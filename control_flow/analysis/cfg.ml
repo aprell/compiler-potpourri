@@ -62,8 +62,8 @@ let prune_unreachable_nodes (graph : cfg) : cfg =
   let reachable_nodes = Nodes.of_list (dfs_reverse_postorder graph) in
   let reachable node = Nodes.mem node reachable_nodes in
   if Nodes.cardinal reachable_nodes < Array.length graph then
-    Array.iteri (fun i node ->
-        if not (reachable i) then (
+    Array.iter (fun node ->
+        if not (reachable node.index) then (
           node.succ <- Nodes.empty;
           node.pred <- Nodes.empty
         ) else (
