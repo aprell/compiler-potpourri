@@ -1,18 +1,21 @@
 open Basic
-open Utils
 
-type cfg = node array
+module rec Node : sig
+  type t = {
+    index : int;
+    block : basic_block;
+    mutable succ : NodeSet.t;
+    mutable pred : NodeSet.t;
+    mutable doms : NodeSet.t;
+    mutable idom : Node.t option;
+  }
+end
 
-and node = {
-  index : Nodes.elt;
-  block : basic_block;
-  mutable succ : Nodes.t;
-  mutable pred : Nodes.t;
-  mutable doms : Nodes.t;
-  mutable idom : Nodes.elt option;
-}
+and NodeSet : Set.S with type elt = Node.t
 
-val define_cfg : nodes:Nodes.elt list -> edges:(Nodes.elt * Nodes.elt) list -> cfg
+type cfg = Node.t array
+
+val define_cfg : nodes:int list -> edges:(int * int) list -> cfg
 
 val construct_cfg : basic_block list -> cfg
 
@@ -20,10 +23,10 @@ val discard_source_info : cfg -> cfg
 
 val equal : cfg -> cfg -> bool
 
-val dfs_reverse_postorder : cfg -> Nodes.elt list
+val dfs_reverse_postorder : cfg -> Node.t list
 
-val dfs_postorder : cfg -> Nodes.elt list
+val dfs_postorder : cfg -> Node.t list
 
-val unreachable : node -> bool
+val unreachable : Node.t -> bool
 
 val output_dot : ?filename:string -> cfg -> unit

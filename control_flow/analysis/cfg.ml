@@ -1,22 +1,32 @@
 open Basic
-open Utils
 
-type cfg = node array
-
-and node =
-  { index : Nodes.elt;
+module rec Node : sig
+  type t = {
+    index : int;
     block : basic_block;
-    mutable succ : Nodes.t;
-    mutable pred : Nodes.t;
-    mutable doms : Nodes.t;
-    mutable idom : Nodes.elt option; }
+    mutable succ : NodeSet.t;
+    mutable pred : NodeSet.t;
+    mutable doms : NodeSet.t;
+    mutable idom : Node.t option;
+  }
+end = Node
+(* https://blog.janestreet.com/a-trick-recursive-modules-from-recursive-signatures *)
+
+and NodeSet : Set.S with type elt = Node.t = Set.Make(struct
+  type t = Node.t
+  let compare x y = Stdlib.compare x.Node.index y.Node.index
+end)
+
+type cfg = Node.t array
+
+open Node
 
 (* Add an edge from node a to node b *)
 let ( => ) a b =
-  a.succ <- Nodes.add b.index a.succ;
-  b.pred <- Nodes.add a.index b.pred
+  a.succ <- NodeSet.add b a.succ;
+  b.pred <- NodeSet.add a b.pred
 
-let define_cfg ~(nodes : Nodes.elt list) ~(edges : (Nodes.elt * Nodes.elt) list) : cfg =
+let define_cfg ~(nodes : int list) ~(edges : (int * int) list) : cfg =
   let basic_blocks =
     List.map (fun i ->
         let name = "B" ^ string_of_int i in
@@ -27,8 +37,8 @@ let define_cfg ~(nodes : Nodes.elt list) ~(edges : (Nodes.elt * Nodes.elt) list)
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
-        { index; block; succ = Nodes.empty; pred = Nodes.empty;
-          doms = Nodes.empty; idom = None; })
+        { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
+          doms = NodeSet.empty; idom = None; })
   in
   let entry = 0 in
   List.iter (fun (a, b) ->
@@ -44,14 +54,13 @@ let dfs_reverse_postorder (graph : cfg) =
   let entry = 0 in
   let exit = num_nodes - 1 in
   let rec visit node =
-    visited.(node) <- true;
-    if node <> exit then (
-      let succ = graph.(node).succ in
-      Nodes.iter (fun s -> if not visited.(s) then visit s) succ
+    visited.(node.index) <- true;
+    if node.index <> exit then (
+      NodeSet.iter (fun s -> if not visited.(s.index) then visit s) node.succ
     );
     order := node :: !order;
   in
-  visit entry;
+  visit graph.(entry);
   !order
 
 let dfs_postorder (graph : cfg) =
@@ -59,30 +68,30 @@ let dfs_postorder (graph : cfg) =
   |> List.rev
 
 let prune_unreachable_nodes (graph : cfg) : cfg =
-  let reachable_nodes = Nodes.of_list (dfs_reverse_postorder graph) in
-  let reachable node = Nodes.mem node reachable_nodes in
-  if Nodes.cardinal reachable_nodes < Array.length graph then
+  let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder graph) in
+  let reachable node = NodeSet.mem node reachable_nodes in
+  if NodeSet.cardinal reachable_nodes < Array.length graph then
     Array.iter (fun node ->
-        if not (reachable node.index) then (
-          node.succ <- Nodes.empty;
-          node.pred <- Nodes.empty
+        if not (reachable node) then (
+          node.succ <- NodeSet.empty;
+          node.pred <- NodeSet.empty
         ) else (
-          assert (Nodes.for_all reachable node.succ);
-          node.pred <- Nodes.filter reachable node.pred
+          assert (NodeSet.for_all reachable node.succ);
+          node.pred <- NodeSet.filter reachable node.pred
         )
       ) graph;
   graph
 
 let unreachable node =
-  node.succ = Nodes.empty && node.pred = Nodes.empty
+  node.succ = NodeSet.empty && node.pred = NodeSet.empty
 
 let construct_cfg (basic_blocks : basic_block list) : cfg =
   let graph =
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
-        { index; block; succ = Nodes.empty; pred = Nodes.empty;
-          doms = Nodes.empty; idom = None; })
+        { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
+          doms = NodeSet.empty; idom = None; })
   in
   (* Create a list that associates labels with basic blocks *)
   let labels =
@@ -127,9 +136,9 @@ let equal (a : cfg) (b : cfg) : bool =
     let ab = Array.map2 (fun node_a node_b -> (node_a, node_b)) a b in
     not (Array.exists (fun (node_a, node_b) ->
         node_a.block <> node_b.block ||
-        not (Nodes.equal node_a.succ node_b.succ) ||
-        not (Nodes.equal node_a.pred node_b.pred) ||
-        not (Nodes.equal node_a.doms node_b.doms) ||
+        not (NodeSet.equal node_a.succ node_b.succ) ||
+        not (NodeSet.equal node_a.pred node_b.pred) ||
+        not (NodeSet.equal node_a.doms node_b.doms) ||
         node_a.idom <> node_b.idom) ab)
 
 let output_dot ?filename (graph : cfg) =
@@ -143,8 +152,8 @@ let output_dot ?filename (graph : cfg) =
   let indent = String.make 4 ' ' in
   print "digraph CFG {";
   Array.iter (fun { block = Basic_block (x, _); succ; _; } ->
-      Nodes.iter (fun node ->
-          let Basic_block (y, _) = graph.(node).block in
+      NodeSet.iter (fun node ->
+          let Basic_block (y, _) = node.block in
           print ~indent (x ^ " -> " ^ y ^ ";")
         ) succ
     ) graph;

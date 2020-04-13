@@ -7,6 +7,8 @@ module S = Set.Make (struct
 end)
 
 module Dominators = Data_flow_analysis (Forward_flow (S) (struct
+  open Node
+
   let meet = S.inter
 
   let all_basic_blocks =

@@ -8,6 +8,8 @@ module S = Set.Make (struct
 end)
 
 module Liveness = Data_flow_analysis (Backward_flow (S) (struct
+  open Node
+
   let meet = S.union
 
   let rec find_all_vars = function
