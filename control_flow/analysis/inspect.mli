@@ -1,3 +1,1 @@
-open Cfg
-
-val inspect : cfg -> unit
+val inspect : Cfg.t -> unit

@@ -1,7 +1,7 @@
 open Basic
 open Cfg
 
-let inspect (graph : cfg) =
+let inspect (graph : Cfg.t) =
   let open Node in
   let entry = 0 in
   let exit = Array.length graph - 1 in

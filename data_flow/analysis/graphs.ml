@@ -1,10 +1,10 @@
 open Three_address_code__Parse
 open Basic
 open Basic__Utils
-open Control_flow__Cfg
+open Control_flow
 
 let diamond =
-  define_cfg
+  Cfg.define
     ~nodes:
       (1--4)
     ~edges:
@@ -12,7 +12,7 @@ let diamond =
       [ (1, 2); (1, 3); (2, 4); (3, 4); (4, 5); ]
 
 let fib =
-  define_cfg
+  Cfg.define
     ~nodes:
       (1--6)
     ~edges:
@@ -23,4 +23,4 @@ let fib =
 let graph_of_IR ?(input = "control_flow/basic_blocks/fib.hir") () =
   parse_file input
   |> basic_blocks
-  |> construct_cfg
+  |> Cfg.construct

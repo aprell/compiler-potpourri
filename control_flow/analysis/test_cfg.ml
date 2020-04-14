@@ -1,16 +1,16 @@
 open Three_address_code__Parse
 open Basic
-open Control_flow__Cfg
+open Control_flow
 open Control_flow__Inspect
 
 let graph_of_input filename =
   parse_file filename
   |> basic_blocks
-  |> construct_cfg
+  |> Cfg.construct
 
 let test () =
   let fib_cfg_1 =
-    define_cfg
+    Cfg.define
       ~nodes:
         Basic__Utils.(1--6)
       ~edges:
@@ -20,17 +20,17 @@ let test () =
   in
   let fib_cfg_2 = graph_of_input "basic_blocks/fib.hir" in
   inspect fib_cfg_1;
-  output_dot fib_cfg_2 ~filename:"fib.dot";
+  Cfg.output_dot fib_cfg_2 ~filename:"fib.dot";
   (* fib_cfg_1 lacks source information *)
-  assert (not (equal fib_cfg_1 fib_cfg_2));
-  assert (equal fib_cfg_1 (discard_source_info fib_cfg_2))
+  assert (not (Cfg.equal fib_cfg_1 fib_cfg_2));
+  assert (Cfg.equal fib_cfg_1 (Cfg.discard_source_info fib_cfg_2))
 
 let () =
   match Sys.argv with
   | [| _; filename |] ->
     let cfg = graph_of_input filename in
     inspect cfg;
-    output_dot cfg
+    Cfg.output_dot cfg
       ~filename:Filename.((remove_extension (basename filename)) ^ ".dot")
   | _ ->
     test ()

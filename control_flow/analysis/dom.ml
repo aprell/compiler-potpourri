@@ -1,6 +1,6 @@
 open Cfg
 
-let dominators (graph : cfg) : NodeSet.t array =
+let dominators (graph : Cfg.t) : NodeSet.t array =
   let open Node in
   let entry = 0 in
   (* Initialization *)
@@ -30,7 +30,7 @@ let dominators (graph : cfg) : NodeSet.t array =
   done;
   Array.map (fun { doms; _ } -> doms) graph
 
-let immediate_dominators (graph : cfg) : Node.t option array =
+let immediate_dominators (graph : Cfg.t) : Node.t option array =
   let open Node in
   let entry = 0 in
   let rec immediate_dominator node =
@@ -63,7 +63,7 @@ let immediate_dominators (graph : cfg) : Node.t option array =
   Array.map (fun { idom; _ } -> idom) graph
 
 (* Find all edges i => n with n dom i in a graph *)
-let back_edges (graph : cfg) : (Node.t * Node.t) list =
+let back_edges (graph : Cfg.t) : (Node.t * Node.t) list =
   let open Node in
   let dom n i = NodeSet.mem n i.doms in
   let back_edges = ref [] in

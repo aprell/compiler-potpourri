@@ -1,8 +1,9 @@
+open Three_address_code__IR
 open Control_flow__Cfg
 open Data_flow
 
 module S = Set.Make (struct
-  type t = Three_address_code__IR.name
+  type t = name
   let compare = Stdlib.compare
 end)
 

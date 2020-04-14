@@ -17,16 +17,15 @@ and NodeSet : Set.S with type elt = Node.t = Set.Make(struct
   let compare x y = Stdlib.compare x.Node.index y.Node.index
 end)
 
-type cfg = Node.t array
-
-open Node
+type t = Node.t array
 
 (* Add an edge from node a to node b *)
-let ( => ) a b =
+let ( => ) (a : Node.t) (b : Node.t) =
   a.succ <- NodeSet.add b a.succ;
   b.pred <- NodeSet.add a b.pred
 
-let define_cfg ~(nodes : int list) ~(edges : (int * int) list) : cfg =
+let define ~(nodes : int list) ~(edges : (int * int) list) : t =
+  let open Node in
   let basic_blocks =
     List.map (fun i ->
         let name = "B" ^ string_of_int i in
@@ -47,7 +46,8 @@ let define_cfg ~(nodes : int list) ~(edges : (int * int) list) : cfg =
   graph
 
 (* Topologically sorts the nodes of a DAG *)
-let dfs_reverse_postorder (graph : cfg) =
+let dfs_reverse_postorder (graph : t) =
+  let open Node in
   let num_nodes = Array.length graph in
   let visited = Array.make num_nodes false in
   let order = ref [] in
@@ -63,11 +63,11 @@ let dfs_reverse_postorder (graph : cfg) =
   visit graph.(entry);
   !order
 
-let dfs_postorder (graph : cfg) =
+let dfs_postorder (graph : t) =
   dfs_reverse_postorder graph
   |> List.rev
 
-let prune_unreachable_nodes (graph : cfg) : cfg =
+let prune_unreachable_nodes (graph : t) : t =
   let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder graph) in
   let reachable node = NodeSet.mem node reachable_nodes in
   if NodeSet.cardinal reachable_nodes < Array.length graph then
@@ -82,10 +82,11 @@ let prune_unreachable_nodes (graph : cfg) : cfg =
       ) graph;
   graph
 
-let unreachable node =
+let unreachable (node : Node.t) =
   node.succ = NodeSet.empty && node.pred = NodeSet.empty
 
-let construct_cfg (basic_blocks : basic_block list) : cfg =
+let construct (basic_blocks : basic_block list) : t =
+  let open Node in
   let graph =
     basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
     |> Array.of_list
@@ -126,11 +127,13 @@ let construct_cfg (basic_blocks : basic_block list) : cfg =
     ) graph;
   prune_unreachable_nodes graph
 
-let discard_source_info (graph : cfg) : cfg =
+let discard_source_info (graph : t) : t =
+  let open Node in
   Array.map (fun ({ block = Basic_block (name, _); _ } as node) ->
       { node with block = basic_block name }) graph
 
-let equal (a : cfg) (b : cfg) : bool =
+let equal (a : t) (b : t) : bool =
+  let open Node in
   if Array.length a <> Array.length b then false
   else
     let ab = Array.map2 (fun node_a node_b -> (node_a, node_b)) a b in
@@ -141,7 +144,8 @@ let equal (a : cfg) (b : cfg) : bool =
         not (NodeSet.equal node_a.doms node_b.doms) ||
         node_a.idom <> node_b.idom) ab)
 
-let output_dot ?filename (graph : cfg) =
+let output_dot ?filename (graph : t) =
+  let open Node in
   let chan = match filename with
     | Some filename -> open_out filename
     | None -> stdout

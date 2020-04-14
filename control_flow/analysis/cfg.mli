@@ -13,20 +13,20 @@ end
 
 and NodeSet : Set.S with type elt = Node.t
 
-type cfg = Node.t array
+type t = Node.t array
 
-val define_cfg : nodes:int list -> edges:(int * int) list -> cfg
+val define : nodes:int list -> edges:(int * int) list -> t
 
-val construct_cfg : basic_block list -> cfg
+val construct : basic_block list -> t
 
-val discard_source_info : cfg -> cfg
+val discard_source_info : t -> t
 
-val equal : cfg -> cfg -> bool
+val equal : t -> t -> bool
 
-val dfs_reverse_postorder : cfg -> Node.t list
+val dfs_reverse_postorder : t -> Node.t list
 
-val dfs_postorder : cfg -> Node.t list
+val dfs_postorder : t -> Node.t list
 
 val unreachable : Node.t -> bool
 
-val output_dot : ?filename:string -> cfg -> unit
+val output_dot : ?filename:string -> t -> unit
