@@ -30,3 +30,5 @@ val dfs_postorder : t -> Node.t list
 val unreachable : Node.t -> bool
 
 val output_dot : ?filename:string -> t -> unit
+
+val inspect : ?back_edges:(Node.t * Node.t) list -> t -> unit

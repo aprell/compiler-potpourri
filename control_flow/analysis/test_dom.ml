@@ -1,7 +1,6 @@
 open Three_address_code__Parse
 open Basic
 open Control_flow
-open Control_flow__Inspect
 
 let graph_of_input filename =
   parse_file filename
@@ -12,7 +11,7 @@ let inspect_control_flow graph =
   let open Dom in
   let _ = dominators graph in
   let _ = immediate_dominators graph in
-  inspect graph
+  Cfg.inspect graph ~back_edges:(back_edges graph)
 
 let test () =
   let fib_cfg_1 =
