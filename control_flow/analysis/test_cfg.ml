@@ -1,28 +1,14 @@
-open Three_address_code__Parse
-open Basic
 open Control_flow
-
-let graph_of_input filename =
-  parse_file filename
-  |> basic_blocks
-  |> Cfg.construct
+open Graphs
 
 let test () =
-  let fib_cfg_1 =
-    Cfg.define
-      ~nodes:
-        Basic__Utils.(1--6)
-      ~edges:
-        (* Node 7 serves as exit node *)
-        [ (1, 2); (1, 3); (2, 7); (3, 4);
-          (4, 5); (4, 6); (5, 4); (6, 7); ]
-  in
-  let fib_cfg_2 = graph_of_input "basic_blocks/fib.hir" in
-  Cfg.inspect fib_cfg_1;
-  Cfg.output_dot fib_cfg_2 ~filename:"fib.dot";
-  (* fib_cfg_1 lacks source information *)
-  assert (not (Cfg.equal fib_cfg_1 fib_cfg_2));
-  assert (Cfg.equal fib_cfg_1 (Cfg.discard_source_info fib_cfg_2))
+  let fib_1 = Graphs.fib in
+  let fib_2 = graph_of_input "basic_blocks/fib.hir" in
+  Cfg.inspect fib_1;
+  Cfg.output_dot fib_2 ~filename:"fib.dot";
+  (* fib_1 lacks source information *)
+  assert (not (Cfg.equal fib_1 fib_2));
+  assert (Cfg.equal fib_1 (Cfg.discard_source_info fib_2))
 
 let () =
   match Sys.argv with

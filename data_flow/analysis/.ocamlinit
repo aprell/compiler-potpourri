@@ -4,4 +4,5 @@
 #use "liveness.ml"
 #install_printer fmt
 
-#use "graphs.ml"
+open Control_flow
+#use "control_flow/graphs.ml"
