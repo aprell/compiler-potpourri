@@ -21,5 +21,5 @@ let fib =
 
 let graph_of_input filename =
   parse_file filename
-  |> basic_blocks
+  |> create_basic_blocks
   |> Cfg.construct

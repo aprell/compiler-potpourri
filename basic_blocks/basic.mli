@@ -6,11 +6,12 @@ and source_info = {
   entry : name;
   exits : name list;
   stmts : stmt list;
+  (* Line range *)
   source_loc : int * int;
 }
 
-val basic_block : ?source_info:source_info -> name -> basic_block
+val create : ?source_info:source_info -> name -> basic_block
 
 val to_string : basic_block -> string
 
-val basic_blocks : stmt list -> basic_block list
+val create_basic_blocks : stmt list -> basic_block list

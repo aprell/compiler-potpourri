@@ -27,13 +27,10 @@ let ( => ) (a : Node.t) (b : Node.t) =
 let define ~(nodes : int list) ~(edges : (int * int) list) : t =
   let open Node in
   let basic_blocks =
-    List.map (fun i ->
-        let name = "B" ^ string_of_int i in
-        basic_block name
-      ) nodes
+    List.map (fun i -> create ("B" ^ string_of_int i)) nodes
   in
   let graph =
-    basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
+    create "Entry" :: basic_blocks @ [create "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
         { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
@@ -88,7 +85,7 @@ let unreachable (node : Node.t) =
 let construct (basic_blocks : basic_block list) : t =
   let open Node in
   let graph =
-    basic_block "Entry" :: basic_blocks @ [basic_block "Exit"]
+    create "Entry" :: basic_blocks @ [create "Exit"]
     |> Array.of_list
     |> Array.mapi (fun index block ->
         { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
@@ -130,7 +127,7 @@ let construct (basic_blocks : basic_block list) : t =
 let discard_source_info (graph : t) : t =
   let open Node in
   Array.map (fun ({ block = Basic_block (name, _); _ } as node) ->
-      { node with block = basic_block name }) graph
+      { node with block = create name }) graph
 
 let equal (a : t) (b : t) : bool =
   let open Node in

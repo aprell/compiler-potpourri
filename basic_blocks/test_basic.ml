@@ -3,7 +3,7 @@ open Basic
 
 let print_basic_blocks filename =
   parse_file filename
-  |> basic_blocks
+  |> create_basic_blocks
   |> List.map to_string
   |> String.concat "\n"
   |> print_endline

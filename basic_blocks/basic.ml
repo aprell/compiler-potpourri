@@ -4,15 +4,16 @@ open Utils
 
 type basic_block = Basic_block of name * source_info option
 
-and source_info =
-  { entry : name;
-    exits : name list;
-    stmts : stmt list;
-    (* Line range *)
-    source_loc : int * int; }
+and source_info = {
+  entry : name;
+  exits : name list;
+  stmts : stmt list;
+  (* Line range *)
+  source_loc : int * int;
+}
 
 (* Constructor for basic blocks *)
-let basic_block ?source_info name =
+let create ?source_info name =
   Basic_block (name, source_info)
 
 let add_line_numbers =
@@ -29,14 +30,14 @@ let to_string (Basic_block (name, source_info)) : string =
        |> String.concat "\n")
   | None -> name
 
-let basic_blocks (code : stmt list) : basic_block list =
+let create_basic_blocks (code : stmt list) : basic_block list =
   let gen_name = gen_sym "B" 1 in
   List.fold_left (fun (label, start, line, code, blocks) stmt ->
       match stmt with
       | Jump target ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = basic_block (gen_name ()) ~source_info:
+        let block = create (gen_name ()) ~source_info:
             { entry = label;
               exits = [target];
               source_loc = (start, line);
@@ -47,7 +48,7 @@ let basic_blocks (code : stmt list) : basic_block list =
       | Cond (_, target) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = basic_block (gen_name ()) ~source_info:
+        let block = create (gen_name ()) ~source_info:
             { entry = label;
               exits = [target; "fall-through"];
               source_loc = (start, line);
@@ -58,7 +59,7 @@ let basic_blocks (code : stmt list) : basic_block list =
       | Return _ ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = basic_block (gen_name ()) ~source_info:
+        let block = create (gen_name ()) ~source_info:
             { entry = label;
               exits = ["exit"];
               source_loc = (start, line);
@@ -73,7 +74,7 @@ let basic_blocks (code : stmt list) : basic_block list =
         else
           (* End previous basic block *)
           let stmts, code = split (line - start) code in
-          let block = basic_block (gen_name ()) ~source_info:
+          let block = create (gen_name ()) ~source_info:
               { entry = label;
                 exits = [lab];
                 source_loc = (start, line - 1);
@@ -88,7 +89,7 @@ let basic_blocks (code : stmt list) : basic_block list =
   |> fun (label, start, line, code, blocks) ->
   if code <> [] then
     (* Close open basic block with an implicit return *)
-    let block = basic_block (gen_name ()) ~source_info:
+    let block = create (gen_name ()) ~source_info:
         { entry = label;
           exits = ["exit"];
           source_loc = (start, line - 1);
