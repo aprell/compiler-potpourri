@@ -163,13 +163,7 @@ let output_dot ?filename (graph : t) =
 
 let inspect ?back_edges (graph : t) =
   let open Node in
-  let entry = 0 in
-  let exit = Array.length graph - 1 in
-  let node_name node =
-    if node.index = entry then "Entry"
-    else if node.index = exit then "Exit"
-    else "B" ^ string_of_int node.index
-  in
+  let node_name { block = Basic_block (name, _); _ } = name in
   let node_names nodes =
     nodes
     |> NodeSet.elements
