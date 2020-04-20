@@ -74,3 +74,53 @@ let back_edges (graph : Cfg.t) : (Node.t * Node.t) list =
         ) i.succ
     ) graph;
   List.rev !back_edges
+
+module Domtree = struct
+  type t = Cfg.t
+  type elt = Node.t
+
+  (* Add an edge from node a to node b *)
+  let ( => ) (a : elt) (b : elt) =
+    a.succ <- NodeSet.add b a.succ;
+    b.pred <- NodeSet.add a b.pred
+
+  (* Create a graph containing every node of the CFG, and for every node n, add
+   * an edge n.idom => n. Since n has at most one immediate dominator, this
+   * graph is a tree, the dominator tree. *)
+  let create (graph : Cfg.t) : t =
+    let open Node in
+    let tree = Array.map (fun node ->
+        { node with succ = NodeSet.empty; pred = NodeSet.empty; }) graph
+    in
+    Array.iter (fun node ->
+        match node.idom with
+        | Some idom -> tree.(idom.index) => tree.(node.index)
+        | None -> ()
+      ) tree;
+    tree
+
+  let children (node : elt) : elt list =
+    NodeSet.elements node.succ
+
+  let output_dot ?filename (tree : t) =
+    let open Node in
+    let chan = match filename with
+      | Some filename -> open_out filename
+      | None -> stdout
+    in
+    let print ?(indent="") str =
+      output_string chan (indent ^ str ^ "\n")
+    in
+    let indent = String.make 4 ' ' in
+    print "graph DominatorTree {";
+    Array.iter (fun { block = Basic_block (x, _); succ; _; } ->
+        NodeSet.iter (fun node ->
+            let Basic_block (y, _) = node.block in
+            print ~indent (x ^ " -- " ^ y ^ ";")
+          ) succ
+      ) tree;
+    print "}";
+    if chan <> stdout then close_out chan
+
+  let inspect tree = Cfg.inspect tree
+end
