@@ -14,3 +14,5 @@ module Domtree : sig
   val output_dot : ?filename:string -> t -> unit
   val inspect : t -> unit
 end
+
+val dominance_frontiers : Cfg.t -> Domtree.t -> NodeSet.t array

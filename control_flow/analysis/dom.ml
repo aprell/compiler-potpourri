@@ -113,7 +113,7 @@ module Domtree = struct
     in
     let indent = String.make 4 ' ' in
     print "graph DominatorTree {";
-    Array.iter (fun { block = Basic_block (x, _); succ; _; } ->
+    Array.iter (fun { block = Basic_block (x, _); succ; _ } ->
         NodeSet.iter (fun node ->
             let Basic_block (y, _) = node.block in
             print ~indent (x ^ " -- " ^ y ^ ";")
@@ -124,3 +124,31 @@ module Domtree = struct
 
   let inspect tree = Cfg.inspect tree
 end
+
+(* The dominance frontier of a node n is the set of nodes where n's dominance
+ * stops. Formally, the dominance frontier of node n includes all nodes d such
+ * that n dom p, p in pred(d), and not n sdom d, where sdom denotes strict
+ * dominance, i.e., n sdom d if n dom d and n != d. *)
+let dominance_frontiers (graph : Cfg.t) (domtree : Domtree.t) : NodeSet.t array =
+  let open Node in
+  let idom { index = n; _ } { idom; _ } =
+    match idom with Some { index = i; _ } -> i = n | None -> false
+  in
+  let dom n i = NodeSet.mem n i.doms in
+  let df = Array.make (Array.length graph) NodeSet.empty in
+  let rec dominance_frontier ({ index = i; succ; _ } as node) =
+    NodeSet.iter (fun s ->
+        if not (idom node s) then (
+          assert (not (dom node s));
+          df.(i) <- NodeSet.union df.(i) (NodeSet.singleton s)
+        )
+      ) succ;
+    List.iter (fun { index = c; _ } ->
+        NodeSet.iter (fun n ->
+            if not (dom node n) then
+              df.(i) <- NodeSet.union df.(i) (NodeSet.singleton n)
+          ) (dominance_frontier graph.(c))
+      ) (Domtree.children domtree.(i));
+    df.(i)
+  in
+  let _ = dominance_frontier graph.(0) in df
