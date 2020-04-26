@@ -33,6 +33,7 @@ let dominators (graph : Cfg.t) : NodeSet.t array =
 let immediate_dominators (graph : Cfg.t) : Node.t option array =
   let open Node in
   let entry = 0 in
+  let idoms = Array.make (Array.length graph) None in
   let rec immediate_dominator node =
     if node.index = entry || unreachable node then
       NodeSet.empty
@@ -41,7 +42,12 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
       if NodeSet.is_empty !idom then (
         (* The immediate dominator is not a direct predecessor *)
         try NodeSet.iter (fun p ->
-            let idom' = NodeSet.inter (immediate_dominator p) node.doms in
+            let idom' = NodeSet.inter (
+                match idoms.(p.index) with
+                | Some idom -> NodeSet.singleton idom
+                | None -> immediate_dominator p
+              ) node.doms
+            in
             if not (NodeSet.is_empty idom') then (
               idom := idom';
               raise Exit
@@ -50,6 +56,7 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
         with Exit -> ()
       );
       assert (NodeSet.cardinal !idom = 1);
+      idoms.(node.index) <- Some (NodeSet.choose !idom);
       !idom
   in
   Array.iter (fun node ->
@@ -60,7 +67,7 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
         | _ -> assert false
       )
     ) graph;
-  Array.map (fun { idom; _ } -> idom) graph
+  idoms
 
 (* Find all edges i => n with n dom i in a graph *)
 let back_edges (graph : Cfg.t) : (Node.t * Node.t) list =
