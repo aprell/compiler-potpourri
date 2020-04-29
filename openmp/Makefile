@@ -12,19 +12,15 @@ BINS += fib1 fib2 fib3
 
 all: $(BINS)
 
-vec1 vec2: CFLAGS += -fopenmp
-vec1 vec2: LDFLAGS += -fopenmp
-vec3 vec4: CFLAGS += -pthread
-vec3 vec4: LDFLAGS += -pthread
+vec1 vec2 fib1 fib2: CFLAGS += -fopenmp
+vec1 vec2 fib1 fib2: LDFLAGS += -fopenmp
+vec3 vec4 fib3: CFLAGS += -pthread
+vec3 vec4 fib3: LDFLAGS += -pthread
 
-vec2 vec3 vec4: $(OMP_SRCS:.c=.o)
+vec2 vec3 vec4 fib2 fib3: libomp.a
 
-fib1 fib2: CFLAGS += -fopenmp
-fib1 fib2: LDFLAGS += -fopenmp
-fib3: CFLAGS += -pthread
-fib3: LDFLAGS += -pthread
-
-fib2 fib3: $(OMP_SRCS:.c=.o)
+libomp.a: $(OMP_SRCS:.c=.o)
+	$(AR) rc $@ $^
 
 check: all
 	@set -e; \
@@ -35,7 +31,7 @@ check: all
 	done
 
 clean:
-	rm -f depend $(OBJS) $(BINS)
+	rm -f depend libomp.a $(OBJS) $(BINS)
 
 depend: $(SRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MM $^ > depend
