@@ -14,6 +14,7 @@ struct omp_team {
     pthread_mutex_t lock;
     struct omp_thread *threads;
     struct loop *work_share;
+    struct task_queue *tasks;
     pthread_barrier_t barrier;
     int num_threads;
 } team;
@@ -36,6 +37,7 @@ void omp_parallel_start(void (*fn)(void *data), void *data, int num_threads)
     assert(team.threads && "Out of memory");
     pthread_mutex_init(&team.lock, NULL);
     team.work_share = NULL;
+    team.tasks = task_queue_init();
     pthread_barrier_init(&team.barrier, NULL, num_threads);
     team.num_threads = num_threads;
 
@@ -58,6 +60,7 @@ void omp_parallel_end(void)
 
     pthread_barrier_destroy(&team.barrier);
     omp_work_share_destroy();
+    task_queue_destroy(team.tasks);
     free(team.threads);
 }
 
@@ -80,7 +83,7 @@ int omp_get_thread_num(void)
         }
     }
 
-    assert(0 && "omp_get_thread_num");
+    assert(0 && "Runtime error: omp_get_thread_num");
 }
 
 int omp_get_num_threads(void)
@@ -143,4 +146,23 @@ bool omp_split_guided(int *from, int *to)
     assert(team.work_share != NULL);
 
     return loop_split_guided(team.work_share, from, to);
+}
+
+void omp_task_enqueue_(struct task *task)
+{
+    assert(team.tasks != NULL);
+
+    task_enqueue(team.tasks, task);
+}
+
+#define READ_ONCE(x) (*(volatile typeof(x) *)&(x))
+
+void omp_taskwait(struct task_frame *frame)
+{
+    assert(frame != NULL);
+
+    while (READ_ONCE(frame->count) != 0) {
+        struct task *task = task_dequeue(team.tasks);
+        if (task) task_run(task);
+    }
 }

@@ -37,6 +37,7 @@ depend
 *.x86_64
 *.hex
 vec[1234]
+fib[123]
 
 # Debug files
 *.dSYM/
