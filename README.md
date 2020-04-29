@@ -7,7 +7,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - Data flow analysis
 - Data dependences
 - Loop transformations
-- Parallel loops in OpenMP
+- Parallel loops and tasks in OpenMP
 - List scheduling
 
 ## References
