@@ -1,16 +1,16 @@
-    receive n
+fib(n):
     t0 := 0
     t1 := 1
-    if n < 2 goto L3
-    i := 2
+    if n >= 2 goto L1
+    return n
 L1:
-    if i > n goto L2
+    i := 2
+L2:
+    if i > n goto L3
     t2 := t0 + t1
     t0 := t1
     t1 := t2
     i := i + 1
-    goto L1
-L2:
-    return t1
+    goto L2
 L3:
-    return n
+    return t1

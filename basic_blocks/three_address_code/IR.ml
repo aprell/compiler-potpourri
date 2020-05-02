@@ -1,21 +1,21 @@
 type proc = Proc of {
-    name : label;
+    name : string;
     params : var list;
     body : stmt list;
 }
 
 and stmt =
-  | Move of var * expr        (* x := e      *)
-  | Load of var * mem         (* x := M[i]   *)
-  | Store of mem * expr       (* M[i] := e   *)
-  | Label of name             (* L:          *)
-  | Jump of label             (* goto L      *)
-  | Cond of expr * label      (* if e goto L *)
-  | Receive of var            (* receive x   *)
-  | Return of expr option     (* return e    *)
+  | Move of var * expr                          (* x := e      *)
+  | Load of var * mem                           (* x := M[i]   *)
+  | Store of mem * expr                         (* M[i] := e   *)
+  | Label of label                              (* L[(...)]:       *)
+  | Jump of label                               (* goto L[(...)]   *)
+  | Cond of expr * label                        (* if e goto L[(...)] *)
+  | Receive of var                              (* receive x   *)
+  | Return of expr option                       (* return e    *)
   (* High-level constructs *)
-  | If of expr * stmt list * stmt list option     (* if e ... [else ...] *)
-  | Loop of expr * stmt list                      (* while e ... *)
+  | If of expr * stmt list * stmt list option   (* if e ... [else ...] *)
+  | Loop of expr * stmt list                    (* while e ... *)
 
 and expr =
   | Const of int
@@ -25,7 +25,7 @@ and expr =
 
 and var = Var of name
 
-and mem = Mem of { base : addr;  offset : expr }
+and mem = Mem of { base : addr; offset : expr; }
 
 and addr = Addr of name
 
@@ -33,11 +33,14 @@ and binop = Plus | Minus | Mul | Div | Mod
 
 and relop = EQ | NE | LT | GT | LE | GE
 
-and label = name
+and label = name * var list option
 
 and name = string
 
-let gen_label = Utils.gen_sym "L" 1
+(* Constructor for labels *)
+let gen_label ?params name : label = (name, params)
+
+let gen_name = Utils.gen_sym "L" 1
 
 let flip = function
   | EQ -> NE
@@ -49,13 +52,13 @@ let flip = function
 
 let lower_stmt = function
   | If (Relop (op, e1, e2), then_, None) ->
-    let l1 = gen_label () in
+    let l1 = gen_label (gen_name ()) in
     [Cond (Relop (flip op, e1, e2), l1)]
     @ then_
     @ [Label l1]
   | If (Relop (op, e1, e2), then_, Some else_) ->
-    let l1 = gen_label () in
-    let l2 = gen_label () in
+    let l1 = gen_label (gen_name ()) in
+    let l2 = gen_label (gen_name ()) in
     [Cond (Relop (flip op, e1, e2), l1)]
     @ then_
     @ [Jump l2]
@@ -64,8 +67,8 @@ let lower_stmt = function
     @ [Label l2]
   | If _ -> failwith "lower_stmt: unsupported"
   | Loop (Relop (op, e1, e2), body) ->
-    let l1 = gen_label () in
-    let l2 = gen_label () in
+    let l1 = gen_label (gen_name ()) in
+    let l2 = gen_label (gen_name ()) in
     [Label l1]
     @ [Cond (Relop (flip op, e1, e2), l2)]
     @ body
@@ -75,8 +78,7 @@ let lower_stmt = function
   | s -> [s]
 
 let lower (Proc { name; params; body }) =
-  [Label name]
-  @ (List.map (fun x -> Receive x) params)
+  [Label (gen_label name ~params)]
   @ (List.flatten @@ List.map lower_stmt body)
 
 let string_of_binop = function
@@ -93,6 +95,12 @@ let string_of_relop = function
   | GT -> ">"
   | LE -> "<="
   | GE -> ">="
+
+let string_of_label = function
+  | name, None -> name
+  | name, Some params ->
+    let params = List.map (fun (Var x) -> x) params in
+    name ^ "(" ^ String.concat ", " params ^ ")"
 
 let rec string_of_expr = function
   | Const n -> string_of_int n
@@ -112,11 +120,11 @@ let string_of_stmt ?(indent = 0) stmt =
   | Store (Mem { base = Addr base; offset }, e) ->
     indent ^ base ^ "[" ^ string_of_expr offset ^ "] := " ^ string_of_expr e
   | Label l ->
-    l ^ ":"
+    string_of_label l ^ ":"
   | Jump l ->
-    indent ^ "goto " ^ l
+    indent ^ "goto " ^ string_of_label l
   | Cond (e, l) ->
-    indent ^ "if " ^ string_of_expr e ^ " goto " ^ l
+    indent ^ "if " ^ string_of_expr e ^ " goto " ^ string_of_label l
   | Receive (Var x) ->
     indent ^ "receive " ^ x
   | Return (Some e) ->

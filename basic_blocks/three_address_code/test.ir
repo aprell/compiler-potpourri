@@ -1,6 +1,4 @@
-test:
-    receive a
-    receive b
+test(a, b):
     if a <= b goto L1
     return a
     goto L2

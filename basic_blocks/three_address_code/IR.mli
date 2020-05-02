@@ -1,5 +1,5 @@
 type proc = Proc of {
-    name : label;
+    name : string;
     params : var list;
     body : stmt list;
 }
@@ -8,7 +8,7 @@ and stmt =
   | Move of var * expr
   | Load of var * mem
   | Store of mem * expr
-  | Label of name
+  | Label of label
   | Jump of label
   | Cond of expr * label
   | Receive of var
@@ -33,7 +33,7 @@ and binop = Plus | Minus | Mul | Div | Mod
 
 and relop = EQ | NE | LT | GT | LE | GE
 
-and label = name
+and label = name * var list option
 
 and name = string
 

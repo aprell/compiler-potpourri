@@ -34,7 +34,7 @@ let create_basic_blocks (code : stmt list) : basic_block list =
   let gen_name = gen_sym "B" 1 in
   List.fold_left (fun (label, start, line, code, blocks) stmt ->
       match stmt with
-      | Jump target ->
+      | Jump (target, _) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
         let block = create (gen_name ()) ~source_info:
@@ -45,7 +45,7 @@ let create_basic_blocks (code : stmt list) : basic_block list =
         in
         (* Next line starts a new basic block *)
         ("fall-through", line + 1, line + 1, code, block :: blocks)
-      | Cond (_, target) ->
+      | Cond (_, (target, _)) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
         let block = create (gen_name ()) ~source_info:
@@ -67,21 +67,21 @@ let create_basic_blocks (code : stmt list) : basic_block list =
         in
         (* Next line starts a new basic block *)
         ("fall-through", line + 1, line + 1, code, block :: blocks)
-      | Label lab ->
+      | Label (name, _) ->
         if start = line then
           (* Extend basic block *)
-          (lab, start, line + 1, code, blocks)
+          (name, start, line + 1, code, blocks)
         else
           (* End previous basic block *)
           let stmts, code = split (line - start) code in
           let block = create (gen_name ()) ~source_info:
               { entry = label;
-                exits = [lab];
+                exits = [name];
                 source_loc = (start, line - 1);
                 stmts; }
           in
           (* This line starts a new basic block *)
-          (lab, line, line + 1, code, block :: blocks)
+          (name, line, line + 1, code, block :: blocks)
       | _ ->
         (* Extend basic block *)
         (label, start, line + 1, code, blocks)

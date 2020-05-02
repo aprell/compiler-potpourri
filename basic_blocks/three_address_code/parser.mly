@@ -55,13 +55,18 @@ block:
     { $1 }
   ;
 
+label:
+  | NAME option(params)
+    { ($1, $2) }
+  ;
+
 stmt:
   | NAME GETS expr           { Move (Var $1, $3) }
   | NAME GETS mem            { Load (Var $1, $3) }
   | mem GETS expr            { Store ($1, $3) }
-  | NAME COL                 { Label $1 }
-  | GOTO NAME                { Jump $2 }
-  | IF expr GOTO NAME        { Cond ($2, $4) }
+  | label COL                { Label $1 }
+  | GOTO label               { Jump $2 }
+  | IF expr GOTO label       { Cond ($2, $4) }
   | IF expr block            { If ($2, $3, None) }
   | IF expr block ELSE block { If ($2, $3, Some $5) }
   | WHILE expr block         { Loop ($2, $3) }
