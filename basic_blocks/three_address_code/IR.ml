@@ -50,20 +50,20 @@ let flip = function
   | LE -> GT
   | GE -> LT
 
-let lower_stmt = function
+let rec lower_stmt = function
   | If (Relop (op, e1, e2), then_, None) ->
     let l1 = gen_label (gen_name ()) in
     [Cond (Relop (flip op, e1, e2), l1)]
-    @ then_
+    @ (List.flatten @@ List.map lower_stmt then_)
     @ [Label l1]
   | If (Relop (op, e1, e2), then_, Some else_) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
     [Cond (Relop (flip op, e1, e2), l1)]
-    @ then_
+    @ (List.flatten @@ List.map lower_stmt then_)
     @ [Jump l2]
     @ [Label l1]
-    @ else_
+    @ (List.flatten @@ List.map lower_stmt else_)
     @ [Label l2]
   | If _ -> failwith "lower_stmt: unsupported"
   | Loop (Relop (op, e1, e2), body) ->
@@ -71,7 +71,7 @@ let lower_stmt = function
     let l2 = gen_label (gen_name ()) in
     [Label l1]
     @ [Cond (Relop (flip op, e1, e2), l2)]
-    @ body
+    @ (List.flatten @@ List.map lower_stmt body)
     @ [Jump l1]
     @ [Label l2]
   | Loop _ -> failwith "lower_stmt: unsupported"

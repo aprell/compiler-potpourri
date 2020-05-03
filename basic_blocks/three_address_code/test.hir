@@ -1,6 +1,10 @@
 test(a, b) {
     if a > b {
-        return a
+        if a < 100 {
+            return a
+        } else {
+            return b
+        }
     } else {
         return b
     }
