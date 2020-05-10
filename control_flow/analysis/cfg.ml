@@ -3,7 +3,7 @@ open Basic
 module rec Node : sig
   type t = {
     index : int;
-    block : basic_block;
+    mutable block : basic_block;
     mutable succ : NodeSet.t;
     mutable pred : NodeSet.t;
     mutable doms : NodeSet.t;
