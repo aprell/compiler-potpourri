@@ -12,6 +12,6 @@ and source_info = {
 
 val create : ?source_info:source_info -> name -> basic_block
 
-val to_string : basic_block -> string
+val to_string : ?line_numbers:bool -> basic_block -> string
 
 val create_basic_blocks : stmt list -> basic_block list

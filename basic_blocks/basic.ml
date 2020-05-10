@@ -19,14 +19,14 @@ let create ?source_info name =
 let add_line_numbers =
   List.map2 (Printf.sprintf "%3d %s")
 
-let to_string (Basic_block (name, source_info)) : string =
+let to_string ?(line_numbers = true) (Basic_block (name, source_info)) : string =
   match source_info with
   | Some { stmts; source_loc = (a, b); _ } ->
     Printf.sprintf "[%s]\n%s"
       name
       (stmts
        |> List.map (string_of_stmt ~indent:4)
-       |> add_line_numbers (a -- b)
+       |> (fun s -> if line_numbers then add_line_numbers (a -- b) s else s)
        |> String.concat "\n")
   | None -> name
 
