@@ -39,6 +39,12 @@ and name = string
 
 val lower : proc -> stmt list
 
+val all_variables_expr : expr -> var list
+
+val all_variables_stmt : stmt -> var list
+
+val all_variables : stmt list -> var list
+
 val string_of_stmt : ?indent:int -> stmt -> string
 
 val dump : stmt list -> unit

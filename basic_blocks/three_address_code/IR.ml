@@ -81,6 +81,40 @@ let lower (Proc { name; params; body }) =
   [Label (gen_label name ~params)]
   @ (List.flatten @@ List.map lower_stmt body)
 
+let rec all_variables_expr = function
+  | Const _ -> []
+  | Ref x -> [x]
+  | Binop (_, e1, e2)
+  | Relop (_, e1, e2) ->
+    all_variables_expr e1 @ all_variables_expr e2
+
+let all_variables_stmt = function
+  | Move (x, e) ->
+    x :: all_variables_expr e
+  | Load (x, Mem { offset; _ }) ->
+    x :: all_variables_expr offset
+  | Store (Mem { offset; _ }, e) ->
+    all_variables_expr offset @ all_variables_expr e
+  | Label _ | Jump _ -> []
+  | Cond (e, _) ->
+    all_variables_expr e
+  | Receive x -> [x]
+  | Return (Some e) ->
+    all_variables_expr e
+  | _ -> assert false
+
+module S = Set.Make (struct
+  type t = var
+  let compare = Stdlib.compare
+end)
+
+let all_variables stmts =
+  stmts
+  |> List.map all_variables_stmt
+  |> List.flatten
+  |> S.of_list
+  |> S.elements
+
 let string_of_binop = function
   | Plus -> "+"
   | Minus -> "-"

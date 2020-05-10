@@ -12,12 +12,6 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
 
   let meet = S.union
 
-  let rec find_all_vars = function
-    | Const _ -> []
-    | Ref x -> [x]
-    | Binop (_, e1, e2) | Relop (_, e1, e2) ->
-      find_all_vars e1 @ find_all_vars e2
-
   let init { block = Basic_block (name, source_info); _ } _ =
     match source_info with
     | Some { stmts; _ } ->
@@ -30,7 +24,7 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
               (* Insert x into def (kill) *)
               let kill' = S.add x kill in
               (* Insert all variables that occur in E in use (gen) *)
-              let vars = S.of_list (find_all_vars e) in
+              let vars = S.of_list (all_variables_expr e) in
               let gen' = S.union gen' vars in
               (* Remove all variables that occur in E from def (kill) *)
               let kill' = S.diff kill' vars in
@@ -40,7 +34,7 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
             | Store (_, _) ->
               failwith "unimplemented"
             | Cond (e, _) | Return (Some e) ->
-              let vars = S.of_list (find_all_vars e) in
+              let vars = S.of_list (all_variables_expr e) in
               let gen' = S.union gen vars in
               (gen', kill)
             | Receive x ->
