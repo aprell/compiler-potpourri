@@ -77,11 +77,12 @@ let create_basic_blocks (code : stmt list) : basic_block list =
           let block = create (gen_name ()) ~source_info:
               { entry = label;
                 exits = [name];
-                source_loc = (start, line - 1);
-                stmts; }
+                (* Insert explicit jump (adds one line) *)
+                source_loc = (start, line);
+                stmts = stmts @ [Jump (name, None)]; }
           in
           (* This line starts a new basic block *)
-          (name, line, line + 1, code, block :: blocks)
+          (name, line + 1, line + 2, code, block :: blocks)
       | _ ->
         (* Extend basic block *)
         (label, start, line + 1, code, blocks)
