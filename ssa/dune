@@ -1,0 +1,10 @@
+(library
+  (name ssa)
+  (public_name ssa)
+  (modules ssa)
+  (libraries control_flow))
+
+(executable
+  (name test_ssa)
+  (modules test_ssa)
+  (libraries ssa))
