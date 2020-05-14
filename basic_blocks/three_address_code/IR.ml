@@ -101,6 +101,7 @@ let all_variables_stmt = function
   | Receive x -> [x]
   | Return (Some e) ->
     all_variables_expr e
+  | Return None -> []
   | _ -> assert false
 
 module S = Set.Make (struct
