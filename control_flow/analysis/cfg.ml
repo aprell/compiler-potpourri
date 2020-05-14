@@ -95,8 +95,8 @@ let construct (basic_blocks : basic_block list) : t =
   let labels =
     List.mapi (fun i (Basic_block (_, source_info)) ->
         match source_info with
-        | Some { entry = label; _ } ->
-          (label, i + 1)
+        | Some { entry; _ } ->
+          (entry, i + 1)
         | None ->
           invalid_arg "Basic block lacks source information"
       ) basic_blocks
@@ -129,6 +129,11 @@ let discard_source_info (graph : t) : t =
   Array.map (fun ({ block = Basic_block (name, _); _ } as node) ->
       { node with block = create name }) graph
 
+let basic_blocks (graph : t) : basic_block list =
+  let open Node in
+  Array.map (fun node -> node.block) graph
+  |> Array.to_list
+
 let equal (a : t) (b : t) : bool =
   let open Node in
   if Array.length a <> Array.length b then false
@@ -152,7 +157,7 @@ let output_dot ?filename (graph : t) =
   in
   let indent = String.make 4 ' ' in
   print "digraph CFG {";
-  Array.iter (fun { block = Basic_block (x, _); succ; _; } ->
+  Array.iter (fun { block = Basic_block (x, _); succ; _ } ->
       NodeSet.iter (fun node ->
           let Basic_block (y, _) = node.block in
           print ~indent (x ^ " -> " ^ y ^ ";")
@@ -179,7 +184,7 @@ let inspect ?back_edges (graph : t) =
         "successors"   (node_names succ)
         "predecessors" (node_names pred)
         "dominators"   (node_names doms)
-        "immediate dominator" (Option.fold ~none:"None" ~some:node_name idom)
+        "immediate dominator" (Option.fold idom ~some:node_name ~none:"None")
     ) graph;
   (* Print back edges, if known *)
   match back_edges with

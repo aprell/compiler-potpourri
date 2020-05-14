@@ -19,6 +19,8 @@ val define : nodes:int list -> edges:(int * int) list -> t
 
 val construct : basic_block list -> t
 
+val basic_blocks : t -> basic_block list
+
 val discard_source_info : t -> t
 
 val equal : t -> t -> bool
