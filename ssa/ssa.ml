@@ -100,3 +100,89 @@ let rename_variables graph =
   Array.iter (fun node ->
       node.block <- rename_variables_block node.block
     ) graph
+
+let phi_functions label jumps =
+  match label with
+  | Label (name, Some params) ->
+    let rec loop i phis = function
+      | x :: xs ->
+        let xs' = List.map (function
+            | Jump (name', Some xs')
+            | Cond (_, (name', Some xs')) -> (
+                assert (name' = name);
+                List.nth xs' i
+              )
+            | _ -> failwith "phi_functions"
+          ) jumps
+        in
+        loop (i + 1) (Phi (x, xs') :: phis) xs
+      | [] -> List.rev phis
+    in
+    loop 0 [] params
+  | _ -> failwith "phi_functions"
+
+let insert_phi_functions_block (Basic_block (name, source_info) as block) ~pred =
+  match source_info with
+  | Some ({ stmts; _ } as info) -> (
+      assert (stmts <> []);
+      match List.hd stmts with
+      | Label (l, _) as label ->
+        let jumps = List.fold_left (fun jumps (Basic_block (_, source_info)) ->
+            match source_info with
+            | Some { stmts; _ } -> (
+                match List.hd (List.rev stmts) with
+                | Jump _ | Cond _ as jump -> jump :: jumps
+                | _ -> jumps
+              )
+            | None -> jumps
+          ) [] pred |> List.rev
+        in
+        if jumps = [] then (
+          assert (name = "B1");
+          assert (List.length pred = 1);
+          let Basic_block (name, _) = List.hd pred in
+          assert (name = "Entry");
+          block
+        ) else (
+          let phi_funcs = phi_functions label jumps in
+          Basic.create name ~source_info:
+            (* Insert phi-functions and erase label parameters *)
+            { info with stmts = Label (l, None) :: phi_funcs @ List.tl stmts }
+        )
+      | _ -> block
+    )
+  | None ->
+    assert (name = "Entry" || name = "Exit");
+    block
+
+let remove_label_params block = function
+  | Label (l, Some _) when block <> "B1" -> Label (l, None)
+  | Jump (l, Some _) -> Jump (l, None)
+  | Cond (e, (l, Some _)) -> Cond (e, (l, None))
+  | s -> s
+
+let remove_label_params_block (Basic_block (name, source_info) as block) =
+  match source_info with
+  | Some ({ stmts; _ } as info) ->
+    Basic.create name ~source_info:
+      { info with stmts = List.map (remove_label_params name) stmts }
+  | None ->
+    assert (name = "Entry" || name = "Exit");
+    block
+
+let insert_phi_functions graph =
+  let open Cfg.Node in
+  let open Cfg.NodeSet in
+  (* Insert phi-functions *)
+  Array.iter (fun node ->
+      let entry = 0 in
+      let exit = Array.length graph - 1 in
+      if node.index <> entry && node.index <> exit then
+        let pred = List.map (fun node -> node.block) (elements node.pred) in
+        if List.length pred > 0 then
+          node.block <- insert_phi_functions_block node.block ~pred
+    ) graph;
+  (* Remove label parameters *)
+  Array.iter (fun node ->
+      node.block <- remove_label_params_block node.block
+    ) graph;

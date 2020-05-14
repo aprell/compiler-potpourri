@@ -17,6 +17,7 @@
 %token LBRACKET RBRACKET
 %token COMMA
 %token EOF
+%token PHI "PHI"
 
 %left EQ NE
 %left LT GT LE GE
@@ -72,6 +73,7 @@ stmt:
   | WHILE expr block         { Loop ($2, $3) }
   | RECV NAME                { Receive (Var $2) }
   | RET option(expr)         { Return $2 }
+  | NAME GETS "PHI" params   { Phi (Var $1, $4) }
   ;
 
 expr:

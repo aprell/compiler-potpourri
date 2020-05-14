@@ -12,6 +12,7 @@ let print_basic_blocks graph =
 let convert_to_ssa graph =
   parameterize_labels graph;
   rename_variables graph;
+  insert_phi_functions graph;
   print_basic_blocks graph
 
 let () =

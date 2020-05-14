@@ -16,6 +16,8 @@ and stmt =
   (* High-level constructs *)
   | If of expr * stmt list * stmt list option
   | Loop of expr * stmt list
+  (* Phi-functions (SSA) *)
+  | Phi of var * var list
 
 and expr =
   | Const of int

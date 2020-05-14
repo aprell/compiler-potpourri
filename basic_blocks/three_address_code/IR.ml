@@ -5,17 +5,19 @@ type proc = Proc of {
 }
 
 and stmt =
-  | Move of var * expr                          (* x := e      *)
-  | Load of var * mem                           (* x := M[i]   *)
-  | Store of mem * expr                         (* M[i] := e   *)
-  | Label of label                              (* L[(...)]:       *)
-  | Jump of label                               (* goto L[(...)]   *)
-  | Cond of expr * label                        (* if e goto L[(...)] *)
-  | Receive of var                              (* receive x   *)
-  | Return of expr option                       (* return e    *)
+  | Move of var * expr                          (* x := e              *)
+  | Load of var * mem                           (* x := M[i]           *)
+  | Store of mem * expr                         (* M[i] := e           *)
+  | Label of label                              (* L[(...)]:           *)
+  | Jump of label                               (* goto L[(...)]       *)
+  | Cond of expr * label                        (* if e goto L[(...)]  *)
+  | Receive of var                              (* receive x           *)
+  | Return of expr option                       (* return e            *)
   (* High-level constructs *)
   | If of expr * stmt list * stmt list option   (* if e ... [else ...] *)
-  | Loop of expr * stmt list                    (* while e ... *)
+  | Loop of expr * stmt list                    (* while e ...         *)
+  (* Phi-functions (SSA) *)
+  | Phi of var * var list                       (* x := PHI(...) *)
 
 and expr =
   | Const of int
@@ -166,6 +168,9 @@ let string_of_stmt ?(indent = 0) stmt =
     indent ^ "return " ^ string_of_expr e
   | Return None ->
     indent ^ "return"
+  | Phi (Var x, xs) ->
+    let xs = List.map (fun (Var x) -> x) xs in
+    indent ^ x ^ " := PHI(" ^ String.concat ", " xs ^ ")"
   | _ -> assert false
 
 let dump stmts =
