@@ -27,3 +27,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 
 ### Articles
 - [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
+
+### Courses
+- [Compiler Design, Fall 2014 (CMU)](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html)
+- [Compiler Design, Fall 2018 (CMU)](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html)
