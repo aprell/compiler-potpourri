@@ -20,4 +20,4 @@ let () =
     (graph_of_input
        (match Sys.argv with
         | [| _; filename |] -> filename
-        | _ -> "pow.hir"))
+        | _ -> "examples/pow.hir"))

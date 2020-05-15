@@ -1,0 +1,12 @@
+fastpow(b, e):
+    r := 1
+L1:
+    if e <= 0 goto L2
+    if e % 2 == 0 goto L3
+    r := r * b
+L3:
+    b := b * b
+    e := e / 2
+    goto L1
+L2:
+    return r

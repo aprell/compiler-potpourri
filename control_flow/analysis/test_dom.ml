@@ -12,16 +12,16 @@ let inspect ?domtree graph =
 
 let test () =
   let fib_1 = Graphs.fib in
-  let fib_2 = graph_of_input "basic_blocks/fib.hir" in
+  let fib_2 = graph_of_input "basic_blocks/examples/fib.hir" in
   inspect fib_1;
   (* Prints the same information *)
-  inspect fib_2 ~domtree:"fib_domtree.dot"
+  inspect fib_2 ~domtree:"examples/fib_domtree.dot"
 
 let () =
   match Sys.argv with
   | [| _; filename |] ->
     graph_of_input filename
     |> inspect ~domtree:
-      Filename.((remove_extension (basename filename)) ^ "_domtree.dot")
+      Filename.("examples/" ^ (remove_extension (basename filename)) ^ "_domtree.dot")
   | _ ->
     test ()
