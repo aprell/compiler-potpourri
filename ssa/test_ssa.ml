@@ -16,8 +16,8 @@ let convert_to_ssa graph =
   print_basic_blocks graph
 
 let () =
-  convert_to_ssa
-    (graph_of_input
-       (match Sys.argv with
-        | [| _; filename |] -> filename
-        | _ -> "examples/pow.hir"))
+  graph_of_input
+    (match Sys.argv with
+     | [| _; filename |] -> filename
+     | _ -> "examples/pow.hir")
+  |> convert_to_ssa

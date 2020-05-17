@@ -170,6 +170,24 @@ let remove_label_params_block (Basic_block (name, source_info) as block) =
     assert (name = "Entry" || name = "Exit");
     block
 
+let simplify_block (Basic_block (name, source_info) as block) =
+  let rec remove_unary_phi_functions = function
+    | (Label _ as label) :: Phi (x, [x']) :: stmts ->
+      (* Replace x := PHI(x') with x := x' and perform copy propagation *)
+      remove_unary_phi_functions (
+        label :: (Optim.propagate (Move (x, Ref x')) stmts)
+      )
+    | stmts -> stmts
+  in
+  match source_info with
+  | Some ({ stmts; _ } as info) ->
+    Basic.create name ~source_info: {
+      info with stmts = remove_unary_phi_functions stmts
+    }
+  | None ->
+    assert (name = "Entry" || name = "Exit");
+    block
+
 let insert_phi_functions graph =
   let open Cfg.Node in
   let open Cfg.NodeSet in
@@ -179,6 +197,8 @@ let insert_phi_functions graph =
       let exit = Array.length graph - 1 in
       if node.index <> entry && node.index <> exit then
         let pred = List.map (fun node -> node.block) (elements node.pred) in
+        (* Insert phi-functions for every labeled jump (not only at join
+         * points, where two or more control flow paths merge) *)
         if List.length pred > 0 then
           node.block <- insert_phi_functions_block node.block ~pred
     ) graph;
@@ -186,3 +206,7 @@ let insert_phi_functions graph =
   Array.iter (fun node ->
       node.block <- remove_label_params_block node.block
     ) graph;
+  (* Delete unnecessary phi-functions *)
+  Array.iter (fun node ->
+      node.block <- simplify_block node.block
+    ) graph

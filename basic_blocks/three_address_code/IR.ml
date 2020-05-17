@@ -17,7 +17,7 @@ and stmt =
   | If of expr * stmt list * stmt list option   (* if e ... [else ...] *)
   | Loop of expr * stmt list                    (* while e ...         *)
   (* Phi-functions (SSA) *)
-  | Phi of var * var list                       (* x := PHI(...) *)
+  | Phi of var * var list                       (* x := PHI(...)       *)
 
 and expr =
   | Const of int
