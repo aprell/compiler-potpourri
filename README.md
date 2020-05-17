@@ -25,6 +25,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [A Simple, Fast Dominance Algorithm](https://www.cs.rice.edu/~keith/Embed/dom.pdf)
 - [Iterative Data-Flow Analysis, Revisited](https://scholarship.rice.edu/handle/1911/96324)
 - [SSA is Functional Programming](https://www.cs.princeton.edu/~appel/papers/ssafun.pdf)
+- [Simple Generation of Static Single-Assignment Form](https://link.springer.com/content/pdf/10.1007/3-540-46423-9_8.pdf)
 
 ### Articles
 - [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
