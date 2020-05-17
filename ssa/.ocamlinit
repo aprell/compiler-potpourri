@@ -2,3 +2,20 @@ open Three_address_code
 open Basic
 open Control_flow
 open Ssa
+
+#use "optim.ml"
+
+let test = [
+  Move (Var "t_0", Const 5);
+  Move (Var "x_0", Binop (Minus, Ref (Var "t_0"), Const 4));
+  Move (Var "t_1", Binop (Plus, Ref (Var "x_0"), Ref (Var "t_0")));
+  Move (Var "z_0", Binop (Minus, Ref (Var "t_1"), Const 1));
+  Return (Some (Ref (Var "z_0")));
+]
+
+let () =
+  print_endline "Before optimization:";
+  dump test;
+  print_newline ();
+  print_endline "After optimization:";
+  dump (optimize test)
