@@ -18,6 +18,7 @@ let rec replace_expr x y = function
 (* TODO: Add missing cases *)
 let replace_stmt x y = function
   | Move (x', e) -> Move (x', replace_expr x y e)
+  | Cond (e, l) -> Cond (replace_expr x y e, l)
   | Return (Some e) -> Return (Some (replace_expr x y e))
   | s -> s
 

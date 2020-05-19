@@ -2,6 +2,11 @@ open Three_address_code__IR
 open Basic
 open Control_flow
 
+module S = Set.Make (struct
+  type t = var
+  let compare = Stdlib.compare
+end)
+
 let parameterize_labels_block (Basic_block (name, source_info) as block) ~variables =
   match source_info with
   | Some ({ stmts; _ } as info) ->
@@ -170,24 +175,43 @@ let remove_label_params_block (Basic_block (name, source_info) as block) =
     assert (name = "Entry" || name = "Exit");
     block
 
-let simplify_block (Basic_block (name, source_info) as block) =
-  let rec remove_unary_phi_functions = function
-    | (Label _ as label) :: Phi (x, [x']) :: stmts ->
+let minimize_block (Basic_block (name, source_info) as block) =
+  let rec remove_phi_functions = function
+    | (Label _ as label) :: stmts ->
+      label :: remove_phi_functions stmts
+    | Phi (x, [x']) :: stmts ->
       (* Replace x := PHI(x') with x := x' and perform copy propagation *)
-      remove_unary_phi_functions (
-        label :: (Optim.propagate (Move (x, Ref x')) stmts)
+      remove_phi_functions (
+        Optim.propagate (Move (x, Ref x')) stmts
       )
+    | (Phi (x, xs) as phi) :: stmts ->
+      let xs = S.of_list xs in
+      if S.cardinal xs = 1 && not (S.mem x xs) ||
+         S.cardinal xs = 2 && S.mem x xs then
+        (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and perform
+         * copy propagation *)
+        let x' = S.find_first (( <> ) x) xs in
+        remove_phi_functions (
+          Optim.propagate (Move (x, Ref x')) stmts
+        )
+      else
+        (* Keep this phi-function *)
+        phi :: remove_phi_functions stmts
     | stmts -> stmts
   in
   match source_info with
   | Some ({ stmts; _ } as info) ->
     Basic.create name ~source_info: {
-      info with stmts = remove_unary_phi_functions stmts
+      info with stmts = remove_phi_functions stmts
     }
   | None ->
     assert (name = "Entry" || name = "Exit");
     block
 
+(* Roughly follows the simple generation of SSA form by Aycock and Horspool:
+ * (1) Insert phi-functions "everywhere" (the "really crude" approach)
+ * (2) Delete unnecessary phi-functions, optimize, and repeat
+ * The result is minimal, or close to minimal, SSA form *)
 let insert_phi_functions graph =
   let open Cfg.Node in
   let open Cfg.NodeSet in
@@ -208,5 +232,5 @@ let insert_phi_functions graph =
     ) graph;
   (* Delete unnecessary phi-functions *)
   Array.iter (fun node ->
-      node.block <- simplify_block node.block
+      node.block <- minimize_block node.block
     ) graph
