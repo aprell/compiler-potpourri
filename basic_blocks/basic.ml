@@ -45,12 +45,12 @@ let create_basic_blocks (code : stmt list) : basic_block list =
         in
         (* Next line starts a new basic block *)
         ("fall-through", line + 1, line + 1, code, block :: blocks)
-      | Cond (_, (target, _)) ->
+      | Cond (_, (l1, _), (l2, _)) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
         let block = create (gen_name ()) ~source_info:
             { entry = label;
-              exits = [target; "fall-through"];
+              exits = [l1; l2];
               source_loc = (start, line);
               stmts; }
         in

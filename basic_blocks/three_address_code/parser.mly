@@ -62,25 +62,25 @@ label:
   ;
 
 stmt:
-  | NAME GETS expr           { Move (Var $1, $3) }
-  | NAME GETS mem            { Load (Var $1, $3) }
-  | mem GETS expr            { Store ($1, $3) }
-  | label COL                { Label $1 }
-  | GOTO label               { Jump $2 }
-  | IF expr GOTO label       { Cond ($2, $4) }
-  | IF expr block            { If ($2, $3, None) }
-  | IF expr block ELSE block { If ($2, $3, Some $5) }
-  | WHILE expr block         { Loop ($2, $3) }
-  | RECV NAME                { Receive (Var $2) }
-  | RET option(expr)         { Return $2 }
-  | NAME GETS "PHI" params   { Phi (Var $1, $4) }
+  | NAME GETS expr                       { Move (Var $1, $3) }
+  | NAME GETS mem                        { Load (Var $1, $3) }
+  | mem GETS expr                        { Store ($1, $3) }
+  | label COL                            { Label $1 }
+  | GOTO label                           { Jump $2 }
+  | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
+  | IF expr block                        { If ($2, $3, None) }
+  | IF expr block ELSE block             { If ($2, $3, Some $5) }
+  | WHILE expr block                     { Loop ($2, $3) }
+  | RECV NAME                            { Receive (Var $2) }
+  | RET option(expr)                     { Return $2 }
+  | NAME GETS "PHI" params               { Phi (Var $1, $4) }
   ;
 
 expr:
-  | INT                      { Const $1 }
-  | NAME                     { Ref (Var $1) }
-  | expr binop expr          { Binop ($2, $1, $3) }
-  | expr relop expr          { Relop ($2, $1, $3) }
+  | INT               { Const $1 }
+  | NAME              { Ref (Var $1) }
+  | expr binop expr   { Binop ($2, $1, $3) }
+  | expr relop expr   { Relop ($2, $1, $3) }
   ;
 
 mem:

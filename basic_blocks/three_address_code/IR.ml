@@ -5,19 +5,19 @@ type proc = Proc of {
 }
 
 and stmt =
-  | Move of var * expr                          (* x := e              *)
-  | Load of var * mem                           (* x := M[i]           *)
-  | Store of mem * expr                         (* M[i] := e           *)
-  | Label of label                              (* L[(...)]:           *)
-  | Jump of label                               (* goto L[(...)]       *)
-  | Cond of expr * label                        (* if e goto L[(...)]  *)
-  | Receive of var                              (* receive x           *)
-  | Return of expr option                       (* return e            *)
+  | Move of var * expr                          (* x := e                     *)
+  | Load of var * mem                           (* x := M[i]                  *)
+  | Store of mem * expr                         (* M[i] := e                  *)
+  | Label of label                              (* L:                         *)
+  | Jump of label                               (* goto L                     *)
+  | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
+  | Receive of var                              (* receive x                  *)
+  | Return of expr option                       (* return e                   *)
   (* High-level constructs *)
-  | If of expr * stmt list * stmt list option   (* if e ... [else ...] *)
-  | Loop of expr * stmt list                    (* while e ...         *)
+  | If of expr * stmt list * stmt list option   (* if e ... [else ...]        *)
+  | Loop of expr * stmt list                    (* while e ...                *)
   (* Phi-functions (SSA) *)
-  | Phi of var * var list                       (* x := PHI(...)       *)
+  | Phi of var * var list                       (* x := PHI(...)              *)
 
 and expr =
   | Const of int
@@ -44,38 +44,36 @@ let gen_label ?params name : label = (name, params)
 
 let gen_name = Utils.gen_sym "L" 1
 
-let flip = function
-  | EQ -> NE
-  | NE -> EQ
-  | LT -> GE
-  | GT -> LE
-  | LE -> GT
-  | GE -> LT
-
 let rec lower_stmt = function
-  | If (Relop (op, e1, e2), then_, None) ->
-    let l1 = gen_label (gen_name ()) in
-    [Cond (Relop (flip op, e1, e2), l1)]
-    @ (List.flatten @@ List.map lower_stmt then_)
-    @ [Label l1]
-  | If (Relop (op, e1, e2), then_, Some else_) ->
+  | If (Relop _ as e, then_, None) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
-    [Cond (Relop (flip op, e1, e2), l1)]
-    @ (List.flatten @@ List.map lower_stmt then_)
-    @ [Jump l2]
+    [Cond (e, l1, l2)]
     @ [Label l1]
-    @ (List.flatten @@ List.map lower_stmt else_)
+    @ (List.flatten @@ List.map lower_stmt then_)
     @ [Label l2]
-  | If _ -> failwith "lower_stmt: unsupported"
-  | Loop (Relop (op, e1, e2), body) ->
+  | If (Relop _ as e, then_, Some else_) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
+    let l3 = gen_label (gen_name ()) in
+    [Cond (e, l1, l2)]
+    @ [Label l1]
+    @ (List.flatten @@ List.map lower_stmt then_)
+    @ [Jump l3]
+    @ [Label l2]
+    @ (List.flatten @@ List.map lower_stmt else_)
+    @ [Label l3]
+  | If _ -> failwith "lower_stmt: unsupported"
+  | Loop (Relop _ as e, body) ->
+    let l1 = gen_label (gen_name ()) in
+    let l2 = gen_label (gen_name ()) in
+    let l3 = gen_label (gen_name ()) in
     [Label l1]
-    @ [Cond (Relop (flip op, e1, e2), l2)]
+    @ [Cond (e, l2, l3)]
+    @ [Label l2]
     @ (List.flatten @@ List.map lower_stmt body)
     @ [Jump l1]
-    @ [Label l2]
+    @ [Label l3]
   | Loop _ -> failwith "lower_stmt: unsupported"
   | s -> [s]
 
@@ -98,7 +96,7 @@ let all_variables_stmt = function
   | Store (Mem { offset; _ }, e) ->
     all_variables_expr offset @ all_variables_expr e
   | Label _ | Jump _ -> []
-  | Cond (e, _) ->
+  | Cond (e, _, _) ->
     all_variables_expr e
   | Receive x -> [x]
   | Return (Some e) ->
@@ -160,8 +158,10 @@ let string_of_stmt ?(indent = 0) stmt =
     string_of_label l ^ ":"
   | Jump l ->
     indent ^ "goto " ^ string_of_label l
-  | Cond (e, l) ->
-    indent ^ "if " ^ string_of_expr e ^ " goto " ^ string_of_label l
+  | Cond (e, l1, l2) ->
+    indent ^ "if " ^ string_of_expr e
+    ^ " goto " ^ string_of_label l1
+    ^ " else goto " ^ string_of_label l2
   | Receive (Var x) ->
     indent ^ "receive " ^ x
   | Return (Some e) ->

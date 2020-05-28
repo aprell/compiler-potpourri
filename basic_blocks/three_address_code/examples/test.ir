@@ -1,12 +1,14 @@
 test(a, b):
-    if a <= b goto L1
-    if a >= 100 goto L3
-    return a
-    goto L4
-L3:
-    return b
-L4:
-    goto L2
+    if a > b goto L1 else goto L2
 L1:
+    if a < 100 goto L4 else goto L5
+L4:
+    return a
+    goto L6
+L5:
     return b
+L6:
+    goto L3
 L2:
+    return b
+L3:

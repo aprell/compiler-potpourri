@@ -5,19 +5,19 @@ type proc = Proc of {
 }
 
 and stmt =
-  | Move of var * expr
-  | Load of var * mem
-  | Store of mem * expr
-  | Label of label
-  | Jump of label
-  | Cond of expr * label
-  | Receive of var
-  | Return of expr option
+  | Move of var * expr                          (* x := e                     *)
+  | Load of var * mem                           (* x := M[i]                  *)
+  | Store of mem * expr                         (* M[i] := e                  *)
+  | Label of label                              (* L:                         *)
+  | Jump of label                               (* goto L                     *)
+  | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
+  | Receive of var                              (* receive x                  *)
+  | Return of expr option                       (* return e                   *)
   (* High-level constructs *)
-  | If of expr * stmt list * stmt list option
-  | Loop of expr * stmt list
+  | If of expr * stmt list * stmt list option   (* if e ... [else ...]        *)
+  | Loop of expr * stmt list                    (* while e ...                *)
   (* Phi-functions (SSA) *)
-  | Phi of var * var list
+  | Phi of var * var list                       (* x := PHI(...)              *)
 
 and expr =
   | Const of int

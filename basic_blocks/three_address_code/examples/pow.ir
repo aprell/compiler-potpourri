@@ -1,9 +1,10 @@
 pow(b, e):
     r := 1
 L1:
-    if e <= 0 goto L2
+    if e > 0 goto L2 else goto L3
+L2:
     r := r * b
     e := e - 1
     goto L1
-L2:
+L3:
     return r

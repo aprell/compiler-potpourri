@@ -15,7 +15,8 @@ let parameterize_labels_block (Basic_block (name, source_info) as block) ~variab
         let stmt' = match stmt with
           | Label (l, None) -> Label (l, Some variables)
           | Jump (l, None) -> Jump (l, Some variables)
-          | Cond (e, (l, None)) -> Cond (e, (l, Some variables))
+          | Cond (e, (l1, None), (l2, None)) ->
+            Cond (e, (l1, Some variables), (l2, Some variables))
           | _ -> stmt
         in
         loop (stmt' :: acc) stmts
@@ -82,8 +83,10 @@ let rename_variables_stmt = function
     Label (rename_variables_label l ~bump:true)
   | Jump l ->
     Jump (rename_variables_label l ~bump:false)
-  | Cond (e, l) ->
-    Cond (rename_variables_expr e, rename_variables_label l ~bump:false)
+  | Cond (e, l1, l2) ->
+    Cond (rename_variables_expr e,
+          rename_variables_label l1 ~bump:false,
+          rename_variables_label l2 ~bump:false)
   | Receive x ->
     Receive (rename_variable x ~bump:true)
   | Return (Some e) ->
@@ -112,10 +115,15 @@ let phi_functions label jumps =
     let rec loop i phis = function
       | x :: xs ->
         let xs' = List.map (function
-            | Jump (name', Some xs')
-            | Cond (_, (name', Some xs')) -> (
-                assert (name' = name);
+            | Jump (name', Some xs') ->
+              assert (name' = name);
+              List.nth xs' i
+            | Cond (_, (name', Some xs'), (name'', Some xs'')) ->
+              if (name' = name) then (
                 List.nth xs' i
+              ) else (
+                assert (name'' = name);
+                List.nth xs'' i
               )
             | _ -> failwith "phi_functions"
           ) jumps
@@ -163,7 +171,7 @@ let insert_phi_functions_block (Basic_block (name, source_info) as block) ~pred 
 let remove_label_params block = function
   | Label (l, Some _) when block <> "B1" -> Label (l, None)
   | Jump (l, Some _) -> Jump (l, None)
-  | Cond (e, (l, Some _)) -> Cond (e, (l, None))
+  | Cond (e, (l1, Some _), (l2, Some _)) -> Cond (e, (l1, None), (l2, None))
   | s -> s
 
 let remove_label_params_block (Basic_block (name, source_info) as block) =
