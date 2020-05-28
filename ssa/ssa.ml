@@ -183,6 +183,7 @@ let remove_label_params_block (Basic_block (name, source_info) as block) =
     assert (name = "Entry" || name = "Exit");
     block
 
+(*
 let minimize_block (Basic_block (name, source_info) as block) =
   let rec remove_phi_functions = function
     | (Label _ as label) :: stmts ->
@@ -215,6 +216,7 @@ let minimize_block (Basic_block (name, source_info) as block) =
   | None ->
     assert (name = "Entry" || name = "Exit");
     block
+*)
 
 (* Roughly follows the simple generation of SSA form by Aycock and Horspool:
  * (1) Insert phi-functions "everywhere" (the "really crude" approach)
@@ -239,6 +241,8 @@ let insert_phi_functions graph =
       node.block <- remove_label_params_block node.block
     ) graph;
   (* Delete unnecessary phi-functions *)
+  (*
   Array.iter (fun node ->
       node.block <- minimize_block node.block
     ) graph
+  *)
