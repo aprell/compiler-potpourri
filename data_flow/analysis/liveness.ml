@@ -33,7 +33,7 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
               failwith "unimplemented"
             | Store (_, _) ->
               failwith "unimplemented"
-            | Cond (e, _) | Return (Some e) ->
+            | Cond (e, _, _) | Return (Some e) ->
               let vars = S.of_list (all_variables_expr e) in
               let gen' = S.union gen vars in
               (gen', kill)
