@@ -1,6 +1,6 @@
 open Three_address_code__Parse
-open Basic
-open Basic__Utils
+open Basic_block
+open Basic_block__Utils
 
 let diamond =
   Cfg.define

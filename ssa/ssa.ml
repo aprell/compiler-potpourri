@@ -1,5 +1,5 @@
 open Three_address_code__IR
-open Basic
+open Basic_block
 open Control_flow
 
 module S = Set.Make (struct
@@ -7,8 +7,8 @@ module S = Set.Make (struct
   let compare = Stdlib.compare
 end)
 
-let parameterize_labels_block (Basic_block (name, source_info) as block) ~variables =
-  match source_info with
+let parameterize_labels_block block ~variables =
+  match block.source with
   | Some ({ stmts; _ } as info) ->
     let rec loop acc = function
       | stmt :: stmts ->
@@ -22,18 +22,18 @@ let parameterize_labels_block (Basic_block (name, source_info) as block) ~variab
         loop (stmt' :: acc) stmts
       | [] -> List.rev acc
     in
-    Basic.create name ~source_info:
+    Basic_block.create block.name ~source:
       { info with stmts = loop [] stmts }
   | None ->
-    assert (name = "Entry" || name = "Exit");
+    assert (block.name = "Entry" || block.name = "Exit");
     block
 
 let parameterize_labels graph =
   let open Cfg.Node in
-  let variables = Array.map (fun { block = Basic_block (name, source_info); _ } ->
-      match source_info with
+  let variables = Array.map (fun { block; _ } ->
+      match block.source with
       | Some { stmts; _ } -> stmts
-      | None -> assert (name = "Entry" || name = "Exit"); []
+      | None -> assert (block.name = "Entry" || block.name = "Exit"); []
     ) graph |> Array.to_list |> List.flatten |> all_variables
   in
   Array.iter (fun node ->
@@ -94,13 +94,13 @@ let rename_variables_stmt = function
   | Return None as s -> s
   | _ -> assert false
 
-let rename_variables_block (Basic_block (name, source_info) as block) =
-  match source_info with
+let rename_variables_block block =
+  match block.source with
   | Some ({ stmts; _ } as info) ->
-    Basic.create name ~source_info:
+    Basic_block.create block.name ~source:
       { info with stmts = List.map rename_variables_stmt stmts }
   | None ->
-    assert (name = "Entry" || name = "Exit");
+    assert (block.name = "Entry" || block.name = "Exit");
     block
 
 let rename_variables graph =
@@ -134,14 +134,14 @@ let phi_functions label jumps =
     loop 0 [] params
   | _ -> failwith "phi_functions"
 
-let insert_phi_functions_block (Basic_block (name, source_info) as block) ~pred =
-  match source_info with
+let insert_phi_functions_block block ~pred =
+  match block.source with
   | Some ({ stmts; _ } as info) -> (
       assert (stmts <> []);
       match List.hd stmts with
       | Label (l, _) as label ->
-        let jumps = List.fold_left (fun jumps (Basic_block (_, source_info)) ->
-            match source_info with
+        let jumps = List.fold_left (fun jumps block ->
+            match block.source with
             | Some { stmts; _ } -> (
                 match List.hd (List.rev stmts) with
                 | Jump _ | Cond _ as jump -> jump :: jumps
@@ -151,21 +151,20 @@ let insert_phi_functions_block (Basic_block (name, source_info) as block) ~pred 
           ) [] pred |> List.rev
         in
         if jumps = [] then (
-          assert (name = "B1");
+          assert (block.name = "B1");
           assert (List.length pred = 1);
-          let Basic_block (name, _) = List.hd pred in
-          assert (name = "Entry");
+          assert ((List.hd pred).name = "Entry");
           block
         ) else (
           let phi_funcs = phi_functions label jumps in
-          Basic.create name ~source_info:
+          Basic_block.create block.name ~source:
             (* Insert phi-functions and erase label parameters *)
             { info with stmts = Label (l, None) :: phi_funcs @ List.tl stmts }
         )
       | _ -> block
     )
   | None ->
-    assert (name = "Entry" || name = "Exit");
+    assert (block.name = "Entry" || block.name = "Exit");
     block
 
 let remove_label_params block = function
@@ -174,17 +173,17 @@ let remove_label_params block = function
   | Cond (e, (l1, Some _), (l2, Some _)) -> Cond (e, (l1, None), (l2, None))
   | s -> s
 
-let remove_label_params_block (Basic_block (name, source_info) as block) =
-  match source_info with
+let remove_label_params_block block =
+  match block.source with
   | Some ({ stmts; _ } as info) ->
-    Basic.create name ~source_info:
-      { info with stmts = List.map (remove_label_params name) stmts }
+    Basic_block.create block.name ~source:
+      { info with stmts = List.map (remove_label_params block.name) stmts }
   | None ->
-    assert (name = "Entry" || name = "Exit");
+    assert (block.name = "Entry" || block.name = "Exit");
     block
 
 (*
-let minimize_block (Basic_block (name, source_info) as block) =
+let minimize_block block =
   let rec remove_phi_functions = function
     | (Label _ as label) :: stmts ->
       label :: remove_phi_functions stmts
@@ -208,13 +207,12 @@ let minimize_block (Basic_block (name, source_info) as block) =
         phi :: remove_phi_functions stmts
     | stmts -> stmts
   in
-  match source_info with
+  match block.source with
   | Some ({ stmts; _ } as info) ->
-    Basic.create name ~source_info: {
-      info with stmts = remove_phi_functions stmts
-    }
+    Basic_block.create block.name ~source:
+      { info with stmts = remove_phi_functions stmts }
   | None ->
-    assert (name = "Entry" || name = "Exit");
+    assert (block.name = "Entry" || block.name = "Exit");
     block
 *)
 

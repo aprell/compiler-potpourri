@@ -13,15 +13,15 @@ module Dominators = Data_flow_analysis (Forward_flow (S) (struct
   let meet = S.inter
 
   let all_basic_blocks =
-    Array.fold_left (fun set { block = Basic_block (name, _); _ } ->
-        S.add name set
+    Array.fold_left (fun set { block; _ } ->
+        S.add block.name set
       ) S.empty
 
-  let init { block = Basic_block (name, _); _ } graph =
-    { gen = S.singleton name;
+  let init { block; _ } graph =
+    { gen = S.singleton block.name;
       kill = S.empty;
       global_in = S.empty;
-      global_out = match name with
+      global_out = match block.name with
         | "Entry" -> S.empty
         | _ -> all_basic_blocks graph }
 end))

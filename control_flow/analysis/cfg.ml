@@ -1,9 +1,7 @@
-open Basic
-
 module rec Node : sig
   type t = {
     index : int;
-    mutable block : basic_block;
+    mutable block : Basic_block.t;
     mutable succ : NodeSet.t;
     mutable pred : NodeSet.t;
     mutable doms : NodeSet.t;
@@ -27,10 +25,10 @@ let ( => ) (a : Node.t) (b : Node.t) =
 let define ~(nodes : int list) ~(edges : (int * int) list) : t =
   let open Node in
   let basic_blocks =
-    List.map (fun i -> create ("B" ^ string_of_int i)) nodes
+    List.map (fun i -> Basic_block.create ("B" ^ string_of_int i)) nodes
   in
   let graph =
-    create "Entry" :: basic_blocks @ [create "Exit"]
+    Basic_block.(create "Entry" :: basic_blocks @ [create "Exit"])
     |> Array.of_list
     |> Array.mapi (fun index block ->
         { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
@@ -82,10 +80,10 @@ let prune_unreachable_nodes (graph : t) : t =
 let unreachable (node : Node.t) =
   node.succ = NodeSet.empty && node.pred = NodeSet.empty
 
-let construct (basic_blocks : basic_block list) : t =
+let construct (basic_blocks : Basic_block.t list) : t =
   let open Node in
   let graph =
-    create "Entry" :: basic_blocks @ [create "Exit"]
+    Basic_block.(create "Entry" :: basic_blocks @ [create "Exit"])
     |> Array.of_list
     |> Array.mapi (fun index block ->
         { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
@@ -93,8 +91,8 @@ let construct (basic_blocks : basic_block list) : t =
   in
   (* Create a list that associates labels with basic blocks *)
   let labels =
-    List.mapi (fun i (Basic_block (_, source_info)) ->
-        match source_info with
+    List.mapi (fun i (block : Basic_block.t) ->
+        match block.source with
         | Some { entry; _ } ->
           (entry, i + 1)
         | None ->
@@ -106,8 +104,8 @@ let construct (basic_blocks : basic_block list) : t =
   (* Add an edge from entry to the first basic block *)
   graph.(entry) => graph.(1);
   (* Connect basic blocks *)
-  Array.iteri (fun i { block = Basic_block (_, source_info); _ } ->
-      match source_info with
+  Array.iteri (fun i { block; _ } ->
+      match block.source with
       | Some { exits; _ } ->
         List.iter (function
             | "fall-through" ->
@@ -126,10 +124,10 @@ let construct (basic_blocks : basic_block list) : t =
 
 let discard_source_info (graph : t) : t =
   let open Node in
-  Array.map (fun ({ block = Basic_block (name, _); _ } as node) ->
-      { node with block = create name }) graph
+  Array.map (fun ({ block; _ } as node) ->
+      { node with block = Basic_block.create block.name }) graph
 
-let basic_blocks (graph : t) : basic_block list =
+let basic_blocks (graph : t) : Basic_block.t list =
   let open Node in
   Array.map (fun node -> node.block) graph
   |> Array.to_list
@@ -157,9 +155,10 @@ let output_dot ?filename (graph : t) =
   in
   let indent = String.make 4 ' ' in
   print "digraph CFG {";
-  Array.iter (fun { block = Basic_block (x, _); succ; _ } ->
-      NodeSet.iter (fun node ->
-          let Basic_block (y, _) = node.block in
+  Array.iter (fun { block; succ; _ } ->
+      let x = block.name in
+      NodeSet.iter (fun { block; _ } ->
+          let y = block.name in
           print ~indent (x ^ " -> " ^ y ^ ";")
         ) succ
     ) graph;
@@ -168,7 +167,7 @@ let output_dot ?filename (graph : t) =
 
 let inspect ?back_edges (graph : t) =
   let open Node in
-  let node_name { block = Basic_block (name, _); _ } = name in
+  let node_name { block; _ } = block.name in
   let node_names nodes =
     nodes
     |> NodeSet.elements
@@ -177,10 +176,10 @@ let inspect ?back_edges (graph : t) =
   in
   (* Print nodes *)
   let open Printf in
-  Array.iter (fun { block = Basic_block (name, _); succ; pred; doms; idom; _ } ->
+  Array.iter (fun { block; succ; pred; doms; idom; _ } ->
       printf
         "%5s:\n \t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = [%s]\n\t%-12s = %s\n"
-        name
+        block.name
         "successors"   (node_names succ)
         "predecessors" (node_names pred)
         "dominators"   (node_names doms)

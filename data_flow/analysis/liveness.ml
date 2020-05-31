@@ -12,8 +12,8 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
 
   let meet = S.union
 
-  let init { block = Basic_block (name, source_info); _ } _ =
-    match source_info with
+  let init { block; _ } _ =
+    match block.source with
     | Some { stmts; _ } ->
       let rec loop gen kill = function
         | stmt :: stmts ->
@@ -49,7 +49,7 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
       let gen, kill = loop S.empty S.empty (List.rev stmts) in
       { gen; kill; global_in = S.empty; global_out = S.empty }
     | None ->
-      assert (name = "Entry" || name = "Exit");
+      assert (block.name = "Entry" || block.name = "Exit");
       { gen = S.empty; kill = S.empty; global_in = S.empty; global_out = S.empty }
 end))
 

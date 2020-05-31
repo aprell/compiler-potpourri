@@ -1,6 +1,6 @@
-LIB := basic
+LIB := basic_block
 
-PROGS := test_basic
+PROGS := test_basic_block
 
 all: $(LIB) $(PROGS)
 

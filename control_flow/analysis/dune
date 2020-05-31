@@ -2,7 +2,7 @@
   (name control_flow)
   (public_name control_flow)
   (modules cfg dom graphs)
-  (libraries basic))
+  (libraries basic_block))
 
 (executable
   (name test_cfg)

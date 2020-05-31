@@ -1,9 +1,7 @@
-open Basic
-
 module rec Node : sig
   type t = {
     index : int;
-    mutable block : basic_block;
+    mutable block : Basic_block.t;
     mutable succ : NodeSet.t;
     mutable pred : NodeSet.t;
     mutable doms : NodeSet.t;
@@ -17,9 +15,9 @@ type t = Node.t array
 
 val define : nodes:int list -> edges:(int * int) list -> t
 
-val construct : basic_block list -> t
+val construct : Basic_block.t list -> t
 
-val basic_blocks : t -> basic_block list
+val basic_blocks : t -> Basic_block.t list
 
 val discard_source_info : t -> t
 

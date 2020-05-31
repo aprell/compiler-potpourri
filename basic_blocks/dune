@@ -1,10 +1,10 @@
 (library
-  (name basic)
-  (public_name basic)
-  (modules (:standard \ test_basic))
+  (name basic_block)
+  (public_name basic_block)
+  (modules (:standard \ test_basic_block))
   (libraries three_address_code))
 
 (executable
-  (name test_basic)
-  (modules test_basic)
-  (libraries basic))
+  (name test_basic_block)
+  (modules test_basic_block)
+  (libraries basic_block))

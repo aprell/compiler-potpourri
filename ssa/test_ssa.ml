@@ -4,7 +4,7 @@ open Ssa
 
 let print_basic_blocks graph =
   Cfg.basic_blocks graph
-  |> List.map (Basic.to_string ~line_numbers:false)
+  |> List.map (Basic_block.to_string ~line_numbers:false)
   |> List.filter (fun name -> name <> "Entry" && name <> "Exit")
   |> String.concat "\n"
   |> print_endline

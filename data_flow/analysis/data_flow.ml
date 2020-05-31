@@ -1,10 +1,11 @@
 open Control_flow
 
-type 'a analysis =
-  { gen : 'a;
-    kill : 'a;
-    mutable global_in : 'a;
-    mutable global_out : 'a; }
+type 'a analysis = {
+  gen : 'a;
+  kill : 'a;
+  mutable global_in : 'a;
+  mutable global_out : 'a;
+}
 
 (* Input signatures of functors Forward_flow and Backward_flow *)
 module type SetType = sig
@@ -36,16 +37,15 @@ module Forward_flow (S : SetType) (T : AnalysisType with type t := S.t) = struct
     let num_nodes = Array.length graph in
     Array.init num_nodes (fun i -> T.init graph.(i) graph)
 
-  let update (n : Cfg.Node.t) sets =
-    let { index = i; block = Basic_block (name, _); pred; _ } = n in
-    let { gen; kill; global_in; _ } = sets.(i) in
-    match name with
+  let update (node : Cfg.Node.t) sets =
+    let { gen; kill; global_in; _ } = sets.(node.index) in
+    match node.block.name with
     | "Entry" -> (global_in, S.union gen global_in)
     | _ -> (
-        assert (Cfg.NodeSet.cardinal pred > 0);
+        assert (Cfg.NodeSet.cardinal node.pred > 0);
         let in_set = Cfg.NodeSet.fold (fun p set ->
             T.meet sets.(p.index).global_out set
-          ) pred (sets.((Cfg.NodeSet.choose pred).index).global_out)
+          ) node.pred (sets.((Cfg.NodeSet.choose node.pred).index).global_out)
         in
         let out_set = S.union gen (S.diff in_set kill) in
         (in_set, out_set)
@@ -61,16 +61,15 @@ module Backward_flow (S : SetType) (T : AnalysisType with type t := S.t) = struc
     let num_nodes = Array.length graph in
     Array.init num_nodes (fun i -> T.init graph.(i) graph)
 
-  let update (n : Cfg.Node.t) sets =
-    let { index = i; block = Basic_block (name, _); succ; _ } = n in
-    let { gen; kill; global_out; _ } = sets.(i) in
-    match name with
+  let update (node : Cfg.Node.t) sets =
+    let { gen; kill; global_out; _ } = sets.(node.index) in
+    match node.block.name with
     | "Exit" -> (S.union gen global_out, global_out)
     | _ -> (
-        assert (Cfg.NodeSet.cardinal succ > 0);
+        assert (Cfg.NodeSet.cardinal node.succ > 0);
         let out_set = Cfg.NodeSet.fold (fun s set ->
             T.meet sets.(s.index).global_in set
-          ) succ (sets.((Cfg.NodeSet.choose succ).index).global_in)
+          ) node.succ (sets.((Cfg.NodeSet.choose node.succ).index).global_in)
         in
         let in_set = S.union gen (S.diff out_set kill) in
         (in_set, out_set)

@@ -2,42 +2,44 @@ open Three_address_code__IR
 open Three_address_code__Utils
 open Utils
 
-type basic_block = Basic_block of name * source_info option
+type t = {
+  name : string;
+  source : source_info option;
+}
 
 and source_info = {
-  entry : name;
-  exits : name list;
+  entry : string;
+  exits : string list;
   stmts : stmt list;
   (* Line range *)
   source_loc : int * int;
 }
 
 (* Constructor for basic blocks *)
-let create ?source_info name =
-  Basic_block (name, source_info)
+let create ?source name = { name; source; }
 
 let add_line_numbers =
   List.map2 (Printf.sprintf "%3d %s")
 
-let to_string ?(line_numbers = true) (Basic_block (name, source_info)) : string =
-  match source_info with
+let to_string ?(line_numbers = true) block =
+  match block.source with
   | Some { stmts; source_loc = (a, b); _ } ->
     Printf.sprintf "[%s]\n%s"
-      name
+      block.name
       (stmts
        |> List.map (string_of_stmt ~indent:4)
        |> (fun s -> if line_numbers then add_line_numbers (a -- b) s else s)
        |> String.concat "\n")
-  | None -> name
+  | None -> block.name
 
-let create_basic_blocks (code : stmt list) : basic_block list =
+let create_basic_blocks source =
   let gen_name = gen_sym "B" 1 in
   List.fold_left (fun (label, start, line, code, blocks) stmt ->
       match stmt with
       | Jump (target, _) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = create (gen_name ()) ~source_info:
+        let block = create (gen_name ()) ~source:
             { entry = label;
               exits = [target];
               source_loc = (start, line);
@@ -48,7 +50,7 @@ let create_basic_blocks (code : stmt list) : basic_block list =
       | Cond (_, (l1, _), (l2, _)) ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = create (gen_name ()) ~source_info:
+        let block = create (gen_name ()) ~source:
             { entry = label;
               exits = [l1; l2];
               source_loc = (start, line);
@@ -59,7 +61,7 @@ let create_basic_blocks (code : stmt list) : basic_block list =
       | Return _ ->
         (* End current basic block *)
         let stmts, code = split (line - start + 1) code in
-        let block = create (gen_name ()) ~source_info:
+        let block = create (gen_name ()) ~source:
             { entry = label;
               exits = ["exit"];
               source_loc = (start, line);
@@ -74,7 +76,7 @@ let create_basic_blocks (code : stmt list) : basic_block list =
         else
           (* End previous basic block *)
           let stmts, code = split (line - start) code in
-          let block = create (gen_name ()) ~source_info:
+          let block = create (gen_name ()) ~source:
               { entry = label;
                 exits = [name];
                 (* Insert explicit jump (adds one line) *)
@@ -86,11 +88,11 @@ let create_basic_blocks (code : stmt list) : basic_block list =
       | _ ->
         (* Extend basic block *)
         (label, start, line + 1, code, blocks)
-    ) ("entry", 1, 1, code, []) code
+    ) ("entry", 1, 1, source, []) source
   |> fun (label, start, line, code, blocks) ->
   if code <> [] then
     (* Close open basic block with an implicit return *)
-    let block = create (gen_name ()) ~source_info:
+    let block = create (gen_name ()) ~source:
         { entry = label;
           exits = ["exit"];
           source_loc = (start, line - 1);

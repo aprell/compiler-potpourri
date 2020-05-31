@@ -120,9 +120,10 @@ module Domtree = struct
     in
     let indent = String.make 4 ' ' in
     print "graph DominatorTree {";
-    Array.iter (fun { block = Basic_block (x, _); succ; _ } ->
-        NodeSet.iter (fun node ->
-            let Basic_block (y, _) = node.block in
+    Array.iter (fun { block; succ; _ } ->
+        let x = block.name in
+        NodeSet.iter (fun { block; _ } ->
+            let y = block.name in
             print ~indent (x ^ " -- " ^ y ^ ";")
           ) succ
       ) tree;
