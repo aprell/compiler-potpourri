@@ -108,8 +108,6 @@ let construct (basic_blocks : Basic_block.t list) : t =
       match block.source with
       | Some { exits; _ } ->
         List.iter (function
-            | "fall-through" ->
-              graph.(i) => graph.(i + 1)
             | "exit" ->
               graph.(i) => graph.(exit)
             | label ->
