@@ -9,12 +9,10 @@ and source_info = {
   entry : string;
   exits : string list;
   stmts : stmt list;
-  (* Line range *)
-  source_loc : int * int;
 }
 
 val create : ?source:source_info -> string -> t
 
-val to_string : ?line_numbers:bool -> t -> string
+val to_string : t -> string
 
 val create_basic_blocks : stmt list -> t list
