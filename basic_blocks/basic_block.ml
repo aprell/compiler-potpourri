@@ -28,38 +28,14 @@ let to_string block =
 
 let create_basic_blocks source =
   let gen_name = gen_sym "B" 1 in
+  let jump_targets = function
+    | Jump (target, _) -> [target]
+    | Cond (_, (then_, _), (else_, _)) -> [then_; else_]
+    | Return _ -> ["exit"]
+    | _ -> []
+  in
   List.fold_left (fun (label, lines, code, blocks) stmt ->
       match stmt with
-      | Jump (target, _) ->
-        (* End current basic block *)
-        let stmts, code = split (lines + 1) code in
-        let block = create (gen_name ()) ~source:
-            { entry = label;
-              exits = [target];
-              stmts; }
-        in
-        (* Next line starts a new basic block *)
-        ("fall-through", 0, code, block :: blocks)
-      | Cond (_, (l1, _), (l2, _)) ->
-        (* End current basic block *)
-        let stmts, code = split (lines + 1) code in
-        let block = create (gen_name ()) ~source:
-            { entry = label;
-              exits = [l1; l2];
-              stmts; }
-        in
-        (* Next line starts a new basic block *)
-        ("fall-through", 0, code, block :: blocks)
-      | Return _ ->
-        (* End current basic block *)
-        let stmts, code = split (lines + 1) code in
-        let block = create (gen_name ()) ~source:
-            { entry = label;
-              exits = ["exit"];
-              stmts; }
-        in
-        (* Next line starts a new basic block *)
-        ("fall-through", 0, code, block :: blocks)
       | Label (name, _) ->
         if lines = 0 then
           (* Extend basic block *)
@@ -75,6 +51,16 @@ let create_basic_blocks source =
           in
           (* This line starts a new basic block *)
           (name, 1, code, block :: blocks)
+      | Jump _ | Cond _ | Return _ ->
+        (* End current basic block *)
+        let stmts, code = split (lines + 1) code in
+        let block = create (gen_name ()) ~source:
+            { entry = label;
+              exits = jump_targets stmt;
+              stmts; }
+        in
+        (* Next line starts a new basic block *)
+        ("next", 0, code, block :: blocks)
       | _ ->
         (* Extend basic block *)
         (label, lines + 1, code, blocks)
