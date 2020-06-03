@@ -9,7 +9,7 @@ end)
 
 let parameterize_labels_block block ~variables =
   match block.source with
-  | Some ({ stmts; _ } as info) ->
+  | Some { stmts; _ } ->
     let rec loop acc = function
       | stmt :: stmts ->
         let stmt' = match stmt with
@@ -22,8 +22,8 @@ let parameterize_labels_block block ~variables =
         loop (stmt' :: acc) stmts
       | [] -> List.rev acc
     in
-    Basic_block.create block.name ~source:
-      { info with stmts = loop [] stmts }
+    Basic_block.update block ~stmts:
+      (loop [] stmts)
   | None ->
     assert (block.name = "Entry" || block.name = "Exit");
     block
@@ -96,9 +96,9 @@ let rename_variables_stmt = function
 
 let rename_variables_block block =
   match block.source with
-  | Some ({ stmts; _ } as info) ->
-    Basic_block.create block.name ~source:
-      { info with stmts = List.map rename_variables_stmt stmts }
+  | Some { stmts; _ } ->
+    Basic_block.update block ~stmts:
+      (List.map rename_variables_stmt stmts)
   | None ->
     assert (block.name = "Entry" || block.name = "Exit");
     block
@@ -136,7 +136,7 @@ let phi_functions label jumps =
 
 let insert_phi_functions_block block ~pred =
   match block.source with
-  | Some ({ stmts; _ } as info) -> (
+  | Some { stmts; _ } -> (
       assert (stmts <> []);
       match List.hd stmts with
       | Label (l, _) as label ->
@@ -157,9 +157,9 @@ let insert_phi_functions_block block ~pred =
           block
         ) else (
           let phi_funcs = phi_functions label jumps in
-          Basic_block.create block.name ~source:
+          Basic_block.update block ~stmts:
             (* Insert phi-functions and erase label parameters *)
-            { info with stmts = Label (l, None) :: phi_funcs @ List.tl stmts }
+            (Label (l, None) :: phi_funcs @ List.tl stmts)
         )
       | _ -> block
     )
@@ -175,9 +175,9 @@ let remove_label_params block = function
 
 let remove_label_params_block block =
   match block.source with
-  | Some ({ stmts; _ } as info) ->
-    Basic_block.create block.name ~source:
-      { info with stmts = List.map (remove_label_params block.name) stmts }
+  | Some { stmts; _ } ->
+    Basic_block.update block ~stmts:
+      (List.map (remove_label_params block.name) stmts)
   | None ->
     assert (block.name = "Entry" || block.name = "Exit");
     block
@@ -208,9 +208,9 @@ let minimize_block block =
     | stmts -> stmts
   in
   match block.source with
-  | Some ({ stmts; _ } as info) ->
-    Basic_block.create block.name ~source:
-      { info with stmts = remove_phi_functions stmts }
+  | Some { stmts; _ } ->
+    Basic_block.update block ~stmts:
+      (remove_phi_functions stmts)
   | None ->
     assert (block.name = "Entry" || block.name = "Exit");
     block

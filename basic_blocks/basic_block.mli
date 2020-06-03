@@ -9,10 +9,14 @@ and source_info = {
   entry : string;
   exits : string list;
   stmts : stmt list;
+  use : var list;
+  def : var list;
 }
 
 val create : ?source:source_info -> string -> t
 
 val to_string : t -> string
+
+val update : t -> stmts:stmt list -> t
 
 val create_basic_blocks : stmt list -> t list
