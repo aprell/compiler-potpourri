@@ -173,55 +173,6 @@ let insert_phi_functions_block block ~pred =
     assert (block.name = "Entry" || block.name = "Exit");
     block
 
-let remove_label_params block = function
-  | Label (l, Some _) when block <> "B1" -> Label (l, None)
-  | Jump (l, Some _) -> Jump (l, None)
-  | Cond (e, (l1, Some _), (l2, Some _)) -> Cond (e, (l1, None), (l2, None))
-  | s -> s
-
-let remove_label_params_block block =
-  match block.source with
-  | Some { stmts; _ } ->
-    Basic_block.update block ~stmts:
-      (List.map (remove_label_params block.name) stmts)
-  | None ->
-    assert (block.name = "Entry" || block.name = "Exit");
-    block
-
-(*
-let minimize_block block =
-  let rec remove_phi_functions = function
-    | (Label _ as label) :: stmts ->
-      label :: remove_phi_functions stmts
-    | Phi (x, [x']) :: stmts ->
-      (* Replace x := PHI(x') with x := x' and perform copy propagation *)
-      remove_phi_functions (
-        Optim.propagate (Move (x, Ref x')) stmts
-      )
-    | (Phi (x, xs) as phi) :: stmts ->
-      let xs = S.of_list xs in
-      if S.cardinal xs = 1 && not (S.mem x xs) ||
-         S.cardinal xs = 2 && S.mem x xs then
-        (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and perform
-         * copy propagation *)
-        let x' = S.find_first (( <> ) x) xs in
-        remove_phi_functions (
-          Optim.propagate (Move (x, Ref x')) stmts
-        )
-      else
-        (* Keep this phi-function *)
-        phi :: remove_phi_functions stmts
-    | stmts -> stmts
-  in
-  match block.source with
-  | Some { stmts; _ } ->
-    Basic_block.update block ~stmts:
-      (remove_phi_functions stmts)
-  | None ->
-    assert (block.name = "Entry" || block.name = "Exit");
-    block
-*)
-
 (* Roughly follows the simple generation of SSA form by Aycock and Horspool:
  * (1) Insert phi-functions "everywhere" (the "really crude" approach)
  * (2) Delete unnecessary phi-functions, optimize, and repeat
@@ -239,14 +190,106 @@ let insert_phi_functions graph =
          * points, where two or more control flow paths merge) *)
         if List.length pred > 0 then
           node.block <- insert_phi_functions_block node.block ~pred
-    ) graph;
-  (* Remove label parameters *)
-  Array.iter (fun node ->
-      node.block <- remove_label_params_block node.block
-    ) graph;
-  (* Delete unnecessary phi-functions *)
-  (*
-  Array.iter (fun node ->
-      node.block <- minimize_block node.block
     ) graph
-  *)
+
+let remove_label_params = function
+  | Jump (l, Some _) -> Jump (l, None)
+  | Cond (e, (l1, Some _), (l2, Some _)) -> Cond (e, (l1, None), (l2, None))
+  | s -> s
+
+let minimize_phi_functions graph =
+  let open Cfg in
+  let open Cfg.Node in
+
+  let worklist = Queue.create () in
+  let pending = Queue.create () in
+
+  let copy_propagate move stmts =
+    let x, y = match move with
+      | Move (x, Ref y) -> x, y
+      | _ -> invalid_arg "copy_propagate"
+    in
+    let rec loop acc = function
+      | [Jump (_, Some xs) as jump]
+      | [Cond (_, (_, Some xs), _) as jump] ->
+        if List.mem x xs then Queue.add move pending;
+        List.rev (Optim.replace_stmt x y jump :: acc)
+      | [Return _ as ret] ->
+        List.rev (Optim.replace_stmt x y ret :: acc)
+      | stmt :: stmts ->
+        loop (Optim.replace_stmt x y stmt :: acc) stmts
+      | [] ->
+        (* Every (reachable) basic block ends with a jump or return *)
+        assert false
+    in
+    loop [] stmts
+  in
+
+  let rec remove_phi_functions ?propagate { block; succ; _ } =
+    let rec loop = function
+      | (Label _ as label) :: stmts ->
+        label :: loop stmts
+      | Phi (x, [x']) :: stmts ->
+        (* Replace x := PHI(x') with x := x' and perform copy propagation *)
+        loop (copy_propagate (Move (x, Ref x')) stmts)
+      | (Phi (x, xs) as phi) :: stmts ->
+        let xs = S.of_list xs in
+        if S.cardinal xs = 1 && not (S.mem x xs) ||
+           S.cardinal xs = 2 && S.mem x xs then
+          (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and perform
+           * copy propagation *)
+          let x' = S.find_first (( <> ) x) xs in
+          loop (copy_propagate (Move (x, Ref x')) stmts)
+        else
+          (* Keep this phi-function *)
+          phi :: loop stmts
+      | stmts -> stmts
+    in
+    assert (Queue.is_empty pending);
+    match block.source with
+    | Some { stmts; _ } -> (
+        let stmts = loop (
+            match propagate with
+            | Some moves ->
+              Queue.fold (Fun.flip copy_propagate) stmts moves
+            | None ->
+              stmts
+          )
+        in
+        if not (Queue.is_empty pending) then (
+          NodeSet.iter (fun s ->
+              let propagate = Queue.copy pending in
+              Queue.add (fun () ->
+                  s.block <- remove_phi_functions s ~propagate
+                ) worklist
+            ) succ;
+          Queue.clear pending
+        );
+        Basic_block.update block ~stmts
+      )
+    | None ->
+      assert (block.name = "Entry" || block.name = "Exit");
+      block
+  in
+
+  (* Seed work list *)
+  Array.iter (fun node ->
+      Queue.add (fun () ->
+          node.block <- remove_phi_functions node
+        ) worklist;
+    ) graph;
+
+  (* Iterate *)
+  while not (Queue.is_empty worklist) do
+    Queue.take worklist ()
+  done;
+
+  (* Remove remaining label parameters *)
+  Array.iter (fun node ->
+      match node.block.source with
+      | Some { stmts; _ } ->
+        node.block <- Basic_block.update node.block ~stmts:
+            (List.map remove_label_params stmts)
+      | None ->
+        assert (node.block.name = "Entry" || node.block.name = "Exit");
+    ) graph
