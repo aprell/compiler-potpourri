@@ -1,6 +1,31 @@
 [B1]
 fastpow(b, e):
     r := 1
+    goto L1
+[B2]
+L1:
+    if e > 0 goto L2 else goto L3
+[B3]
+L2:
+    if e % 2 != 0 goto L4 else goto L5
+[B4]
+L4:
+    r := r * b
+    goto L5
+[B5]
+L5:
+    b := b * b
+    e := e / 2
+    goto L1
+[B6]
+L3:
+    return r
+
+--------------------------------------------------------------------------------
+
+[B1]
+fastpow(b, e):
+    r := 1
     goto L1(b, e, r)
 [B2]
 L1(b, e, r):

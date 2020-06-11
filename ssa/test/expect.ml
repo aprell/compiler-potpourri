@@ -11,6 +11,8 @@ let print_basic_blocks graph =
 
 let convert_to_ssa graph =
   let hline = "\n" ^ String.make 80 '-' ^ "\n" in
+  print_basic_blocks graph;
+  print_endline hline;
 
   parameterize_labels graph;
   print_basic_blocks graph;

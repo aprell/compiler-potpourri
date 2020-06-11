@@ -2,6 +2,34 @@
 fib(n):
     t0 := 0
     t1 := 1
+    if n < 2 goto L1 else goto L2
+[B2]
+L1:
+    return n
+[B3]
+L2:
+    i := 2
+    goto L3
+[B4]
+L3:
+    if i <= n goto L4 else goto L5
+[B5]
+L4:
+    t2 := t0 + t1
+    t0 := t1
+    t1 := t2
+    i := i + 1
+    goto L3
+[B6]
+L5:
+    return t1
+
+--------------------------------------------------------------------------------
+
+[B1]
+fib(n):
+    t0 := 0
+    t1 := 1
     if n < 2 goto L1(i, n, t0, t1) else goto L2(i, n, t0, t1)
 [B2]
 L1(i, n, t0, t1):

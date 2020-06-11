@@ -1,5 +1,30 @@
 [B1]
 test(a, b):
+    if a > b goto L1 else goto L2
+[B2]
+L1:
+    if a < 100 goto L4 else goto L5
+[B3]
+L4:
+    return a
+[B4]
+    goto L6
+[B5]
+L5:
+    return b
+[B6]
+L6:
+    goto L3
+[B7]
+L2:
+    return b
+[B8]
+L3:
+
+--------------------------------------------------------------------------------
+
+[B1]
+test(a, b):
     if a > b goto L1(a, b) else goto L2(a, b)
 [B2]
 L1(a, b):
