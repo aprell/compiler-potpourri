@@ -206,7 +206,7 @@ let minimize_phi_functions graph =
 
   let copy_propagate move stmts =
     let x, y = match move with
-      | Move (x, Ref y) -> x, y
+      | Move (x, y) -> x, y
       | _ -> invalid_arg "copy_propagate"
     in
     let rec loop acc = function

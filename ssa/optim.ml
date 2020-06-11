@@ -11,15 +11,16 @@ let constant_fold = function
 
 (* TODO: Add missing cases *)
 let rec replace_expr x y = function
-  | Ref x' when x' = x -> Ref y
+  | Ref x' when x' = x -> y
   | Binop (op, e1, e2) ->
     constant_fold (Binop (op, replace_expr x y e1, replace_expr x y e2))
   | Relop (op, e1, e2) ->
     constant_fold (Relop (op, replace_expr x y e1, replace_expr x y e2))
   | e -> e
 
-let replace_list x y =
-  List.map (fun z -> if z = x then y else z)
+let replace_list x = function
+  | Ref y -> List.map (fun z -> if z = x then y else z)
+  | _ -> invalid_arg "replace_list"
 
 (* TODO: Add missing cases *)
 let replace_stmt x y = function
@@ -40,7 +41,7 @@ let replace_stmt x y = function
  * (2) x := y => replace Ref (Var x) with Ref (Var y) in stmts *)
 let propagate move stmts =
   let x, y = match move with
-    | Move (x, Ref y) -> x, y
+    | Move (x, y) -> x, y
     | _ -> invalid_arg "propagate"
   in
   let rec loop acc = function
