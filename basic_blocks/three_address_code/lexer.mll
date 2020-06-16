@@ -16,10 +16,10 @@
 
 let whitespace = [' ' '\t']+
 let newline = ['\n']
-let letter = ['A'-'Z' 'a'-'z']
+let alpha = ['A'-'Z' 'a'-'z']
 let digit = ['0'-'9']
-let int = digit+
-let ident = ('_' | letter) ('_' | letter | digit)*
+let int = '-'? digit+
+let ident = ('_' | alpha) ('_' | alpha | digit)*
 
 rule read = parse
   | whitespace  { read lexbuf }
