@@ -1,0 +1,3 @@
+(executable
+  (name expect)
+  (libraries three_address_code))
