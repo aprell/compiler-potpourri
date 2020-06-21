@@ -1,0 +1,3 @@
+(executable
+  (name expect)
+  (libraries basic_block))
