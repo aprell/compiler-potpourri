@@ -5,11 +5,6 @@
   (libraries basic_block))
 
 (executable
-  (name test_cfg)
-  (modules test_cfg)
-  (libraries control_flow))
-
-(executable
-  (name test_dom)
-  (modules test_dom)
+  (name test_control_flow)
+  (modules test_control_flow)
   (libraries control_flow))
