@@ -14,39 +14,9 @@ module Liveness = Data_flow_analysis (Backward_flow (S) (struct
 
   let init { block; _ } _ =
     match block.source with
-    | Some { stmts; _ } ->
-      let rec loop gen kill = function
-        | stmt :: stmts ->
-          let gen', kill' = match stmt with
-            | Move (x, e) ->
-              (* Remove x from use (gen) *)
-              let gen' = S.remove x gen in
-              (* Insert x into def (kill) *)
-              let kill' = S.add x kill in
-              (* Insert all variables that occur in E in use (gen) *)
-              let vars = S.of_list (all_variables_expr e) in
-              let gen' = S.union gen' vars in
-              (* Remove all variables that occur in E from def (kill) *)
-              let kill' = S.diff kill' vars in
-              (gen', kill')
-            | Load (_, _) ->
-              failwith "unimplemented"
-            | Store (_, _) ->
-              failwith "unimplemented"
-            | Cond (e, _, _) | Return (Some e) ->
-              let vars = S.of_list (all_variables_expr e) in
-              let gen' = S.union gen vars in
-              (gen', kill)
-            | Receive x ->
-              let gen' = S.remove x gen in
-              let kill' = S.add x kill in
-              (gen', kill')
-            | _ -> (gen, kill)
-          in
-          loop gen' kill' stmts
-        | [] -> (gen, kill)
-      in
-      let gen, kill = loop S.empty S.empty (List.rev stmts) in
+    | Some { use; def; _ } ->
+      let gen = S.of_list use in
+      let kill = S.of_list def in
       { gen; kill; global_in = S.empty; global_out = S.empty }
     | None ->
       assert (block.name = "Entry" || block.name = "Exit");

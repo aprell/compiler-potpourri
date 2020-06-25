@@ -49,7 +49,9 @@ let use_def stmts =
       let use', def' = match stmt with
         | Move (x, e) ->
           let vars = S.of_list (all_variables_expr e) in
+          (* Remove x from use, then add all variables that occur in e *)
           let use' = S.union (S.remove x use) vars in
+          (* Add x to def, then remove all variables that occur in e *)
           let def' = S.diff (S.add x def) vars in
           (use', def')
         | Label (_, Some params) ->
@@ -66,7 +68,7 @@ let use_def stmts =
           let use' = S.union (S.remove x use) vars in
           let def' = S.diff (S.add x def) vars in
           (use', def')
-        (* Extend as needed *)
+        (* Incomplete; extend as needed *)
         | _ -> (use, def)
       in
       loop (use', def') stmts
