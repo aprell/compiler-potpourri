@@ -1,4 +1,9 @@
 (library
   (name data_flow)
-  (modules (:standard \ dom liveness))
+  (modules data_flow)
   (libraries control_flow))
+
+(library
+  (name liveness)
+  (modules liveness)
+  (libraries data_flow))

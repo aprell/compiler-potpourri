@@ -1,7 +1,13 @@
-LIB := data_flow
+LIB := data_flow liveness
 
-all: $(LIB)
+PROGS := test/expect
 
-.PHONY: all
+all: $(LIB) $(PROGS) test
+
+test: test/expect
+	@echo "Running expect tests"
+	@../../utils/expect.sh
+
+.PHONY: all test
 
 include ../../utils/common.mk
