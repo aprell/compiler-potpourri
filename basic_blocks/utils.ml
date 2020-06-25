@@ -72,3 +72,32 @@ let split i lst = (take i lst, drop i lst)
   sublist 0 6 [1; 2; 3; 4; 5] = [1; 2; 3; 4; 5]
 *)
 let sublist i j lst = take (j - i) (drop i lst)
+
+(*$T pad
+  pad "hi" 2 = "hi"
+  pad "hi" 3 = "hi "
+  pad "hi" 4 = "hi  "
+  pad "hi" 5 = "hi   "
+*)
+let pad str len =
+  str ^ String.make (len - String.length str) ' '
+
+let print_table ~column_widths ~rows =
+  let hline = List.map (Fun.flip String.make '-') column_widths in
+  let print_hline () =
+    hline
+    |> String.concat "-+-"
+    |> Printf.sprintf "+-%s-+"
+    |> print_endline
+  in
+  let print_row row =
+    List.map2 pad row column_widths
+    |> String.concat " | "
+    |> Printf.sprintf "| %s |"
+    |> print_endline
+  in
+  print_hline ();
+  print_row (List.hd rows);
+  print_hline ();
+  List.iter print_row (List.tl rows);
+  print_hline ()

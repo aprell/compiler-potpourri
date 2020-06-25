@@ -1,14 +1,12 @@
 open Three_address_code__IR
 open Three_address_code__Parse
 open Basic_block
+open Basic_block__Utils
 
 let print_basic_blocks blocks =
   List.map to_string blocks
   |> String.concat "\n"
   |> print_endline
-
-let pad str len =
-  str ^ String.make (len - String.length str) ' '
 
 let string_of_vars vars =
   List.map (fun (Var x) -> x) vars
@@ -16,30 +14,17 @@ let string_of_vars vars =
 
 let print_use_def blocks =
   let column_widths = [3; 20; 20] in
-  let hline = List.map (Fun.flip String.make '-') column_widths in
-  let print_hline () =
-    hline
-    |> String.concat "-+-"
-    |> Printf.sprintf "+-%s-+"
-    |> print_endline
-  in
-  let print_row row =
-    List.map2 pad row column_widths
-    |> String.concat " | "
-    |> Printf.sprintf "| %s |"
-    |> print_endline
-  in
-  print_hline ();
-  print_row [""; "use"; "def"];
-  print_hline ();
-  List.iter (fun { name; source } ->
+  let rows = List.(rev (fold_left (fun rows { name; source } ->
       match source with
       | Some { use; def; _ } ->
-        print_row [name; string_of_vars use; string_of_vars def]
+        [name; string_of_vars use; string_of_vars def] :: rows
       | None ->
         failwith "print_use_def"
-    ) blocks;
-  print_hline ()
+    ) [] blocks))
+  in
+  print_table
+    ~column_widths
+    ~rows:([""; "use"; "def"] :: rows)
 
 let () =
   match Sys.argv with
