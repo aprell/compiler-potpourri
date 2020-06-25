@@ -22,6 +22,7 @@ end
    Input signature of functor Data_flow_analysis *)
 module type DataFlowType = sig
   type t
+  val equal : t -> t -> bool
   val traverse : Cfg.t -> Cfg.Node.t list
   val init : Cfg.t -> t analysis array
   (* Update in-set and out-set of a node *)
@@ -30,6 +31,8 @@ end
 
 module Forward_flow (S : SetType) (T : AnalysisType with type t := S.t) = struct
   type t = S.t
+
+  let equal = S.equal
 
   let traverse = Cfg.dfs_reverse_postorder
 
@@ -54,6 +57,8 @@ end
 
 module Backward_flow (S : SetType) (T : AnalysisType with type t := S.t) = struct
   type t = S.t
+
+  let equal = S.equal
 
   let traverse = Cfg.dfs_postorder
 
@@ -86,8 +91,8 @@ module Data_flow_analysis (T : DataFlowType) = struct
       changed := false;
       List.iter (fun node ->
           let in_set', out_set' = T.update node sets in
-          if (in_set' <> sets.(node.index).global_in ||
-              out_set' <> sets.(node.index).global_out) then
+          if (not (T.equal in_set' sets.(node.index).global_in) ||
+              not (T.equal out_set' sets.(node.index).global_out)) then
             changed := true;
           sets.(node.index).global_in <- in_set';
           sets.(node.index).global_out <- out_set'
