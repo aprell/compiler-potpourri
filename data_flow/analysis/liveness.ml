@@ -2,29 +2,34 @@ open Three_address_code__IR
 open Control_flow__Cfg
 open Data_flow
 
-module S = Set.Make (struct
-  type t = var
-  let compare = Stdlib.compare
-end)
+module S = struct
+  module Set = struct
+    include Set.Make (struct
+      type t = var
+      let compare = Stdlib.compare
+    end)
 
-module Liveness = Data_flow_analysis (Backward_flow (S) (struct
-  open Node
+    let to_string set =
+      elements set
+      |> List.map (fun (Var name) -> name)
+      |> String.concat ", "
+  end
 
-  let meet = S.union
+  let meet = Set.union
 
-  let init { block; _ } _ =
+  let init { Node.block; _ } _ =
     match block.source with
     | Some { use; def; _ } ->
-      let gen = S.of_list use in
-      let kill = S.of_list def in
-      { gen; kill; global_in = S.empty; global_out = S.empty }
+      { gen = Set.of_list use; kill = Set.of_list def;
+        global_in = Set.empty; global_out = Set.empty }
     | None ->
       assert (block.name = "Entry" || block.name = "Exit");
-      { gen = S.empty; kill = S.empty; global_in = S.empty; global_out = S.empty }
-end))
+      { gen = Set.empty; kill = Set.empty;
+        global_in = Set.empty; global_out = Set.empty }
+end
+
+module Liveness = Data_flow_analysis (Backward_flow (S))
 
 let fmt pp set =
-  S.elements set
-  |> List.map (fun (Var name) -> name)
-  |> String.concat ", "
+  S.Set.to_string set
   |> Format.fprintf pp "{%s}"

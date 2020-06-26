@@ -2,31 +2,37 @@ open Three_address_code__IR
 open Control_flow__Cfg
 open Data_flow
 
-module S = Set.Make (struct
-  type t = name
-  let compare = Stdlib.compare
-end)
+module S = struct
+  module Set = struct
+    include Set.Make (struct
+      type t = name
+      let compare = Stdlib.compare
+    end)
 
-module Dominators = Data_flow_analysis (Forward_flow (S) (struct
-  open Node
+    let to_string set =
+      elements set
+      |> String.concat ", "
+  end
 
-  let meet = S.inter
+  let meet = Set.inter
 
-  let all_basic_blocks =
-    Array.fold_left (fun set { block; _ } ->
-        S.add block.name set
-      ) S.empty
+  let basic_block_names graph =
+    let open Basic_block in
+    basic_blocks graph
+    |> List.map (fun block -> block.name)
+    |> Set.of_list
 
-  let init { block; _ } graph =
-    { gen = S.singleton block.name;
-      kill = S.empty;
-      global_in = S.empty;
+  let init { Node.block; _ } graph =
+    { gen = Set.singleton block.name;
+      kill = Set.empty;
+      global_in = Set.empty;
       global_out = match block.name with
-        | "Entry" -> S.empty
-        | _ -> all_basic_blocks graph }
-end))
+        | "Entry" -> Set.empty
+        | _ -> basic_block_names graph }
+end
+
+module Dominators = Data_flow_analysis (Forward_flow (S))
 
 let fmt pp set =
-  S.elements set
-  |> String.concat ", "
+  S.Set.to_string set
   |> Format.fprintf pp "{%s}"
