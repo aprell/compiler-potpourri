@@ -8,12 +8,12 @@ type 'a analysis = {
   mutable global_out : 'a;
 }
 
-(* Input signatures of functors Forward_flow and Backward_flow *)
 module type SetType = sig
   include Set.S
   val to_string : t -> string
 end
 
+(* Input signature of functors Forward_flow and Backward_flow *)
 module type AnalysisType = sig
   module Set : SetType
   val meet : Set.t -> Set.t -> Set.t
@@ -23,21 +23,16 @@ end
 (* Output signature of functors Forward_flow and Backward_flow
    Input signature of functor Data_flow_analysis *)
 module type DataFlowType = sig
-  module Set : SetType
+  include AnalysisType
   val traverse : Cfg.t -> Cfg.Node.t list
-  val init : Cfg.t -> Set.t analysis array
   (* Update in-set and out-set of a node *)
   val update : Cfg.Node.t -> Set.t analysis array -> Set.t * Set.t
 end
 
 module Forward_flow (A : AnalysisType) = struct
-  module Set = A.Set
+  include A
 
   let traverse = Cfg.dfs_reverse_postorder
-
-  let init graph =
-    let num_nodes = Array.length graph in
-    Array.init num_nodes (fun i -> A.init graph.(i) graph)
 
   let update (node : Cfg.Node.t) sets =
     let { gen; kill; global_in; _ } = sets.(node.index) in
@@ -49,19 +44,15 @@ module Forward_flow (A : AnalysisType) = struct
             A.meet sets.(p.index).global_out set
           ) node.pred (sets.((Cfg.NodeSet.choose node.pred).index).global_out)
         in
-        let out_set = Set.union gen (Set.diff in_set kill) in
+        let out_set = Set.(union gen (diff in_set kill)) in
         (in_set, out_set)
       )
 end
 
 module Backward_flow (A : AnalysisType) = struct
-  module Set = A.Set
+  include A
 
   let traverse = Cfg.dfs_postorder
-
-  let init graph =
-    let num_nodes = Array.length graph in
-    Array.init num_nodes (fun i -> A.init graph.(i) graph)
 
   let update (node : Cfg.Node.t) sets =
     let { gen; kill; global_out; _ } = sets.(node.index) in
@@ -73,7 +64,7 @@ module Backward_flow (A : AnalysisType) = struct
             A.meet sets.(s.index).global_in set
           ) node.succ (sets.((Cfg.NodeSet.choose node.succ).index).global_in)
         in
-        let in_set = Set.union gen (Set.diff out_set kill) in
+        let in_set = Set.(union gen (diff out_set kill)) in
         (in_set, out_set)
       )
 end
@@ -83,7 +74,8 @@ module Data_flow_analysis (DF : DataFlowType) = struct
     let column_widths = [5; 20; 20] in
     let rows =
       Array.fold_left (fun rows { gen; kill; _ } ->
-          [DF.Set.to_string gen; DF.Set.to_string kill] :: rows
+          [ DF.Set.to_string gen;
+            DF.Set.to_string kill ] :: rows
         ) [] sets
       |> List.rev
       |> List.map2 (fun x y -> x :: y)
@@ -97,7 +89,8 @@ module Data_flow_analysis (DF : DataFlowType) = struct
     let column_widths = [5; 20; 20] in
     let rows =
       Array.fold_left (fun rows { global_in; global_out; _ } ->
-          [DF.Set.to_string global_in; DF.Set.to_string global_out] :: rows
+          [ DF.Set.to_string global_in;
+            DF.Set.to_string global_out ] :: rows
         ) [] sets
     |> List.rev
     |> List.map2 (fun x y -> x :: y)
@@ -107,9 +100,13 @@ module Data_flow_analysis (DF : DataFlowType) = struct
       ~column_widths
       ~rows:([""; "IN"; "OUT"] :: rows)
 
+  let init graph =
+    let num_nodes = Array.length graph in
+    Array.init num_nodes (fun i -> DF.init graph.(i) graph)
+
   let compute ?(dump = false) graph =
     let traversal = DF.traverse graph in
-    let sets = DF.init graph in
+    let sets = init graph in
     let changed = ref true in
     let num_iter = ref 1 in
     if dump then (
