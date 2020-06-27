@@ -1,4 +1,4 @@
-LIB := data_flow liveness
+LIB := data_flow dominators liveness
 
 PROGS := test/expect
 

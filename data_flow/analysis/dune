@@ -4,6 +4,11 @@
   (libraries control_flow))
 
 (library
+  (name dominators)
+  (modules dominators)
+  (libraries data_flow))
+
+(library
   (name liveness)
   (modules liveness)
   (libraries data_flow))
