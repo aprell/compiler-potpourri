@@ -12,4 +12,4 @@ val sublist : int -> int -> 'a list -> 'a list
 
 val pad : string -> int -> string
 
-val print_table : column_widths:int list -> rows:string list list -> unit
+val print_table : rows:string list list -> unit

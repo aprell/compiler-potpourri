@@ -71,7 +71,6 @@ end
 
 module Data_flow_analysis (DF : DataFlowType) = struct
   let print_gen_kill sets =
-    let column_widths = [5; 20; 20] in
     let rows =
       Array.fold_left (fun rows { gen; kill; _ } ->
           [ DF.Set.to_string gen;
@@ -81,12 +80,9 @@ module Data_flow_analysis (DF : DataFlowType) = struct
       |> List.map2 (fun x y -> x :: y)
         ("Entry" :: ("B" ^^ (1 -- (Array.length sets - 2))) @ ["Exit"])
     in
-    print_table
-      ~column_widths
-      ~rows:([""; "gen"; "kill"] :: rows)
+    print_table ~rows:([""; "gen"; "kill"] :: rows)
 
   let print_in_out sets =
-    let column_widths = [5; 20; 20] in
     let rows =
       Array.fold_left (fun rows { global_in; global_out; _ } ->
           [ DF.Set.to_string global_in;
@@ -96,9 +92,7 @@ module Data_flow_analysis (DF : DataFlowType) = struct
     |> List.map2 (fun x y -> x :: y)
       ("Entry" :: ("B" ^^ (1 -- (Array.length sets - 2))) @ ["Exit"])
     in
-    print_table
-      ~column_widths
-      ~rows:([""; "IN"; "OUT"] :: rows)
+    print_table ~rows:([""; "IN"; "OUT"] :: rows)
 
   let init graph =
     let num_nodes = Array.length graph in

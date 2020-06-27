@@ -13,7 +13,6 @@ let string_of_vars vars =
   |> String.concat ", "
 
 let print_use_def blocks =
-  let column_widths = [3; 20; 20] in
   let rows = List.(rev (fold_left (fun rows { name; source } ->
       match source with
       | Some { use; def; _ } ->
@@ -22,9 +21,7 @@ let print_use_def blocks =
         failwith "print_use_def"
     ) [] blocks))
   in
-  print_table
-    ~column_widths
-    ~rows:([""; "use"; "def"] :: rows)
+  print_table ~rows:([""; "use"; "def"] :: rows)
 
 let () =
   match Sys.argv with

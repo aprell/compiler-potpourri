@@ -82,7 +82,13 @@ let sublist i j lst = take (j - i) (drop i lst)
 let pad str len =
   str ^ String.make (len - String.length str) ' '
 
-let print_table ~column_widths ~rows =
+let print_table ~rows =
+  let column_widths =
+    List.fold_left
+      (List.map2 max)
+      (List.map String.length (List.hd rows))
+      (List.map (List.map String.length) (List.tl rows))
+  in
   let hline = List.map (Fun.flip String.make '-') column_widths in
   let print_hline () =
     hline
