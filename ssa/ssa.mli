@@ -7,3 +7,5 @@ val rename_variables : Cfg.t -> unit
 val insert_phi_functions : Cfg.t -> unit
 
 val minimize_phi_functions : Cfg.t -> unit
+
+val convert_to_ssa : Cfg.t -> unit

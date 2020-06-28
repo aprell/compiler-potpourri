@@ -9,16 +9,12 @@ let print_basic_blocks graph =
   |> String.concat "\n"
   |> print_endline
 
-let convert_to_ssa graph =
-  parameterize_labels graph;
-  rename_variables graph;
-  insert_phi_functions graph;
-  minimize_phi_functions graph;
-  print_basic_blocks graph
-
 let () =
-  graph_of_input
-    (match Sys.argv with
-     | [| _; filename |] -> filename
-     | _ -> "examples/pow.hir")
-  |> convert_to_ssa
+  let graph =
+    graph_of_input
+      (match Sys.argv with
+       | [| _; filename |] -> filename
+       | _ -> "examples/pow.hir")
+  in
+  convert_to_ssa graph;
+  print_basic_blocks graph
