@@ -26,6 +26,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [Iterative Data-Flow Analysis, Revisited](https://scholarship.rice.edu/handle/1911/96324)
 - [SSA is Functional Programming](https://www.cs.princeton.edu/~appel/papers/ssafun.pdf)
 - [Simple Generation of Static Single-Assignment Form](https://link.springer.com/content/pdf/10.1007/3-540-46423-9_8.pdf)
+- [Practical Improvements to the Construction and Destruction of Static Single Assignment Form](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.49.9683)
 
 ### Articles
 - [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
