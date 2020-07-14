@@ -14,7 +14,7 @@ and stmt =
   | Receive of var                              (* receive x                  *)
   | Return of expr option                       (* return e                   *)
   (* High-level constructs *)
-  | If of expr * stmt list * stmt list option   (* if e ... [else ...]        *)
+  | If of expr * stmt list * stmt list          (* if e ... [else ...]        *)
   | Loop of expr * stmt list                    (* while e ...                *)
   (* Phi-functions (SSA) *)
   | Phi of var * var list                       (* x := PHI(...)              *)

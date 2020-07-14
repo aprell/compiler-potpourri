@@ -68,8 +68,8 @@ stmt:
   | label COL                            { Label $1 }
   | GOTO label                           { Jump $2 }
   | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
-  | IF expr block                        { If ($2, $3, None) }
-  | IF expr block ELSE block             { If ($2, $3, Some $5) }
+  | IF expr block                        { If ($2, $3, []) }
+  | IF expr block ELSE block             { If ($2, $3, $5) }
   | WHILE expr block                     { Loop ($2, $3) }
   | RECV NAME                            { Receive (Var $2) }
   | RET option(expr)                     { Return $2 }

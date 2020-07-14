@@ -14,7 +14,7 @@ and stmt =
   | Receive of var                              (* receive x                  *)
   | Return of expr option                       (* return e                   *)
   (* High-level constructs *)
-  | If of expr * stmt list * stmt list option   (* if e ... [else ...]        *)
+  | If of expr * stmt list * stmt list          (* if e ... [else ...]        *)
   | Loop of expr * stmt list                    (* while e ...                *)
   (* Phi-functions (SSA) *)
   | Phi of var * var list                       (* x := PHI(...)              *)
@@ -45,14 +45,14 @@ let gen_label ?params name : label = (name, params)
 let gen_name = Utils.gen_sym "L" 1
 
 let rec lower_stmt = function
-  | If (Relop _ as e, then_, None) ->
+  | If (Relop _ as e, then_, []) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
     [Cond (e, l1, l2)]
     @ [Label l1]
     @ (List.flatten @@ List.map lower_stmt then_)
     @ [Label l2]
-  | If (Relop _ as e, then_, Some else_) ->
+  | If (Relop _ as e, then_, else_) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
     let l3 = gen_label (gen_name ()) in
