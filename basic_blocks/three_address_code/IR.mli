@@ -1,10 +1,4 @@
-type proc = Proc of {
-    name : string;
-    params : var list;
-    body : stmt list;
-}
-
-and stmt =
+type stmt =
   | Move of var * expr                          (* x := e                     *)
   | Load of var * mem                           (* x := M[i]                  *)
   | Store of mem * expr                         (* M[i] := e                  *)
@@ -13,9 +7,6 @@ and stmt =
   | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
   | Receive of var                              (* receive x                  *)
   | Return of expr option                       (* return e                   *)
-  (* High-level constructs *)
-  | If of expr * stmt list * stmt list          (* if e ... [else ...]        *)
-  | Loop of expr * stmt list                    (* while e ...                *)
   (* Phi-functions (SSA) *)
   | Phi of var * var list                       (* x := PHI(...)              *)
 
@@ -39,7 +30,11 @@ and label = name * var list option
 
 and name = string
 
-val lower : proc -> stmt list
+val lower :
+  [> `If of expr * stmt list * stmt list
+  | `Proc of name * var list * stmt list
+  | `While of expr * stmt list ]
+  -> stmt list
 
 val all_variables_expr : expr -> var list
 

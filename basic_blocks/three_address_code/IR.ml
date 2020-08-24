@@ -1,10 +1,4 @@
-type proc = Proc of {
-    name : string;
-    params : var list;
-    body : stmt list;
-}
-
-and stmt =
+type stmt =
   | Move of var * expr                          (* x := e                     *)
   | Load of var * mem                           (* x := M[i]                  *)
   | Store of mem * expr                         (* M[i] := e                  *)
@@ -13,9 +7,6 @@ and stmt =
   | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
   | Receive of var                              (* receive x                  *)
   | Return of expr option                       (* return e                   *)
-  (* High-level constructs *)
-  | If of expr * stmt list * stmt list          (* if e ... [else ...]        *)
-  | Loop of expr * stmt list                    (* while e ...                *)
   (* Phi-functions (SSA) *)
   | Phi of var * var list                       (* x := PHI(...)              *)
 
@@ -44,42 +35,39 @@ let gen_label ?params name : label = (name, params)
 
 let gen_name = Utils.gen_sym "L" 1
 
-let rec lower_stmt = function
-  | If (Relop _ as e, then_, []) ->
+let lower = function
+  | `Proc (name, params, body) ->
+    [Label (gen_label name ~params)]
+    @ body
+  | `If (Relop _ as e, then_, []) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
     [Cond (e, l1, l2)]
     @ [Label l1]
-    @ (List.flatten @@ List.map lower_stmt then_)
+    @ then_
     @ [Label l2]
-  | If (Relop _ as e, then_, else_) ->
+  | `If (Relop _ as e, then_, else_) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
     let l3 = gen_label (gen_name ()) in
     [Cond (e, l1, l2)]
     @ [Label l1]
-    @ (List.flatten @@ List.map lower_stmt then_)
+    @ then_
     @ [Jump l3]
     @ [Label l2]
-    @ (List.flatten @@ List.map lower_stmt else_)
+    @ else_
     @ [Label l3]
-  | If _ -> failwith "lower_stmt: unsupported"
-  | Loop (Relop _ as e, body) ->
+  | `While (Relop _ as e, body) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
     let l3 = gen_label (gen_name ()) in
     [Label l1]
     @ [Cond (e, l2, l3)]
     @ [Label l2]
-    @ (List.flatten @@ List.map lower_stmt body)
+    @ body
     @ [Jump l1]
     @ [Label l3]
-  | Loop _ -> failwith "lower_stmt: unsupported"
-  | s -> [s]
-
-let lower (Proc { name; params; body }) =
-  [Label (gen_label name ~params)]
-  @ (List.flatten @@ List.map lower_stmt body)
+  | _ -> failwith "lower: unsupported statement"
 
 let rec all_variables_expr = function
   | Const _ -> []
@@ -171,7 +159,6 @@ let string_of_stmt ?(indent = 0) stmt =
   | Phi (Var x, xs) ->
     let xs = List.map (fun (Var x) -> x) xs in
     indent ^ x ^ " := PHI(" ^ String.concat ", " xs ^ ")"
-  | _ -> assert false
 
 let dump stmts =
   List.map (string_of_stmt ~indent:4) stmts

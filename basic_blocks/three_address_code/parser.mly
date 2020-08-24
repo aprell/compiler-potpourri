@@ -31,7 +31,7 @@
 
 prog:
   | proc EOF
-    { $1 |> lower }
+    { $1 }
   | list(stmt) EOF
     { $1 }
   ;
@@ -43,7 +43,7 @@ line:
 
 proc:
   | name = NAME; params = params; body = block
-    { Proc { name; params; body } }
+    { `Proc (name, params, body) |> lower }
   ;
 
 params:
@@ -52,7 +52,7 @@ params:
   ;
 
 block:
-  | delimited(LBRACE, list(stmt), RBRACE)
+  | delimited(LBRACE, flatten(list(hl_stmt)), RBRACE)
     { $1 }
   ;
 
@@ -61,6 +61,12 @@ label:
     { ($1, $2) }
   ;
 
+hl_stmt:
+  | IF expr block                        { `If ($2, $3, []) |> lower }
+  | IF expr block ELSE block             { `If ($2, $3, $5) |> lower }
+  | WHILE expr block                     { `While ($2, $3)  |> lower }
+  | stmt                                 { [$1] }
+
 stmt:
   | NAME GETS expr                       { Move (Var $1, $3) }
   | NAME GETS mem                        { Load (Var $1, $3) }
@@ -68,9 +74,6 @@ stmt:
   | label COL                            { Label $1 }
   | GOTO label                           { Jump $2 }
   | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
-  | IF expr block                        { If ($2, $3, []) }
-  | IF expr block ELSE block             { If ($2, $3, $5) }
-  | WHILE expr block                     { Loop ($2, $3) }
   | RECV NAME                            { Receive (Var $2) }
   | RET option(expr)                     { Return $2 }
   | NAME GETS "PHI" params               { Phi (Var $1, $4) }

@@ -1,130 +1,130 @@
 [B1]
 test(a, b):
-    if a > b goto L1 else goto L2
+    if a > b goto L4 else goto L5
 [B2]
-L1:
-    if a < 100 goto L4 else goto L5
-[B3]
 L4:
+    if a < 100 goto L1 else goto L2
+[B3]
+L1:
     return a
 [B4]
-    goto L6
-[B5]
-L5:
-    return b
-[B6]
-L6:
     goto L3
-[B7]
+[B5]
 L2:
     return b
-[B8]
+[B6]
 L3:
+    goto L6
+[B7]
+L5:
+    return b
+[B8]
+L6:
 
 --------------------------------------------------------------------------------
 
 [B1]
 test(a, b):
-    if a > b goto L1(a, b) else goto L2(a, b)
+    if a > b goto L4(a, b) else goto L5(a, b)
 [B2]
-L1(a, b):
-    if a < 100 goto L4(a, b) else goto L5(a, b)
-[B3]
 L4(a, b):
+    if a < 100 goto L1(a, b) else goto L2(a, b)
+[B3]
+L1(a, b):
     return a
 [B4]
-    goto L6(a, b)
-[B5]
-L5(a, b):
-    return b
-[B6]
-L6(a, b):
     goto L3(a, b)
-[B7]
+[B5]
 L2(a, b):
     return b
-[B8]
+[B6]
 L3(a, b):
+    goto L6(a, b)
+[B7]
+L5(a, b):
+    return b
+[B8]
+L6(a, b):
 
 --------------------------------------------------------------------------------
 
 [B1]
 test(a_0, b_0):
-    if a_0 > b_0 goto L1(a_0, b_0) else goto L2(a_0, b_0)
+    if a_0 > b_0 goto L4(a_0, b_0) else goto L5(a_0, b_0)
 [B2]
-L1(a_1, b_1):
-    if a_1 < 100 goto L4(a_1, b_1) else goto L5(a_1, b_1)
+L4(a_1, b_1):
+    if a_1 < 100 goto L1(a_1, b_1) else goto L2(a_1, b_1)
 [B3]
-L4(a_2, b_2):
+L1(a_2, b_2):
     return a_2
 [B4]
-    goto L6(a_2, b_2)
+    goto L3(a_2, b_2)
 [B5]
-L5(a_3, b_3):
+L2(a_3, b_3):
     return b_3
 [B6]
-L6(a_4, b_4):
-    goto L3(a_4, b_4)
+L3(a_4, b_4):
+    goto L6(a_4, b_4)
 [B7]
-L2(a_5, b_5):
+L5(a_5, b_5):
     return b_5
 [B8]
-L3(a_6, b_6):
+L6(a_6, b_6):
 
 --------------------------------------------------------------------------------
 
 [B1]
 test(a_0, b_0):
-    if a_0 > b_0 goto L1(a_0, b_0) else goto L2(a_0, b_0)
+    if a_0 > b_0 goto L4(a_0, b_0) else goto L5(a_0, b_0)
 [B2]
-L1:
+L4:
     a_1 := PHI(a_0)
     b_1 := PHI(b_0)
-    if a_1 < 100 goto L4(a_1, b_1) else goto L5(a_1, b_1)
+    if a_1 < 100 goto L1(a_1, b_1) else goto L2(a_1, b_1)
 [B3]
-L4:
+L1:
     a_2 := PHI(a_1)
     b_2 := PHI(b_1)
     return a_2
 [B4]
-    goto L6(a_2, b_2)
+    goto L3(a_2, b_2)
 [B5]
-L5:
+L2:
     a_3 := PHI(a_1)
     b_3 := PHI(b_1)
     return b_3
 [B6]
-L6(a_4, b_4):
-    goto L3(a_4, b_4)
+L3(a_4, b_4):
+    goto L6(a_4, b_4)
 [B7]
-L2:
+L5:
     a_5 := PHI(a_0)
     b_5 := PHI(b_0)
     return b_5
 [B8]
-L3(a_6, b_6):
+L6(a_6, b_6):
 
 --------------------------------------------------------------------------------
 
 [B1]
 test(a_0, b_0):
-    if a_0 > b_0 goto L1 else goto L2
+    if a_0 > b_0 goto L4 else goto L5
 [B2]
-L1:
-    if a_0 < 100 goto L4 else goto L5
-[B3]
 L4:
+    if a_0 < 100 goto L1 else goto L2
+[B3]
+L1:
     return a_0
 [B4]
-    goto L6
-[B5]
-L5:
-    return b_0
-[B6]
-L6(a_4, b_4):
     goto L3
-[B7]
+[B5]
 L2:
     return b_0
+[B6]
+L3(a_4, b_4):
+    goto L6
+[B7]
+L5:
+    return b_0
 [B8]
-L3(a_6, b_6):
+L6(a_6, b_6):

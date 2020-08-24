@@ -1,24 +1,24 @@
 [B1]
 fastpow(b, e):
     r := 1
-    goto L1
+    goto L3
 [B2]
-L1:
-    if e > 0 goto L2 else goto L3
+L3:
+    if e > 0 goto L4 else goto L5
 [B3]
-L2:
-    if e % 2 != 0 goto L4 else goto L5
-[B4]
 L4:
+    if e % 2 != 0 goto L1 else goto L2
+[B4]
+L1:
     r := r * b
-    goto L5
+    goto L2
 [B5]
-L5:
+L2:
     b := b * b
     e := e / 2
-    goto L1
+    goto L3
 [B6]
-L3:
+L5:
     return r
 
 --------------------------------------------------------------------------------
@@ -26,24 +26,24 @@ L3:
 [B1]
 fastpow(b, e):
     r := 1
-    goto L1(b, e, r)
+    goto L3(b, e, r)
 [B2]
-L1(b, e, r):
-    if e > 0 goto L2(b, e, r) else goto L3(b, e, r)
+L3(b, e, r):
+    if e > 0 goto L4(b, e, r) else goto L5(b, e, r)
 [B3]
-L2(b, e, r):
-    if e % 2 != 0 goto L4(b, e, r) else goto L5(b, e, r)
-[B4]
 L4(b, e, r):
+    if e % 2 != 0 goto L1(b, e, r) else goto L2(b, e, r)
+[B4]
+L1(b, e, r):
     r := r * b
-    goto L5(b, e, r)
+    goto L2(b, e, r)
 [B5]
-L5(b, e, r):
+L2(b, e, r):
     b := b * b
     e := e / 2
-    goto L1(b, e, r)
+    goto L3(b, e, r)
 [B6]
-L3(b, e, r):
+L5(b, e, r):
     return r
 
 --------------------------------------------------------------------------------
@@ -51,24 +51,24 @@ L3(b, e, r):
 [B1]
 fastpow(b_0, e_0):
     r_0 := 1
-    goto L1(b_0, e_0, r_0)
+    goto L3(b_0, e_0, r_0)
 [B2]
-L1(b_1, e_1, r_1):
-    if e_1 > 0 goto L2(b_1, e_1, r_1) else goto L3(b_1, e_1, r_1)
+L3(b_1, e_1, r_1):
+    if e_1 > 0 goto L4(b_1, e_1, r_1) else goto L5(b_1, e_1, r_1)
 [B3]
-L2(b_2, e_2, r_2):
-    if e_2 % 2 != 0 goto L4(b_2, e_2, r_2) else goto L5(b_2, e_2, r_2)
+L4(b_2, e_2, r_2):
+    if e_2 % 2 != 0 goto L1(b_2, e_2, r_2) else goto L2(b_2, e_2, r_2)
 [B4]
-L4(b_3, e_3, r_3):
+L1(b_3, e_3, r_3):
     r_4 := r_3 * b_3
-    goto L5(b_3, e_3, r_4)
+    goto L2(b_3, e_3, r_4)
 [B5]
-L5(b_4, e_4, r_5):
+L2(b_4, e_4, r_5):
     b_5 := b_4 * b_4
     e_5 := e_4 / 2
-    goto L1(b_5, e_5, r_5)
+    goto L3(b_5, e_5, r_5)
 [B6]
-L3(b_6, e_6, r_6):
+L5(b_6, e_6, r_6):
     return r_6
 
 --------------------------------------------------------------------------------
@@ -76,36 +76,36 @@ L3(b_6, e_6, r_6):
 [B1]
 fastpow(b_0, e_0):
     r_0 := 1
-    goto L1(b_0, e_0, r_0)
+    goto L3(b_0, e_0, r_0)
 [B2]
-L1:
+L3:
     b_1 := PHI(b_0, b_5)
     e_1 := PHI(e_0, e_5)
     r_1 := PHI(r_0, r_5)
-    if e_1 > 0 goto L2(b_1, e_1, r_1) else goto L3(b_1, e_1, r_1)
+    if e_1 > 0 goto L4(b_1, e_1, r_1) else goto L5(b_1, e_1, r_1)
 [B3]
-L2:
+L4:
     b_2 := PHI(b_1)
     e_2 := PHI(e_1)
     r_2 := PHI(r_1)
-    if e_2 % 2 != 0 goto L4(b_2, e_2, r_2) else goto L5(b_2, e_2, r_2)
+    if e_2 % 2 != 0 goto L1(b_2, e_2, r_2) else goto L2(b_2, e_2, r_2)
 [B4]
-L4:
+L1:
     b_3 := PHI(b_2)
     e_3 := PHI(e_2)
     r_3 := PHI(r_2)
     r_4 := r_3 * b_3
-    goto L5(b_3, e_3, r_4)
+    goto L2(b_3, e_3, r_4)
 [B5]
-L5:
+L2:
     b_4 := PHI(b_2, b_3)
     e_4 := PHI(e_2, e_3)
     r_5 := PHI(r_2, r_4)
     b_5 := b_4 * b_4
     e_5 := e_4 / 2
-    goto L1(b_5, e_5, r_5)
+    goto L3(b_5, e_5, r_5)
 [B6]
-L3:
+L5:
     b_6 := PHI(b_1)
     e_6 := PHI(e_1)
     r_6 := PHI(r_1)
@@ -116,26 +116,26 @@ L3:
 [B1]
 fastpow(b_0, e_0):
     r_0 := 1
-    goto L1
+    goto L3
 [B2]
-L1:
+L3:
     b_1 := PHI(b_0, b_5)
     e_1 := PHI(e_0, e_5)
     r_1 := PHI(r_0, r_5)
-    if e_1 > 0 goto L2 else goto L3
+    if e_1 > 0 goto L4 else goto L5
 [B3]
-L2:
-    if e_1 % 2 != 0 goto L4 else goto L5
-[B4]
 L4:
+    if e_1 % 2 != 0 goto L1 else goto L2
+[B4]
+L1:
     r_4 := r_1 * b_1
-    goto L5
+    goto L2
 [B5]
-L5:
+L2:
     r_5 := PHI(r_1, r_4)
     b_5 := b_1 * b_1
     e_5 := e_1 / 2
-    goto L1
+    goto L3
 [B6]
-L3:
+L5:
     return r_1
