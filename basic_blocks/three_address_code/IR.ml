@@ -92,17 +92,11 @@ let all_variables_stmt = function
   | Return None -> []
   | _ -> assert false
 
-module S = Set.Make (struct
-  type t = var
-  let compare = Stdlib.compare
-end)
-
 let all_variables stmts =
   stmts
   |> List.map all_variables_stmt
   |> List.flatten
-  |> S.of_list
-  |> S.elements
+  |> List.sort_uniq compare
 
 let string_of_binop = function
   | Plus -> "+"

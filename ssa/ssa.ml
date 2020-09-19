@@ -3,10 +3,7 @@ open Basic_block
 open Control_flow
 open Utils
 
-module S = Set.Make (struct
-  type t = var
-  let compare = Stdlib.compare
-end)
+module S = Liveness.Set
 
 let parameterize_labels graph =
   let open Cfg.Node in
@@ -14,12 +11,8 @@ let parameterize_labels graph =
   (* Collect all variables that are live on entry to _some_ basic block
    * (see semi-pruned SSA form) *)
   let variables = Array.fold_left (fun non_locals { block; _ } ->
-      match block.source with
-      | Some { use; _ } ->
-        S.union (S.of_list use) non_locals
-      | None ->
-        assert (block.name = "Entry" || block.name = "Exit");
-        non_locals
+      let use, _ = Liveness.compute block in
+      S.union use non_locals
     ) S.empty graph
   |> S.elements
   in
