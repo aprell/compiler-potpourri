@@ -1,6 +1,7 @@
 open Three_address_code__IR
 open Basic_block
 open Control_flow
+open Utils
 
 module S = Set.Make (struct
   type t = var
@@ -26,12 +27,12 @@ let parameterize_labels graph =
   let parameterize block =
     let rec loop acc = function
       | stmt :: stmts ->
-        let stmt' = match stmt with
+        let stmt' = match !stmt with
           | Label (l, None) -> Label (l, Some variables)
           | Jump (l, None) -> Jump (l, Some variables)
           | Cond (e, (l1, None), (l2, None)) ->
             Cond (e, (l1, Some variables), (l2, Some variables))
-          | _ -> stmt
+          | _ -> !stmt
         in
         loop (stmt' :: acc) stmts
       | [] -> List.rev acc
@@ -39,7 +40,7 @@ let parameterize_labels graph =
     match block.source with
     | Some { stmts; _ } ->
       let stmts = loop [] stmts in
-      Basic_block.update block ~stmts
+      Basic_block.update block ~stmts:(List.map ref stmts)
     | None ->
       assert (block.name = "Entry" || block.name = "Exit");
       block
@@ -83,7 +84,8 @@ let rename_variables graph =
       Relop (op, e1', e2')
   in
 
-  let rename_variables_stmt = function
+  let rename_variables_stmt stmt =
+    match !stmt with
     | Move (x, e) ->
       (* Evaluation order matters *)
       let e' = rename_variables_expr e in
@@ -127,7 +129,7 @@ let rename_variables graph =
     match block.source with
     | Some { stmts; _ } ->
       let stmts = List.map rename_variables_stmt stmts in
-      Basic_block.update block ~stmts
+      Basic_block.update block ~stmts:(List.map ref stmts)
     | None ->
       assert (block.name = "Entry" || block.name = "Exit");
       block
@@ -170,12 +172,12 @@ let insert_phi_functions graph =
     match block.source with
     | Some { stmts; _ } -> (
         assert (stmts <> []);
-        match List.hd stmts with
+        match !(List.hd stmts) with
         | Label (l, _) as label ->
           let jumps = List.fold_left (fun jumps block ->
               match block.source with
               | Some { stmts; _ } -> (
-                  match List.hd (List.rev stmts) with
+                  match !(List.hd (List.rev stmts)) with
                   | Jump _ | Cond _ as jump -> jump :: jumps
                   | _ -> assert false
                 )
@@ -191,7 +193,7 @@ let insert_phi_functions graph =
             let phi_funcs = create_phi_functions label jumps in
             Basic_block.update block ~stmts:
               (* Insert phi-functions and erase label parameters *)
-              (Label (l, None) :: phi_funcs @ List.tl stmts)
+              (List.map ref (Label (l, None) :: phi_funcs) @ List.tl stmts)
           )
         | _ -> assert false
       )
@@ -259,6 +261,7 @@ let minimize_phi_functions graph =
     assert (Queue.is_empty pending);
     match block.source with
     | Some { stmts; _ } -> (
+        let stmts = List.map ( ! ) stmts in
         let stmts = loop (
             match propagate with
             | Some moves ->
@@ -276,7 +279,7 @@ let minimize_phi_functions graph =
             ) succ;
           Queue.clear pending
         );
-        Basic_block.update block ~stmts
+        Basic_block.update block ~stmts:(List.map ref stmts)
       )
     | None ->
       assert (block.name = "Entry" || block.name = "Exit");
@@ -306,7 +309,7 @@ let minimize_phi_functions graph =
       node.block <- match block.source with
         | Some { stmts; _ } ->
           Basic_block.update node.block ~stmts:
-            (List.map remove_label_params stmts)
+            (List.map (( ! ) >> remove_label_params >> ref) stmts)
         | None ->
           assert (block.name = "Entry" || block.name = "Exit");
           block

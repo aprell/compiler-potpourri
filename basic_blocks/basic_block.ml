@@ -10,7 +10,7 @@ type t = {
 and source_info = {
   entry : string;
   exits : string list;
-  stmts : stmt list;
+  stmts : stmt ref list;
   use : var list;
   def : var list;
 }
@@ -24,7 +24,7 @@ let to_string block =
     Printf.sprintf "[%s]\n%s"
       block.name
       (stmts
-       |> List.map (string_of_stmt ~indent:4)
+       |> List.map (fun stmt -> string_of_stmt !stmt ~indent:4)
        |> String.concat "\n")
   | None -> block.name
 
@@ -46,7 +46,7 @@ end)
 let use_def stmts =
   let rec loop (use, def) = function
     | stmt :: stmts ->
-      let use', def' = match stmt with
+      let use', def' = match !stmt with
         | Move (x, e) ->
           let vars = S.of_list (all_variables_expr e) in
           (* Remove x from use, then add all variables that occur in e *)
@@ -98,12 +98,13 @@ let create_basic_blocks source =
         else
           (* End previous basic block *)
           let stmts, code = split lines code in
+          let stmts = List.map ref stmts in
           let use, def = use_def stmts in
           let block = create (gen_name ()) ~source:
               { entry = label;
                 exits = [name];
                 (* Insert explicit jump *)
-                stmts = stmts @ [Jump (name, None)];
+                stmts = stmts @ [ref (Jump (name, None))];
                 use; def; }
           in
           (* This line starts a new basic block *)
@@ -111,6 +112,7 @@ let create_basic_blocks source =
       | Jump _ | Cond _ | Return _ ->
         (* End current basic block *)
         let stmts, code = split (lines + 1) code in
+        let stmts = List.map ref stmts in
         let use, def = use_def stmts in
         let block = create (gen_name ()) ~source:
             { entry = label;
@@ -126,12 +128,12 @@ let create_basic_blocks source =
   |> fun (label, _, code, blocks) ->
   if code <> [] then
     (* Close open basic block with an implicit return *)
-    let use, def = use_def code in
+    let stmts = List.map ref code in
+    let use, def = use_def stmts in
     let block = create (gen_name ()) ~source:
         { entry = label;
           exits = ["exit"];
-          stmts = code;
-          use; def; }
+          stmts; use; def; }
     in
     List.rev (block :: blocks)
   else
