@@ -28,6 +28,8 @@ let replace_stmt x y = function
     Move (x', replace_expr x y e)
   | Jump (l, Some xs) ->
     Jump (l, Some (replace_list x y xs))
+  | Cond (e, (l1, None), (l2, None)) ->
+    Cond (replace_expr x y e, (l1, None), (l2, None))
   | Cond (e, (l1, Some xs), (l2, Some ys)) ->
     Cond (replace_expr x y e, (l1, Some (replace_list x y xs)), (l2, Some (replace_list x y ys)))
   | Return (Some e) ->
@@ -36,9 +38,7 @@ let replace_stmt x y = function
     Phi (x', replace_list x y xs)
   | s -> s
 
-(* Eliminate moves with constant propagation (1) and copy propagation (2):
- * (1) x := c => replace Ref (Var x) with Const c in stmts
- * (2) x := y => replace Ref (Var x) with Ref (Var y) in stmts *)
+(*
 let propagate move stmts =
   let x, y = match move with
     | Move (x, y) -> x, y
@@ -49,7 +49,9 @@ let propagate move stmts =
     | [] -> List.rev acc
   in
   loop [] stmts
+*)
 
+(*
 let rec optimize = function
   | Move (_, Const _) as const :: stmts ->
     optimize (propagate const stmts)
@@ -58,3 +60,22 @@ let rec optimize = function
   | stmt :: stmts ->
     stmt :: optimize stmts
   | [] -> []
+*)
+
+(* Eliminate moves with constant propagation (1) and copy propagation (2):
+ * (1) x := c => replace Ref (Var x) with Const c
+ * (2) x := y => replace Ref (Var x) with Ref (Var y) *)
+let propagate move =
+  let x, y = match move with
+    | Move (x, y) -> x, y
+    | _ -> invalid_arg "propagate'"
+  in
+  let uses = Def_use_chain.get_uses x in
+  Def_use_chain.Set.iter (fun (block, stmt) ->
+      !stmt := replace_stmt x y !(!stmt);
+      match y with
+      | Ref y -> Def_use_chain.add_use !block !stmt y
+      | _ -> ()
+    ) uses;
+  (* Remove x from def_use_chains *)
+  Def_use_chain.remove_def x

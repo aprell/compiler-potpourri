@@ -75,19 +75,19 @@ L6(a_6, b_6):
 
 [B1]
 test(a_0, b_0):
-    if a_0 > b_0 goto L4(a_0, b_0) else goto L5(a_0, b_0)
+    if a_0 > b_0 goto L4 else goto L5
 [B2]
 L4:
     a_1 := PHI(a_0)
     b_1 := PHI(b_0)
-    if a_1 < 100 goto L1(a_1, b_1) else goto L2(a_1, b_1)
+    if a_1 < 100 goto L1 else goto L2
 [B3]
 L1:
     a_2 := PHI(a_1)
     b_2 := PHI(b_1)
     return a_2
 [B4]
-    goto L3(a_2, b_2)
+    goto L3
 [B5]
 L2:
     a_3 := PHI(a_1)
@@ -95,7 +95,7 @@ L2:
     return b_3
 [B6]
 L3(a_4, b_4):
-    goto L6(a_4, b_4)
+    goto L6
 [B7]
 L5:
     a_5 := PHI(a_0)

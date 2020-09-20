@@ -23,6 +23,6 @@ val remove_def : var -> unit
 
 (* val remove_use : var -> stmt -> unit *)
 
-val build : Basic_block.t -> Basic_block.t
+val build : Basic_block.t -> unit
 
 val print : unit -> unit

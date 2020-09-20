@@ -41,9 +41,8 @@ let basic_blocks_of_uses var =
 
 let remove_def var =
   match Hashtbl.find_opt def_use_chains var with
-  | Some { def; uses; } -> (
+  | Some { def; _ } -> (
       assert (Option.is_some def);
-      assert (uses = Set.empty);
       Hashtbl.remove def_use_chains var
     )
   | None -> ()
@@ -116,11 +115,9 @@ let visit block stmt =
 let build block =
   match block.source with
   | Some { stmts; _ } ->
-    List.iter (visit block) stmts;
-    block
+    List.iter (visit block) stmts
   | None ->
-    assert (block.name = "Entry" || block.name = "Exit");
-    block
+    assert (block.name = "Entry" || block.name = "Exit")
 
 let to_string { def; uses; } =
   let string_of_stmt' (block, stmt) =
