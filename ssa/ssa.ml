@@ -177,7 +177,8 @@ let insert_phi_functions graph =
               | None -> jumps
             ) [] pred |> List.rev
           in
-          if jumps = [] then (
+          (* TODO: Remove all label parameters *)
+          Def_use_chain.build @@ if jumps = [] then (
             assert (block.name = "B1");
             assert (List.length pred = 1);
             assert ((List.hd pred).name = "Entry");
