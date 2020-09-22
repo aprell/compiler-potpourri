@@ -1,6 +1,7 @@
 open Three_address_code__IR
 open Basic_block
 open Control_flow
+open Utils
 
 module S = Liveness.Set
 
@@ -16,31 +17,29 @@ let parameterize_labels graph =
   |> S.elements
   in
 
-  let parameterize block =
-    let rec loop acc = function
-      | stmt :: stmts ->
-        let stmt' = match !stmt with
-          | Label (l, None) -> Label (l, Some variables)
-          | Jump (l, None) -> Jump (l, Some variables)
+  let parameterize { block; _ } =
+    let rec loop = function
+      | stmt :: stmts -> (
+          match !stmt with
+          | Label (l, None) ->
+            stmt := Label (l, Some variables)
+          | Jump (l, None) ->
+            stmt := Jump (l, Some variables)
           | Cond (e, (l1, None), (l2, None)) ->
-            Cond (e, (l1, Some variables), (l2, Some variables))
-          | _ -> !stmt
-        in
-        loop (stmt' :: acc) stmts
-      | [] -> List.rev acc
+            stmt := Cond (e, (l1, Some variables), (l2, Some variables))
+          | _ -> ()
+        );
+        loop stmts
+      | [] -> ()
     in
     match block.source with
     | Some { stmts; _ } ->
-      let stmts = loop [] stmts in
-      Basic_block.update block ~stmts:(List.map ref stmts)
+      loop stmts
     | None ->
-      assert (block.name = "Entry" || block.name = "Exit");
-      block
+      assert (block.name = "Entry" || block.name = "Exit")
   in
 
-  Array.iter (fun node ->
-        node.block <- parameterize node.block
-    ) graph
+  Array.iter parameterize graph
 
 let rename_variables graph =
   let open Cfg.Node in
@@ -82,54 +81,50 @@ let rename_variables graph =
       (* Evaluation order matters *)
       let e' = rename_variables_expr e in
       let x' = rename_variable x ~bump:true in
-      Move (x', e')
+      stmt := Move (x', e')
     | Load (x, Mem { base; offset; }) ->
       let offset' = rename_variables_expr offset in
       let x' = rename_variable x ~bump:true in
-      Load (x', Mem { base; offset = offset' })
+      stmt := Load (x', Mem { base; offset = offset' })
     | Store (Mem { base; offset; }, e) ->
       let offset' = rename_variables_expr offset in
       let e' = rename_variables_expr e in
-      Store (Mem { base; offset = offset' }, e')
+      stmt := Store (Mem { base; offset = offset' }, e')
     | Label (l, Some xs) ->
       let xs' = List.map (rename_variable ~bump:true) xs in
-      Label (l, Some xs')
-    | Label (_, None) as s -> s
+      stmt := Label (l, Some xs')
+    | Label (_, None) -> ()
     | Jump (l, Some xs) ->
       let xs' = List.map (rename_variable ~bump:false) xs in
-      Jump (l, Some xs')
-    | Jump (_, None) as s -> s
+      stmt := Jump (l, Some xs')
+    | Jump (_, None) -> ()
     | Cond (e, (l1, Some xs), (l2, Some ys)) ->
       let e' = rename_variables_expr e in
       let xs' = List.map (rename_variable ~bump:false) xs in
       let ys' = List.map (rename_variable ~bump:false) ys in
-      Cond (e', (l1, Some xs'), (l2, Some ys'))
+      stmt := Cond (e', (l1, Some xs'), (l2, Some ys'))
     | Cond (e, then_, else_) ->
       let e' = rename_variables_expr e in
-      Cond (e', then_, else_)
+      stmt := Cond (e', then_, else_)
     | Receive x ->
       let x' = rename_variable x ~bump:true in
-      Receive x'
+      stmt := Receive x'
     | Return (Some e) ->
       let e' = rename_variables_expr e in
-      Return (Some e')
-    | Return None as s -> s
+      stmt := Return (Some e')
+    | Return None -> ()
     | _ -> assert false
   in
 
-  let rename block =
+  let rename { block; _ } =
     match block.source with
     | Some { stmts; _ } ->
-      let stmts = List.map rename_variables_stmt stmts in
-      Basic_block.update block ~stmts:(List.map ref stmts)
+      List.iter rename_variables_stmt stmts
     | None ->
-      assert (block.name = "Entry" || block.name = "Exit");
-      block
+      assert (block.name = "Entry" || block.name = "Exit")
   in
 
-  Array.iter (fun node ->
-      node.block <- rename node.block
-    ) graph
+  Array.iter rename graph
 
 let create_phi_functions label jumps =
   match label with
@@ -162,7 +157,7 @@ let insert_phi_functions graph =
 
   let insert block ~pred =
     match block.source with
-    | Some { stmts; _ } -> (
+    | Some ({ stmts; _ } as src) -> (
         assert (stmts <> []);
         match !(List.hd stmts) with
         | Label (l, _) as label ->
@@ -179,13 +174,11 @@ let insert_phi_functions graph =
           if jumps = [] then (
             assert (block.name = "B1");
             assert (List.length pred = 1);
-            assert ((List.hd pred).name = "Entry");
-            block
+            assert ((List.hd pred).name = "Entry")
           ) else (
             let phi_funcs = create_phi_functions label jumps in
-            Basic_block.update block ~stmts:
-              (* Insert phi-functions and erase label parameters *)
-              (List.map ref (Label (l, None) :: phi_funcs) @ List.tl stmts)
+            (* Insert phi-functions and erase label parameters *)
+            src.stmts <- List.map ref (Label (l, None) :: phi_funcs) @ List.tl stmts
           )
         | _ -> assert false
       )
@@ -193,7 +186,7 @@ let insert_phi_functions graph =
       assert false
   in
 
-  let erase_label_params block =
+  let erase_label_params { block; _ } =
     match block.source with
     | Some { stmts; _ } ->
       let tl = List.(hd (rev stmts)) in (
@@ -213,14 +206,13 @@ let insert_phi_functions graph =
         let pred = List.map (fun node -> node.block) (elements node.pred) in
         (* Insert phi-functions for every labeled jump (not only at join
          * points, where two or more control flow paths merge) *)
-        if List.length pred > 0 then
-          node.block <- insert node.block ~pred
+        if List.length pred > 0 then insert node.block ~pred
     ) graph;
 
   (* Erase remaining label parameters and build def-use chains *)
-  Array.iter (fun { block; _ } ->
-      erase_label_params block;
-      Def_use_chain.build block
+  Array.iter (fun node ->
+      erase_label_params node;
+      Def_use_chain.build node.block
    ) graph
 
 let minimize_phi_functions graph =
@@ -228,67 +220,52 @@ let minimize_phi_functions graph =
 
   let worklist = Queue.create () in
 
-  (* TODO: This is a hack and requires a better solution *)
-  let node_of_block block =
-    let i = int_of_string (String.(sub block.name 1 (length block.name - 1))) in
-    graph.(i)
-  in
+  let rec add_task block =
+    Queue.add (fun () ->
+        remove_phi_functions block
+      ) worklist
 
-  let rec remove_phi_functions block =
+  and remove_phi_functions block =
     let rec loop = function
       | stmt :: stmts -> (
           match !stmt with
-          | Label _ ->
-            stmt :: loop stmts
           | Phi (x, [x']) -> (
               (* Replace x := PHI(x') with x := x' and perform copy propagation *)
-              List.iter (fun block' ->
-                  if !block'.name <> block.name then
-                    Queue.add (fun () ->
-                        let node = node_of_block !block' in
-                        node.block <- remove_phi_functions !block'
-                      ) worklist
-                ) (Def_use_chain.basic_blocks_of_uses x);
+              Def_use_chain.basic_blocks_of_uses x
+              |> List.iter (( ! ) >> add_task);
               Optim.propagate (Move (x, Ref x'));
               loop stmts
             )
           | Phi (x, xs) -> (
               let xs = S.of_list xs in
               if S.cardinal xs = 1 && not (S.mem x xs) ||
-                 S.cardinal xs = 2 && S.mem x xs then
+                 S.cardinal xs = 2 && S.mem x xs then (
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and
                  * perform copy propagation *)
                 let x' = S.find_first (( <> ) x) xs in
-                List.iter (fun block' ->
-                    if !block'.name <> block.name then
-                      Queue.add (fun () ->
-                          let node = node_of_block !block' in
-                          node.block <- remove_phi_functions !block'
-                        ) worklist
-                  ) (Def_use_chain.basic_blocks_of_uses x);
+                Def_use_chain.basic_blocks_of_uses x
+                |> List.iter (( ! ) >> add_task);
                 Optim.propagate (Move (x, Ref x'));
                 loop stmts
-              else
+              ) else (
                 (* Keep this phi-function *)
                 stmt :: loop stmts
+              )
             )
           | _ -> stmt :: loop stmts
         )
       | stmts -> stmts
     in
     match block.source with
-    | Some { stmts; _ } ->
-        Basic_block.update block ~stmts:(loop stmts)
+    | Some ({ stmts; _ } as src) ->
+      src.stmts <- loop stmts
     | None ->
-      assert (block.name = "Entry" || block.name = "Exit");
-      block
+      assert (block.name = "Entry" || block.name = "Exit")
   in
 
   (* Seed work list *)
-  Array.iter (fun node ->
-      Queue.add (fun () ->
-          node.block <- remove_phi_functions node.block
-        ) worklist
+  Array.iter (fun { block; _ } ->
+      add_task block
     ) graph;
 
   (* Iterate *)

@@ -10,7 +10,7 @@ type t = {
 and source_info = {
   entry : string;
   exits : string list;
-  stmts : stmt ref list;
+  mutable stmts : stmt ref list;
 }
 
 (* Constructor for basic blocks *)
@@ -31,14 +31,6 @@ let jump_targets = function
   | Cond (_, (then_, _), (else_, _)) -> [then_; else_]
   | Return _ -> ["exit"]
   | _ -> []
-
-let update block ~stmts =
-  match block.source with
-  | Some info ->
-    create block.name ~source:
-      { info with stmts }
-  | None ->
-    invalid_arg "Basic block lacks source information"
 
 let create_basic_blocks source =
   let gen_name = gen_sym "B" 1 in

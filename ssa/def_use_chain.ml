@@ -91,15 +91,6 @@ let visit block stmt =
     List.iter (add_use block stmt) (all_variables_expr e);
   | Label (_, Some xs) ->
     List.iter (add_def block stmt) xs
-(*
-  | Label (_, None) -> ()
-  | Jump (_, Some xs) -> ()
-    List.iter (add_use block stmt) xs
-  | Jump (_, None) -> ()
-  | Cond (e, (_, Some xs), (_, Some ys)) ->
-    List.iter (add_use block stmt) (all_variables_expr e);
-    List.iter (add_use block stmt) (xs @ ys)
-*)
   | Cond (e, _, _) ->
     List.iter (add_use block stmt) (all_variables_expr e)
   | Receive x ->
