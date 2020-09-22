@@ -39,25 +39,32 @@ let basic_blocks_of_uses var =
       compare !block.name !block'.name
     )
 
-let remove_def var =
+let remove_use stmt var =
   match Hashtbl.find_opt def_use_chains var with
-  | Some { def; _ } -> (
-      assert (Option.is_some def);
-      Hashtbl.remove def_use_chains var
-    )
-  | None -> ()
-
-(*
-let remove_use var stmt =
-  match Hashtbl.find_opt def_use_chains var with
-  | Some ({ def; uses; } as def_use_chain) -> (
-      assert (Option.is_some def);
+  | Some ({ uses; _ } as def_use_chain) -> (
       assert (uses <> Set.empty);
       Hashtbl.replace def_use_chains var
         { def_use_chain with uses = Set.remove stmt uses }
     )
   | None -> ()
-*)
+
+let remove_def var =
+  match Hashtbl.find_opt def_use_chains var with
+  | Some { def; _ } -> (
+      assert (Option.is_some def);
+      let _, stmt as def = Option.get def in (
+        match !(!stmt) with
+        | Move (_, e)
+        | Load (_, Mem { offset = e; _ }) ->
+          List.iter (remove_use def) (all_variables_expr e)
+        | Label (_, Some xs)
+        | Phi (_, xs) ->
+          List.iter (remove_use def) xs
+        | _ -> assert false
+      );
+      Hashtbl.remove def_use_chains var
+    )
+  | None -> ()
 
 let add_def block stmt var =
   match Hashtbl.find_opt def_use_chains var with

@@ -21,7 +21,7 @@ val add_use : Basic_block.t -> stmt ref -> var -> unit
 
 val remove_def : var -> unit
 
-(* val remove_use : var -> stmt -> unit *)
+val remove_use : Set.elt -> var -> unit
 
 val build : Basic_block.t -> unit
 
