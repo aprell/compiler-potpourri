@@ -86,7 +86,7 @@ L5(i_6, n_5, t0_6, t1_6):
 fib(n_0):
     t0_0 := 0
     t1_0 := 1
-    if n_0 < 2 goto L1(i_-1, n_0, t0_0, t1_0) else goto L2(i_-1, n_0, t0_0, t1_0)
+    if n_0 < 2 goto L1 else goto L2
 [B2]
 L1:
     i_0 := PHI(i_-1)
@@ -101,14 +101,14 @@ L2:
     t0_2 := PHI(t0_0)
     t1_2 := PHI(t1_0)
     i_2 := 2
-    goto L3(i_2, n_2, t0_2, t1_2)
+    goto L3
 [B4]
 L3:
     i_3 := PHI(i_2, i_5)
     n_3 := PHI(n_2, n_4)
     t0_3 := PHI(t0_2, t0_5)
     t1_3 := PHI(t1_2, t1_5)
-    if i_3 <= n_3 goto L4(i_3, n_3, t0_3, t1_3) else goto L5(i_3, n_3, t0_3, t1_3)
+    if i_3 <= n_3 goto L4 else goto L5
 [B5]
 L4:
     i_4 := PHI(i_3)
@@ -119,7 +119,7 @@ L4:
     t0_5 := t1_4
     t1_5 := t2_0
     i_5 := i_4 + 1
-    goto L3(i_5, n_4, t0_5, t1_5)
+    goto L3
 [B6]
 L5:
     i_6 := PHI(i_3)

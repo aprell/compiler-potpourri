@@ -10,9 +10,7 @@ type t = {
 and source_info = {
   entry : string;
   exits : string list;
-  stmts : stmt list;
-  use : var list;
-  def : var list;
+  mutable stmts : stmt ref list;
 }
 
 (* Constructor for basic blocks *)
@@ -24,7 +22,7 @@ let to_string block =
     Printf.sprintf "[%s]\n%s"
       block.name
       (stmts
-       |> List.map (string_of_stmt ~indent:4)
+       |> List.map (fun stmt -> string_of_stmt !stmt ~indent:4)
        |> String.concat "\n")
   | None -> block.name
 
@@ -33,59 +31,6 @@ let jump_targets = function
   | Cond (_, (then_, _), (else_, _)) -> [then_; else_]
   | Return _ -> ["exit"]
   | _ -> []
-
-module S = Set.Make (struct
-  type t = var
-  let compare = Stdlib.compare
-end)
-
-(* Block-local liveness information
- * use: the set of variables that are used before being assigned a (new) value
- * def: the set of variables that are assigned a (new) value before being used
- *)
-let use_def stmts =
-  let rec loop (use, def) = function
-    | stmt :: stmts ->
-      let use', def' = match stmt with
-        | Move (x, e) ->
-          let vars = S.of_list (all_variables_expr e) in
-          (* Remove x from use, then add all variables that occur in e *)
-          let use' = S.union (S.remove x use) vars in
-          (* Add x to def, then remove all variables that occur in e *)
-          let def' = S.diff (S.add x def) vars in
-          (use', def')
-        | Label (_, Some params) ->
-          let vars = S.of_list params in
-          let use' = S.diff use vars in
-          let def' = S.union def vars in
-          (use', def')
-        | Cond (e, _, _) | Return (Some e) ->
-          let vars = S.of_list (all_variables_expr e) in
-          let use' = S.union use vars in
-          (use', def)
-        | Phi (x, xs) ->
-          let vars = S.of_list xs in
-          let use' = S.union (S.remove x use) vars in
-          let def' = S.diff (S.add x def) vars in
-          (use', def')
-        (* Incomplete; extend as needed *)
-        | _ -> (use, def)
-      in
-      loop (use', def') stmts
-    | [] ->
-      assert (S.is_empty (S.inter use def));
-      (S.elements use, S.elements def)
-  in
-  loop (S.empty, S.empty) (List.rev stmts)
-
-let update block ~stmts =
-  let use, def = use_def stmts in
-  match block.source with
-  | Some info ->
-    create block.name ~source:
-      { info with stmts; use; def; }
-  | None ->
-    invalid_arg "Basic block lacks source information"
 
 let create_basic_blocks source =
   let gen_name = gen_sym "B" 1 in
@@ -98,24 +43,23 @@ let create_basic_blocks source =
         else
           (* End previous basic block *)
           let stmts, code = split lines code in
-          let use, def = use_def stmts in
+          let stmts = List.map ref stmts in
           let block = create (gen_name ()) ~source:
               { entry = label;
                 exits = [name];
                 (* Insert explicit jump *)
-                stmts = stmts @ [Jump (name, None)];
-                use; def; }
+                stmts = stmts @ [ref (Jump (name, None))]; }
           in
           (* This line starts a new basic block *)
           (name, 1, code, block :: blocks)
       | Jump _ | Cond _ | Return _ ->
         (* End current basic block *)
         let stmts, code = split (lines + 1) code in
-        let use, def = use_def stmts in
+        let stmts = List.map ref stmts in
         let block = create (gen_name ()) ~source:
             { entry = label;
               exits = jump_targets stmt;
-              stmts; use; def; }
+              stmts; }
         in
         (* Next line starts a new basic block *)
         ("next", 0, code, block :: blocks)
@@ -126,13 +70,58 @@ let create_basic_blocks source =
   |> fun (label, _, code, blocks) ->
   if code <> [] then
     (* Close open basic block with an implicit return *)
-    let use, def = use_def code in
+    let stmts = List.map ref code in
     let block = create (gen_name ()) ~source:
         { entry = label;
           exits = ["exit"];
-          stmts = code;
-          use; def; }
+          stmts; }
     in
     List.rev (block :: blocks)
   else
     List.rev blocks
+
+module Liveness = struct
+  module Set = Set.Make (struct
+    type t = var
+    let compare = Stdlib.compare
+  end)
+
+  let compute block =
+    let rec loop (use, def) = function
+      | stmt :: stmts ->
+        let use', def' = match !stmt with
+          | Move (x, e) ->
+            let vars = Set.of_list (all_variables_expr e) in
+            (* Remove x from use, then add all variables that occur in e *)
+            let use' = Set.union (Set.remove x use) vars in
+            (* Add x to def, then remove all variables that occur in e *)
+            let def' = Set.diff (Set.add x def) vars in
+            (use', def')
+          | Label (_, Some params) ->
+            let vars = Set.of_list params in
+            let use' = Set.diff use vars in
+            let def' = Set.union def vars in
+            (use', def')
+          | Cond (e, _, _) | Return (Some e) ->
+            let vars = Set.of_list (all_variables_expr e) in
+            let use' = Set.union use vars in
+            (use', def)
+          | Phi (x, xs) ->
+            let vars = Set.of_list xs in
+            let use' = Set.union (Set.remove x use) vars in
+            let def' = Set.diff (Set.add x def) vars in
+            (use', def')
+          (* Incomplete; extend as needed *)
+          | _ -> (use, def)
+        in
+        loop (use', def') stmts
+      | [] ->
+        assert (Set.is_empty (Set.inter use def));
+        (use, def)
+    in
+    match block.source with
+    | Some { stmts; _ } ->
+      loop (Set.empty, Set.empty) (List.rev stmts)
+    | None ->
+      (Set.empty, Set.empty)
+end

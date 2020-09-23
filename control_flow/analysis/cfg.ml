@@ -1,7 +1,7 @@
 module rec Node : sig
   type t = {
     index : int;
-    mutable block : Basic_block.t;
+    block : Basic_block.t;
     mutable succ : NodeSet.t;
     mutable pred : NodeSet.t;
     mutable doms : NodeSet.t;

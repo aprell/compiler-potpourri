@@ -28,6 +28,8 @@ let replace_stmt x y = function
     Move (x', replace_expr x y e)
   | Jump (l, Some xs) ->
     Jump (l, Some (replace_list x y xs))
+  | Cond (e, (l1, None), (l2, None)) ->
+    Cond (replace_expr x y e, (l1, None), (l2, None))
   | Cond (e, (l1, Some xs), (l2, Some ys)) ->
     Cond (replace_expr x y e, (l1, Some (replace_list x y xs)), (l2, Some (replace_list x y ys)))
   | Return (Some e) ->
@@ -37,24 +39,48 @@ let replace_stmt x y = function
   | s -> s
 
 (* Eliminate moves with constant propagation (1) and copy propagation (2):
- * (1) x := c => replace Ref (Var x) with Const c in stmts
- * (2) x := y => replace Ref (Var x) with Ref (Var y) in stmts *)
-let propagate move stmts =
+ * (1) x := c => replace Ref (Var x) with Const c
+ * (2) x := y => replace Ref (Var x) with Ref (Var y) *)
+let propagate move =
   let x, y = match move with
     | Move (x, y) -> x, y
     | _ -> invalid_arg "propagate"
   in
-  let rec loop acc = function
-    | stmt :: stmts -> loop (replace_stmt x y stmt :: acc) stmts
-    | [] -> List.rev acc
-  in
-  loop [] stmts
+  let uses = Def_use_chain.get_uses x in
+  Def_use_chain.Set.iter (fun (block, stmt) ->
+      !stmt := replace_stmt x y !(!stmt);
+      match y with
+      | Ref y -> Def_use_chain.add_use !block !stmt y
+      | _ -> ()
+    ) uses;
+  Def_use_chain.remove_uses x
 
-let rec optimize = function
-  | Move (_, Const _) as const :: stmts ->
-    optimize (propagate const stmts)
-  | Move (_, Ref (Var _)) as copy :: stmts ->
-    optimize (propagate copy stmts)
-  | stmt :: stmts ->
-    stmt :: optimize stmts
-  | [] -> []
+let optimize ?(dump = false) block =
+  Def_use_chain.build block;
+  let changed = ref true in
+  let num_iter = ref 1 in
+  while !changed do
+    changed := false;
+    Def_use_chain.iter (fun x def _ ->
+        match def with
+        | Some (_, stmt) -> (
+            match !(!stmt) with
+            | Move (_, Const _)
+            | Move (_, Ref (Var _)) ->
+              propagate !(!stmt);
+              assert (Def_use_chain.(get_uses x = Set.empty));
+              if dump then (
+                print_endline ("Iteration " ^ (string_of_int !num_iter) ^ ":");
+                Def_use_chain.print ();
+                print_newline ()
+              );
+              let src = Option.get block.source in
+              src.stmts <- List.filter ((<>) !stmt) src.stmts;
+              Def_use_chain.remove_def x;
+              changed := true;
+              incr num_iter
+            | _ -> ()
+          )
+        | None -> ()
+      )
+  done

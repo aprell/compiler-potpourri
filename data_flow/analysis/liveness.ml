@@ -4,10 +4,7 @@ open Data_flow
 
 module S = struct
   module Set = struct
-    include Set.Make (struct
-      type t = var
-      let compare = Stdlib.compare
-    end)
+    include Basic_block.Liveness.Set
 
     let to_string set =
       elements set
@@ -18,14 +15,9 @@ module S = struct
   let meet = Set.union
 
   let init { Node.block; _ } _ =
-    match block.source with
-    | Some { use; def; _ } ->
-      { gen = Set.of_list use; kill = Set.of_list def;
-        global_in = Set.empty; global_out = Set.empty }
-    | None ->
-      assert (block.name = "Entry" || block.name = "Exit");
-      { gen = Set.empty; kill = Set.empty;
-        global_in = Set.empty; global_out = Set.empty }
+    let use, def = Basic_block.Liveness.compute block in
+    { gen = use; kill = def;
+      global_in = Set.empty; global_out = Set.empty; }
 end
 
 module Liveness = Data_flow_analysis (Backward_flow (S))

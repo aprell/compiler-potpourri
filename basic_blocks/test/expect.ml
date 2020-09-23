@@ -13,12 +13,12 @@ let string_of_vars vars =
   |> String.concat ", "
 
 let print_use_def blocks =
-  let rows = List.(rev (fold_left (fun rows { name; source } ->
-      match source with
-      | Some { use; def; _ } ->
-        [name; string_of_vars use; string_of_vars def] :: rows
-      | None ->
-        failwith "print_use_def"
+  let rows = List.(rev (fold_left (fun rows block ->
+      let use, def = Liveness.compute block in
+      [ block.name;
+        string_of_vars (Liveness.Set.elements use);
+        string_of_vars (Liveness.Set.elements def);
+      ] :: rows
     ) [] blocks))
   in
   print_table ~rows:([""; "use"; "def"] :: rows)

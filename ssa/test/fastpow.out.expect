@@ -76,26 +76,26 @@ L5(b_6, e_6, r_6):
 [B1]
 fastpow(b_0, e_0):
     r_0 := 1
-    goto L3(b_0, e_0, r_0)
+    goto L3
 [B2]
 L3:
     b_1 := PHI(b_0, b_5)
     e_1 := PHI(e_0, e_5)
     r_1 := PHI(r_0, r_5)
-    if e_1 > 0 goto L4(b_1, e_1, r_1) else goto L5(b_1, e_1, r_1)
+    if e_1 > 0 goto L4 else goto L5
 [B3]
 L4:
     b_2 := PHI(b_1)
     e_2 := PHI(e_1)
     r_2 := PHI(r_1)
-    if e_2 % 2 != 0 goto L1(b_2, e_2, r_2) else goto L2(b_2, e_2, r_2)
+    if e_2 % 2 != 0 goto L1 else goto L2
 [B4]
 L1:
     b_3 := PHI(b_2)
     e_3 := PHI(e_2)
     r_3 := PHI(r_2)
     r_4 := r_3 * b_3
-    goto L2(b_3, e_3, r_4)
+    goto L2
 [B5]
 L2:
     b_4 := PHI(b_2, b_3)
@@ -103,7 +103,7 @@ L2:
     r_5 := PHI(r_2, r_4)
     b_5 := b_4 * b_4
     e_5 := e_4 / 2
-    goto L3(b_5, e_5, r_5)
+    goto L3
 [B6]
 L5:
     b_6 := PHI(b_1)
