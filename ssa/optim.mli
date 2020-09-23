@@ -4,4 +4,4 @@ val replace_stmt : var -> expr -> stmt -> stmt
 
 val propagate : stmt -> unit
 
-(* val optimize : stmt list -> stmt list *)
+val optimize : ?dump:bool -> Basic_block.t -> unit

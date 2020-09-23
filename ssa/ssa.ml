@@ -231,9 +231,7 @@ let minimize_phi_functions graph =
           match !stmt with
           | Phi (x, [x']) -> (
               (* Replace x := PHI(x') with x := x' and perform copy propagation *)
-              Def_use_chain.basic_blocks_of_uses x
-              |> List.iter (( ! ) >> add_task);
-              Optim.propagate (Move (x, Ref x'));
+              propagate (Move (x, Ref x'));
               loop stmts
             )
           | Phi (x, xs) -> (
@@ -243,9 +241,7 @@ let minimize_phi_functions graph =
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and
                  * perform copy propagation *)
                 let x' = S.find_first (( <> ) x) xs in
-                Def_use_chain.basic_blocks_of_uses x
-                |> List.iter (( ! ) >> add_task);
-                Optim.propagate (Move (x, Ref x'));
+                propagate (Move (x, Ref x'));
                 loop stmts
               ) else (
                 (* Keep this phi-function *)
@@ -261,6 +257,15 @@ let minimize_phi_functions graph =
       src.stmts <- loop stmts
     | None ->
       assert (block.name = "Entry" || block.name = "Exit")
+
+  and propagate = function
+    | Move (x, Ref _) as copy ->
+      Def_use_chain.basic_blocks_of_uses x
+      |> List.iter (( ! ) >> add_task);
+      Optim.propagate copy;
+      assert (Def_use_chain.(get_uses x = Set.empty));
+      Def_use_chain.remove_def x
+    | _ -> ()
   in
 
   (* Seed work list *)

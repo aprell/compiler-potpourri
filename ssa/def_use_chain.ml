@@ -21,15 +21,15 @@ let get_def var =
   | Some { def; _ } -> def
   | None -> None
 
-let basic_block_of_def var =
-  match get_def var with
-  | Some (block, _) -> Some block
-  | None -> None
-
 let get_uses var =
   match Hashtbl.find_opt def_use_chains var with
   | Some { uses; _ } -> uses
   | None -> Set.empty
+
+let basic_block_of_def var =
+  match get_def var with
+  | Some (block, _) -> Some block
+  | None -> None
 
 let basic_blocks_of_uses var =
   get_uses var
@@ -39,12 +39,20 @@ let basic_blocks_of_uses var =
       compare !block.name !block'.name
     )
 
-let remove_use stmt var =
+let remove_use use var =
   match Hashtbl.find_opt def_use_chains var with
   | Some ({ uses; _ } as def_use_chain) -> (
       assert (uses <> Set.empty);
       Hashtbl.replace def_use_chains var
-        { def_use_chain with uses = Set.remove stmt uses }
+        { def_use_chain with uses = Set.remove use uses }
+    )
+  | None -> ()
+
+let remove_uses var =
+  match Hashtbl.find_opt def_use_chains var with
+  | Some def_use_chain -> (
+      Hashtbl.replace def_use_chains var
+        { def_use_chain with uses = Set.empty }
     )
   | None -> ()
 
@@ -116,6 +124,11 @@ let build block =
     List.iter (visit block) stmts
   | None ->
     assert (block.name = "Entry" || block.name = "Exit")
+
+let iter f =
+  Hashtbl.iter (fun var { def; uses; } ->
+      f var def uses
+    ) def_use_chains
 
 let to_string { def; uses; } =
   let string_of_stmt' (block, stmt) =

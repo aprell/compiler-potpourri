@@ -23,6 +23,10 @@ val remove_def : var -> unit
 
 val remove_use : Set.elt -> var -> unit
 
+val remove_uses : var -> unit
+
 val build : Basic_block.t -> unit
+
+val iter : (var -> Set.elt option -> Set.t -> unit) -> unit
 
 val print : unit -> unit
