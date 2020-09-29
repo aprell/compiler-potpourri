@@ -201,8 +201,6 @@ sort(A_0, n_0):
 [B2]
 L6:
     i_1 := PHI(i_0, i_8)
-    j_0 := PHI(j_-1, j_3)
-    min_0 := PHI(min_-1, min_3)
     if i_1 < n_0 - 1 goto L7 else goto L8
 [B3]
 L7:

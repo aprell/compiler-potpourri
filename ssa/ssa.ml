@@ -226,6 +226,9 @@ let minimize_phi_functions graph =
       ) worklist
 
   and remove_phi_functions block =
+    let has_def =
+      Def_use_chain.get_def >> Option.is_some
+    in
     let rec loop = function
       | stmt :: stmts -> (
           match !stmt with
@@ -235,7 +238,7 @@ let minimize_phi_functions graph =
               loop stmts
             )
           | Phi (x, xs) -> (
-              let xs = S.of_list xs in
+              let xs = S.of_list (List.filter has_def xs) in
               if S.cardinal xs = 1 && not (S.mem x xs) ||
                  S.cardinal xs = 2 && S.mem x xs then (
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and
