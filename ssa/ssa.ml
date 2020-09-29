@@ -186,7 +186,7 @@ let insert_phi_functions graph =
       assert false
   in
 
-  let erase_label_params { block; _ } =
+  let erase_label_params block =
     match block.source with
     | Some { stmts; _ } ->
       let tl = List.(hd (rev stmts)) in (
@@ -210,9 +210,9 @@ let insert_phi_functions graph =
     ) graph;
 
   (* Erase remaining label parameters and build def-use chains *)
-  Array.iter (fun node ->
-      erase_label_params node;
-      Def_use_chain.build node.block
+  Array.iter (fun { block; _ } ->
+      erase_label_params block;
+      Def_use_chain.build block
    ) graph
 
 let minimize_phi_functions graph =

@@ -75,7 +75,7 @@ let optimize ?(dump = false) block =
                 print_newline ()
               );
               let src = Option.get block.source in
-              src.stmts <- List.filter ((<>) !stmt) src.stmts;
+              src.stmts <- List.filter (( <> ) !stmt) src.stmts;
               Def_use_chain.remove_def x;
               changed := true;
               incr num_iter

@@ -103,7 +103,7 @@ let visit block stmt =
     List.iter (add_use block stmt) (all_variables_expr offset)
   | Store (Mem { offset; _ }, e) ->
     List.iter (add_use block stmt) (all_variables_expr offset);
-    List.iter (add_use block stmt) (all_variables_expr e);
+    List.iter (add_use block stmt) (all_variables_expr e)
   | Label (_, Some xs) ->
     List.iter (add_def block stmt) xs
   | Cond (e, _, _) ->

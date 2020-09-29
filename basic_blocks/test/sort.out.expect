@@ -1,0 +1,52 @@
+[B1]
+sort(A, n):
+    i := 0
+    goto L6
+[B2]
+L6:
+    if i < n - 1 goto L7 else goto L8
+[B3]
+L7:
+    min := i
+    j := i + 1
+    goto L3
+[B4]
+L3:
+    if j < n goto L4 else goto L5
+[B5]
+L4:
+    t0 := A[j]
+    t1 := A[min]
+    if t0 < t1 goto L1 else goto L2
+[B6]
+L1:
+    min := j
+    goto L2
+[B7]
+L2:
+    j := j + 1
+    goto L3
+[B8]
+L5:
+    t0 := A[i]
+    t1 := A[min]
+    A[i] := t1
+    A[min] := t0
+    i := i + 1
+    goto L6
+[B9]
+L8:
+
++----+--------+---------+
+|    | use    | def     |
++----+--------+---------+
+| B1 |        | A, i, n |
+| B2 | i, n   |         |
+| B3 | i      | j, min  |
+| B4 | j, n   |         |
+| B5 | j, min | t0, t1  |
+| B6 | j      | min     |
+| B7 | j      |         |
+| B8 | i, min | t0, t1  |
+| B9 |        |         |
++----+--------+---------+

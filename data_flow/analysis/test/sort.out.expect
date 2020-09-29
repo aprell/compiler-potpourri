@@ -1,0 +1,157 @@
+LIVE VARIABLES
+
+Local sets:
++-------+--------+---------+
+|       | gen    | kill    |
++-------+--------+---------+
+| Entry |        |         |
+| B1    |        | A, i, n |
+| B2    | i, n   |         |
+| B3    | i      | j, min  |
+| B4    | j, n   |         |
+| B5    | j, min | t0, t1  |
+| B6    | j      | min     |
+| B7    | j      |         |
+| B8    | i, min | t0, t1  |
+| B9    |        |         |
+| Exit  |        |         |
++-------+--------+---------+
+
+Initialization:
++-------+----+-----+
+|       | IN | OUT |
++-------+----+-----+
+| Entry |    |     |
+| B1    |    |     |
+| B2    |    |     |
+| B3    |    |     |
+| B4    |    |     |
+| B5    |    |     |
+| B6    |    |     |
+| B7    |    |     |
+| B8    |    |     |
+| B9    |    |     |
+| Exit  |    |     |
++-------+----+-----+
+
+Iteration 1:
++-------+--------------+--------------+
+|       | IN           | OUT          |
++-------+--------------+--------------+
+| Entry |              |              |
+| B1    |              | i, n         |
+| B2    | i, n         | i, n         |
+| B3    | i, n         | i, j, min, n |
+| B4    | i, j, min, n | i, j, min    |
+| B5    | j, min       | j            |
+| B6    | j            | j            |
+| B7    | j            |              |
+| B8    | i, min       |              |
+| B9    |              |              |
+| Exit  |              |              |
++-------+--------------+--------------+
+
+Iteration 2:
++-------+--------------+--------------+
+|       | IN           | OUT          |
++-------+--------------+--------------+
+| Entry |              |              |
+| B1    |              | i, n         |
+| B2    | i, n         | i, n         |
+| B3    | i, n         | i, j, min, n |
+| B4    | i, j, min, n | i, j, min, n |
+| B5    | i, j, min, n | i, j, min, n |
+| B6    | i, j, n      | i, j, min, n |
+| B7    | i, j, min, n | i, j, min, n |
+| B8    | i, min, n    | i, n         |
+| B9    |              |              |
+| Exit  |              |              |
++-------+--------------+--------------+
+
+Iteration 3:
++-------+--------------+--------------+
+|       | IN           | OUT          |
++-------+--------------+--------------+
+| Entry |              |              |
+| B1    |              | i, n         |
+| B2    | i, n         | i, n         |
+| B3    | i, n         | i, j, min, n |
+| B4    | i, j, min, n | i, j, min, n |
+| B5    | i, j, min, n | i, j, min, n |
+| B6    | i, j, n      | i, j, min, n |
+| B7    | i, j, min, n | i, j, min, n |
+| B8    | i, min, n    | i, n         |
+| B9    |              |              |
+| Exit  |              |              |
++-------+--------------+--------------+
+
+DOMINATORS
+
+Local sets:
++-------+-------+------+
+|       | gen   | kill |
++-------+-------+------+
+| Entry | Entry |      |
+| B1    | B1    |      |
+| B2    | B2    |      |
+| B3    | B3    |      |
+| B4    | B4    |      |
+| B5    | B5    |      |
+| B6    | B6    |      |
+| B7    | B7    |      |
+| B8    | B8    |      |
+| B9    | B9    |      |
+| Exit  | Exit  |      |
++-------+-------+------+
+
+Initialization:
++-------+----+-------------------------------------------------+
+|       | IN | OUT                                             |
++-------+----+-------------------------------------------------+
+| Entry |    |                                                 |
+| B1    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B2    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B3    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B4    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B5    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B6    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B7    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B8    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| B9    |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
+| Exit  |    | B1, B2, B3, B4, B5, B6, B7, B8, B9, Entry, Exit |
++-------+----+-------------------------------------------------+
+
+Iteration 1:
++-------+---------------------------+-------------------------------+
+|       | IN                        | OUT                           |
++-------+---------------------------+-------------------------------+
+| Entry |                           | Entry                         |
+| B1    | Entry                     | B1, Entry                     |
+| B2    | B1, Entry                 | B1, B2, Entry                 |
+| B3    | B1, B2, Entry             | B1, B2, B3, Entry             |
+| B4    | B1, B2, B3, Entry         | B1, B2, B3, B4, Entry         |
+| B5    | B1, B2, B3, B4, Entry     | B1, B2, B3, B4, B5, Entry     |
+| B6    | B1, B2, B3, B4, B5, Entry | B1, B2, B3, B4, B5, B6, Entry |
+| B7    | B1, B2, B3, B4, B5, Entry | B1, B2, B3, B4, B5, B7, Entry |
+| B8    | B1, B2, B3, B4, Entry     | B1, B2, B3, B4, B8, Entry     |
+| B9    | B1, B2, Entry             | B1, B2, B9, Entry             |
+| Exit  | B1, B2, B9, Entry         | B1, B2, B9, Entry, Exit       |
++-------+---------------------------+-------------------------------+
+
+Iteration 2:
++-------+---------------------------+-------------------------------+
+|       | IN                        | OUT                           |
++-------+---------------------------+-------------------------------+
+| Entry |                           | Entry                         |
+| B1    | Entry                     | B1, Entry                     |
+| B2    | B1, Entry                 | B1, B2, Entry                 |
+| B3    | B1, B2, Entry             | B1, B2, B3, Entry             |
+| B4    | B1, B2, B3, Entry         | B1, B2, B3, B4, Entry         |
+| B5    | B1, B2, B3, B4, Entry     | B1, B2, B3, B4, B5, Entry     |
+| B6    | B1, B2, B3, B4, B5, Entry | B1, B2, B3, B4, B5, B6, Entry |
+| B7    | B1, B2, B3, B4, B5, Entry | B1, B2, B3, B4, B5, B7, Entry |
+| B8    | B1, B2, B3, B4, Entry     | B1, B2, B3, B4, B8, Entry     |
+| B9    | B1, B2, Entry             | B1, B2, B9, Entry             |
+| Exit  | B1, B2, B9, Entry         | B1, B2, B9, Entry, Exit       |
++-------+---------------------------+-------------------------------+
+

@@ -1,0 +1,240 @@
+[B1]
+sort(A, n):
+    i := 0
+    goto L6
+[B2]
+L6:
+    if i < n - 1 goto L7 else goto L8
+[B3]
+L7:
+    min := i
+    j := i + 1
+    goto L3
+[B4]
+L3:
+    if j < n goto L4 else goto L5
+[B5]
+L4:
+    t0 := A[j]
+    t1 := A[min]
+    if t0 < t1 goto L1 else goto L2
+[B6]
+L1:
+    min := j
+    goto L2
+[B7]
+L2:
+    j := j + 1
+    goto L3
+[B8]
+L5:
+    t0 := A[i]
+    t1 := A[min]
+    A[i] := t1
+    A[min] := t0
+    i := i + 1
+    goto L6
+[B9]
+L8:
+
+--------------------------------------------------------------------------------
+
+[B1]
+sort(A, n):
+    i := 0
+    goto L6(i, j, min, n)
+[B2]
+L6(i, j, min, n):
+    if i < n - 1 goto L7(i, j, min, n) else goto L8(i, j, min, n)
+[B3]
+L7(i, j, min, n):
+    min := i
+    j := i + 1
+    goto L3(i, j, min, n)
+[B4]
+L3(i, j, min, n):
+    if j < n goto L4(i, j, min, n) else goto L5(i, j, min, n)
+[B5]
+L4(i, j, min, n):
+    t0 := A[j]
+    t1 := A[min]
+    if t0 < t1 goto L1(i, j, min, n) else goto L2(i, j, min, n)
+[B6]
+L1(i, j, min, n):
+    min := j
+    goto L2(i, j, min, n)
+[B7]
+L2(i, j, min, n):
+    j := j + 1
+    goto L3(i, j, min, n)
+[B8]
+L5(i, j, min, n):
+    t0 := A[i]
+    t1 := A[min]
+    A[i] := t1
+    A[min] := t0
+    i := i + 1
+    goto L6(i, j, min, n)
+[B9]
+L8(i, j, min, n):
+
+--------------------------------------------------------------------------------
+
+[B1]
+sort(A_0, n_0):
+    i_0 := 0
+    goto L6(i_0, j_-1, min_-1, n_0)
+[B2]
+L6(i_1, j_0, min_0, n_1):
+    if i_1 < n_1 - 1 goto L7(i_1, j_0, min_0, n_1) else goto L8(i_1, j_0, min_0, n_1)
+[B3]
+L7(i_2, j_1, min_1, n_2):
+    min_2 := i_2
+    j_2 := i_2 + 1
+    goto L3(i_2, j_2, min_2, n_2)
+[B4]
+L3(i_3, j_3, min_3, n_3):
+    if j_3 < n_3 goto L4(i_3, j_3, min_3, n_3) else goto L5(i_3, j_3, min_3, n_3)
+[B5]
+L4(i_4, j_4, min_4, n_4):
+    t0_0 := A[j_4]
+    t1_0 := A[min_4]
+    if t0_0 < t1_0 goto L1(i_4, j_4, min_4, n_4) else goto L2(i_4, j_4, min_4, n_4)
+[B6]
+L1(i_5, j_5, min_5, n_5):
+    min_6 := j_5
+    goto L2(i_5, j_5, min_6, n_5)
+[B7]
+L2(i_6, j_6, min_7, n_6):
+    j_7 := j_6 + 1
+    goto L3(i_6, j_7, min_7, n_6)
+[B8]
+L5(i_7, j_8, min_8, n_7):
+    t0_1 := A[i_7]
+    t1_1 := A[min_8]
+    A[i_7] := t1_1
+    A[min_8] := t0_1
+    i_8 := i_7 + 1
+    goto L6(i_8, j_8, min_8, n_7)
+[B9]
+L8(i_9, j_9, min_9, n_8):
+
+--------------------------------------------------------------------------------
+
+[B1]
+sort(A_0, n_0):
+    i_0 := 0
+    goto L6
+[B2]
+L6:
+    i_1 := PHI(i_0, i_8)
+    j_0 := PHI(j_-1, j_8)
+    min_0 := PHI(min_-1, min_8)
+    n_1 := PHI(n_0, n_7)
+    if i_1 < n_1 - 1 goto L7 else goto L8
+[B3]
+L7:
+    i_2 := PHI(i_1)
+    j_1 := PHI(j_0)
+    min_1 := PHI(min_0)
+    n_2 := PHI(n_1)
+    min_2 := i_2
+    j_2 := i_2 + 1
+    goto L3
+[B4]
+L3:
+    i_3 := PHI(i_2, i_6)
+    j_3 := PHI(j_2, j_7)
+    min_3 := PHI(min_2, min_7)
+    n_3 := PHI(n_2, n_6)
+    if j_3 < n_3 goto L4 else goto L5
+[B5]
+L4:
+    i_4 := PHI(i_3)
+    j_4 := PHI(j_3)
+    min_4 := PHI(min_3)
+    n_4 := PHI(n_3)
+    t0_0 := A[j_4]
+    t1_0 := A[min_4]
+    if t0_0 < t1_0 goto L1 else goto L2
+[B6]
+L1:
+    i_5 := PHI(i_4)
+    j_5 := PHI(j_4)
+    min_5 := PHI(min_4)
+    n_5 := PHI(n_4)
+    min_6 := j_5
+    goto L2
+[B7]
+L2:
+    i_6 := PHI(i_4, i_5)
+    j_6 := PHI(j_4, j_5)
+    min_7 := PHI(min_4, min_6)
+    n_6 := PHI(n_4, n_5)
+    j_7 := j_6 + 1
+    goto L3
+[B8]
+L5:
+    i_7 := PHI(i_3)
+    j_8 := PHI(j_3)
+    min_8 := PHI(min_3)
+    n_7 := PHI(n_3)
+    t0_1 := A[i_7]
+    t1_1 := A[min_8]
+    A[i_7] := t1_1
+    A[min_8] := t0_1
+    i_8 := i_7 + 1
+    goto L6
+[B9]
+L8:
+    i_9 := PHI(i_1)
+    j_9 := PHI(j_0)
+    min_9 := PHI(min_0)
+    n_8 := PHI(n_1)
+
+--------------------------------------------------------------------------------
+
+[B1]
+sort(A_0, n_0):
+    i_0 := 0
+    goto L6
+[B2]
+L6:
+    i_1 := PHI(i_0, i_8)
+    j_0 := PHI(j_-1, j_3)
+    min_0 := PHI(min_-1, min_3)
+    if i_1 < n_0 - 1 goto L7 else goto L8
+[B3]
+L7:
+    min_2 := i_1
+    j_2 := i_1 + 1
+    goto L3
+[B4]
+L3:
+    j_3 := PHI(j_2, j_7)
+    min_3 := PHI(min_2, min_7)
+    if j_3 < n_0 goto L4 else goto L5
+[B5]
+L4:
+    t0_0 := A[j_4]
+    t1_0 := A[min_4]
+    if t0_0 < t1_0 goto L1 else goto L2
+[B6]
+L1:
+    min_6 := j_3
+    goto L2
+[B7]
+L2:
+    min_7 := PHI(min_3, min_6)
+    j_7 := j_3 + 1
+    goto L3
+[B8]
+L5:
+    t0_1 := A[i_7]
+    t1_1 := A[min_8]
+    A[i_7] := t1_1
+    A[min_8] := t0_1
+    i_8 := i_1 + 1
+    goto L6
+[B9]
+L8:
