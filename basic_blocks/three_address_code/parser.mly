@@ -62,15 +62,16 @@ label:
   ;
 
 hl_stmt:
-  | IF expr block                        { `If ($2, $3, []) |> lower }
-  | IF expr block ELSE block             { `If ($2, $3, $5) |> lower }
-  | WHILE expr block                     { `While ($2, $3)  |> lower }
+  | NAME GETS mem                        { `Load (Var $1, $3) |> lower }
+  | mem GETS expr                        { `Store ($1, $3)    |> lower }
+  | IF expr block                        { `If ($2, $3, [])   |> lower }
+  | IF expr block ELSE block             { `If ($2, $3, $5)   |> lower }
+  | WHILE expr block                     { `While ($2, $3)    |> lower }
   | stmt                                 { [$1] }
+  ;
 
 stmt:
   | NAME GETS expr                       { Move (Var $1, $3) }
-  | NAME GETS mem                        { Load (Var $1, $3) }
-  | mem GETS expr                        { Store ($1, $3) }
   | label COL                            { Label $1 }
   | GOTO label                           { Jump $2 }
   | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
@@ -81,14 +82,15 @@ stmt:
 
 expr:
   | INT               { Const $1 }
-  | NAME              { Ref (Var $1) }
+  | NAME              { Val (Var $1) }
   | expr binop expr   { Binop ($2, $1, $3) }
   | expr relop expr   { Relop ($2, $1, $3) }
   ;
 
 mem:
-  | NAME delimited(LBRACKET, expr, RBRACKET)
-    { Mem { base = Addr $1; offset = $2 } }
+  | base = NAME; index = delimited(LBRACKET, expr, RBRACKET)
+    { `Addr (Val (Var base), index) }
+  ;
 
 %inline binop:
   | PLUS  { Plus }

@@ -64,7 +64,7 @@ let rename_variables graph =
 
   let rec rename_variables_expr = function
     | Const _ as e -> e
-    | Ref x -> Ref (rename_variable x ~bump:false)
+    | Val x -> Val (rename_variable x ~bump:false)
     | Binop (op, e1, e2) ->
       let e1' = rename_variables_expr e1 in
       let e2' = rename_variables_expr e2 in
@@ -82,14 +82,14 @@ let rename_variables graph =
       let e' = rename_variables_expr e in
       let x' = rename_variable x ~bump:true in
       stmt := Move (x', e')
-    | Load (x, Mem { base; offset; }) ->
-      let offset' = rename_variables_expr offset in
+    | Load (x, Deref y) ->
+      let y' = rename_variable y ~bump:false in
       let x' = rename_variable x ~bump:true in
-      stmt := Load (x', Mem { base; offset = offset' })
-    | Store (Mem { base; offset; }, e) ->
-      let offset' = rename_variables_expr offset in
+      stmt := Load (x', Deref y')
+    | Store (Deref x, e) ->
       let e' = rename_variables_expr e in
-      stmt := Store (Mem { base; offset = offset' }, e')
+      let x' = rename_variable x ~bump:false in
+      stmt := Store (Deref x', e')
     | Label (l, Some xs) ->
       let xs' = List.map (rename_variable ~bump:true) xs in
       stmt := Label (l, Some xs')
@@ -186,7 +186,7 @@ let insert_phi_functions graph =
       assert false
   in
 
-  let erase_label_params { block; _ } =
+  let erase_label_params block =
     match block.source with
     | Some { stmts; _ } ->
       let tl = List.(hd (rev stmts)) in (
@@ -210,9 +210,9 @@ let insert_phi_functions graph =
     ) graph;
 
   (* Erase remaining label parameters and build def-use chains *)
-  Array.iter (fun node ->
-      erase_label_params node;
-      Def_use_chain.build node.block
+  Array.iter (fun { block; _ } ->
+      erase_label_params block;
+      Def_use_chain.build block
    ) graph
 
 let minimize_phi_functions graph =
@@ -226,22 +226,25 @@ let minimize_phi_functions graph =
       ) worklist
 
   and remove_phi_functions block =
+    let has_def =
+      Def_use_chain.get_def >> Option.is_some
+    in
     let rec loop = function
       | stmt :: stmts -> (
           match !stmt with
           | Phi (x, [x']) -> (
               (* Replace x := PHI(x') with x := x' and perform copy propagation *)
-              propagate (Move (x, Ref x'));
+              propagate (Move (x, Val x'));
               loop stmts
             )
           | Phi (x, xs) -> (
-              let xs = S.of_list xs in
+              let xs = S.of_list (List.filter has_def xs) in
               if S.cardinal xs = 1 && not (S.mem x xs) ||
                  S.cardinal xs = 2 && S.mem x xs then (
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and
                  * perform copy propagation *)
                 let x' = S.find_first (( <> ) x) xs in
-                propagate (Move (x, Ref x'));
+                propagate (Move (x, Val x'));
                 loop stmts
               ) else (
                 (* Keep this phi-function *)
@@ -259,7 +262,7 @@ let minimize_phi_functions graph =
       assert (block.name = "Entry" || block.name = "Exit")
 
   and propagate = function
-    | Move (x, Ref _) as copy ->
+    | Move (x, Val _) as copy ->
       Def_use_chain.basic_blocks_of_uses x
       |> List.iter (( ! ) >> add_task);
       Optim.propagate copy;

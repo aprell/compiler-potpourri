@@ -62,9 +62,10 @@ let remove_def var =
       assert (Option.is_some def);
       let _, stmt as def = Option.get def in (
         match !(!stmt) with
-        | Move (_, e)
-        | Load (_, Mem { offset = e; _ }) ->
+        | Move (_, e) ->
           List.iter (remove_use def) (all_variables_expr e)
+        | Load (_, Deref y) ->
+          remove_use def y
         | Label (_, Some xs)
         | Phi (_, xs) ->
           List.iter (remove_use def) xs
@@ -98,12 +99,12 @@ let visit block stmt =
   | Move (x, e) ->
     add_def block stmt x;
     List.iter (add_use block stmt) (all_variables_expr e)
-  | Load (x, Mem { offset; _ }) ->
+  | Load (x, Deref y) ->
     add_def block stmt x;
-    List.iter (add_use block stmt) (all_variables_expr offset)
-  | Store (Mem { offset; _ }, e) ->
-    List.iter (add_use block stmt) (all_variables_expr offset);
-    List.iter (add_use block stmt) (all_variables_expr e);
+    add_use block stmt y
+  | Store (Deref x, e) ->
+    add_use block stmt x;
+    List.iter (add_use block stmt) (all_variables_expr e)
   | Label (_, Some xs) ->
     List.iter (add_def block stmt) xs
   | Cond (e, _, _) ->

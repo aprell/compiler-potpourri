@@ -6,25 +6,13 @@ open Utils
    Move (Var "a", Const 1)
 
   p "a := b" = \
-   Move (Var "a", Ref (Var "b"))
+   Move (Var "a", Val (Var "b"))
 
   p "a := a + 1" = \
-   Move (Var "a", Binop (Plus, Ref (Var "a"), Const 1))
+   Move (Var "a", Binop (Plus, Val (Var "a"), Const 1))
 
   p "a := b > 1" = \
-   Move (Var "a", Relop (GT, Ref (Var "b"), Const 1))
-
-  p "x := M[0]" = \
-   Load (Var "x", Mem {base = Addr "M"; offset = Const 0})
-
-  p "x := M[y]" = \
-   Load (Var "x", Mem {base = Addr "M"; offset = Ref (Var "y")})
-
-  p "M[0] := 3" = \
-   Store (Mem {base = Addr "M"; offset = Const 0}, Const 3)
-
-  p "M[x] := y" = \
-   Store (Mem {base = Addr "M"; offset = Ref (Var "x")}, Ref (Var "y"))
+   Move (Var "a", Relop (GT, Val (Var "b"), Const 1))
 
   p "L0:" = \
    Label ("L0", None)
@@ -48,7 +36,7 @@ open Utils
    Cond (Const 0, ("L0", None), ("L1", None))
 
   p "if a != 0 goto L0 else goto L1" = \
-   Cond (Relop (NE, Ref (Var "a"), Const 0), ("L0", None), ("L1", None))
+   Cond (Relop (NE, Val (Var "a"), Const 0), ("L0", None), ("L1", None))
 
   p "receive n" = \
    Receive (Var "n")
@@ -60,7 +48,7 @@ open Utils
    Return (Some (Const 0))
 
   p "return n" = \
-   Return (Some (Ref (Var "n")))
+   Return (Some (Val (Var "n")))
 *)
 (*$>*)
 let parse_line line =
