@@ -18,9 +18,7 @@ and expr =
 
 and var = Var of name
 
-and mem = Mem of { base : addr; offset : expr; }
-
-and addr = Addr of name
+and mem = Deref of var
 
 and binop = Plus | Minus | Mul | Div | Mod
 
@@ -32,7 +30,9 @@ and name = string
 
 val lower :
   [> `If of expr * stmt list * stmt list
+  | `Load of var * [< `Addr of expr * expr ]
   | `Proc of name * var list * stmt list
+  | `Store of [< `Addr of expr * expr ] * expr
   | `While of expr * stmt list ]
   -> stmt list
 

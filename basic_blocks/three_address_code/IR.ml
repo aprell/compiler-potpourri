@@ -18,9 +18,7 @@ and expr =
 
 and var = Var of name
 
-and mem = Mem of { base : addr; offset : expr; }
-
-and addr = Addr of name
+and mem = Deref of var
 
 and binop = Plus | Minus | Mul | Div | Mod
 
@@ -35,10 +33,32 @@ let gen_label ?params name : label = (name, params)
 
 let gen_name = Utils.gen_sym "L" 1
 
+(* The parser doesn't accept identifiers that start with '$', so these
+ * temporaries are guaranteed to not conflict with other identifiers. *)
+let gen_temp = Utils.gen_sym "$" 1
+
+let translate (`Addr (base, index)) =
+  (* base + index * 4 *)
+  let t1 = gen_temp () in
+  let t2 = gen_temp () in
+  [ Move (Var t1, base);
+    Move (Var t2, index);
+    Move (Var t2, Binop (Mul, Ref (Var t2), Const 4));
+    Move (Var t2, Binop (Plus, Ref (Var t1), Ref (Var t2))); ]
+  , Deref (Var t2)
+
 let lower = function
   | `Proc (name, params, body) ->
     [Label (gen_label name ~params)]
     @ body
+  | `Load (x, addr) ->
+    let stmts, addr' = translate addr in
+    stmts
+    @ [Load (x, addr')]
+  | `Store (addr, e) ->
+    let stmts, addr' = translate addr in
+    stmts
+    @ [Store (addr', e)]
   | `If (Relop _ as e, then_, []) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
@@ -79,10 +99,10 @@ let rec all_variables_expr = function
 let all_variables_stmt = function
   | Move (x, e) ->
     x :: all_variables_expr e
-  | Load (x, Mem { offset; _ }) ->
-    x :: all_variables_expr offset
-  | Store (Mem { offset; _ }, e) ->
-    all_variables_expr offset @ all_variables_expr e
+  | Load (x, Deref y) ->
+    [x; y]
+  | Store (Deref x, e) ->
+    x :: all_variables_expr e
   | Label _ | Jump _ -> []
   | Cond (e, _, _) ->
     all_variables_expr e
@@ -132,10 +152,10 @@ let string_of_stmt ?(indent = 0) stmt =
   match stmt with
   | Move (Var x, e) ->
     indent ^ x ^ " := " ^ string_of_expr e
-  | Load (Var x, Mem { base = Addr base; offset }) ->
-    indent ^ x ^ " := " ^ base ^ "[" ^ string_of_expr offset ^ "]"
-  | Store (Mem { base = Addr base; offset }, e) ->
-    indent ^ base ^ "[" ^ string_of_expr offset ^ "] := " ^ string_of_expr e
+  | Load (Var x, Deref (Var y)) ->
+    indent ^ x ^ " := " ^ "*" ^ y
+  | Store (Deref (Var x), e) ->
+    indent ^ "*" ^ x ^ " := " ^ string_of_expr e
   | Label l ->
     string_of_label l ^ ":"
   | Jump l ->

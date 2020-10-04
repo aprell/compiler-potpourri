@@ -14,18 +14,6 @@ open Utils
   p "a := b > 1" = \
    Move (Var "a", Relop (GT, Ref (Var "b"), Const 1))
 
-  p "x := M[0]" = \
-   Load (Var "x", Mem {base = Addr "M"; offset = Const 0})
-
-  p "x := M[y]" = \
-   Load (Var "x", Mem {base = Addr "M"; offset = Ref (Var "y")})
-
-  p "M[0] := 3" = \
-   Store (Mem {base = Addr "M"; offset = Const 0}, Const 3)
-
-  p "M[x] := y" = \
-   Store (Mem {base = Addr "M"; offset = Ref (Var "x")}, Ref (Var "y"))
-
   p "L0:" = \
    Label ("L0", None)
 

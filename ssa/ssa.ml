@@ -82,14 +82,14 @@ let rename_variables graph =
       let e' = rename_variables_expr e in
       let x' = rename_variable x ~bump:true in
       stmt := Move (x', e')
-    | Load (x, Mem { base; offset; }) ->
-      let offset' = rename_variables_expr offset in
+    | Load (x, Deref y) ->
+      let y' = rename_variable y ~bump:false in
       let x' = rename_variable x ~bump:true in
-      stmt := Load (x', Mem { base; offset = offset' })
-    | Store (Mem { base; offset; }, e) ->
-      let offset' = rename_variables_expr offset in
+      stmt := Load (x', Deref y')
+    | Store (Deref x, e) ->
       let e' = rename_variables_expr e in
-      stmt := Store (Mem { base; offset = offset' }, e')
+      let x' = rename_variable x ~bump:false in
+      stmt := Store (Deref x', e')
     | Label (l, Some xs) ->
       let xs' = List.map (rename_variable ~bump:true) xs in
       stmt := Label (l, Some xs')

@@ -90,17 +90,22 @@ module Liveness = struct
     let rec loop (use, def) = function
       | stmt :: stmts ->
         let use', def' = match !stmt with
-          | Move (x, e)
-          | Load (x, Mem { offset = e; _ }) ->
+          | Move (x, e) ->
             let vars = Set.of_list (all_variables_expr e) in
             (* Remove x from use, then add all variables that occur in e *)
             let use' = Set.union (Set.remove x use) vars in
             (* Add x to def, then remove all variables that occur in e *)
             let def' = Set.diff (Set.add x def) vars in
             (use', def')
-          | Store (_, e) ->
+          | Load (x, Deref y) ->
+            (* Remove x from use, then add y *)
+            let use' = Set.add y (Set.remove x use) in
+            (* Add x to def, then remove y *)
+            let def' = Set.remove y (Set.add x def) in
+            (use', def')
+          | Store (Deref x, e) ->
             let vars = Set.of_list (all_variables_expr e) in
-            let use' = Set.union use vars in
+            let use' = Set.add x (Set.union use vars) in
             (use', def)
           | Label (_, Some params) ->
             let vars = Set.of_list params in
