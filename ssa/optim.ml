@@ -11,7 +11,7 @@ let constant_fold = function
 
 (* TODO: Add missing cases *)
 let rec replace_expr x y = function
-  | Ref x' when x' = x -> y
+  | Val x' when x' = x -> y
   | Binop (op, e1, e2) ->
     constant_fold (Binop (op, replace_expr x y e1, replace_expr x y e2))
   | Relop (op, e1, e2) ->
@@ -19,7 +19,7 @@ let rec replace_expr x y = function
   | e -> e
 
 let replace_list x = function
-  | Ref y -> List.map (fun z -> if z = x then y else z)
+  | Val y -> List.map (fun z -> if z = x then y else z)
   | _ -> invalid_arg "replace_list"
 
 (* TODO: Add missing cases *)
@@ -39,8 +39,8 @@ let replace_stmt x y = function
   | s -> s
 
 (* Eliminate moves with constant propagation (1) and copy propagation (2):
- * (1) x := c => replace Ref (Var x) with Const c
- * (2) x := y => replace Ref (Var x) with Ref (Var y) *)
+ * (1) x := c => replace Val (Var x) with Const c
+ * (2) x := y => replace Val (Var x) with Val (Var y) *)
 let propagate move =
   let x, y = match move with
     | Move (x, y) -> x, y
@@ -50,7 +50,7 @@ let propagate move =
   Def_use_chain.Set.iter (fun (block, stmt) ->
       !stmt := replace_stmt x y !(!stmt);
       match y with
-      | Ref y -> Def_use_chain.add_use !block !stmt y
+      | Val y -> Def_use_chain.add_use !block !stmt y
       | _ -> ()
     ) uses;
   Def_use_chain.remove_uses x
@@ -66,7 +66,7 @@ let optimize ?(dump = false) block =
         | Some (_, stmt) -> (
             match !(!stmt) with
             | Move (_, Const _)
-            | Move (_, Ref (Var _)) ->
+            | Move (_, Val (Var _)) ->
               propagate !(!stmt);
               assert (Def_use_chain.(get_uses x = Set.empty));
               if dump then (

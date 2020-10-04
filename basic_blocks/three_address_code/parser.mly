@@ -82,14 +82,14 @@ stmt:
 
 expr:
   | INT               { Const $1 }
-  | NAME              { Ref (Var $1) }
+  | NAME              { Val (Var $1) }
   | expr binop expr   { Binop ($2, $1, $3) }
   | expr relop expr   { Relop ($2, $1, $3) }
   ;
 
 mem:
   | base = NAME; index = delimited(LBRACKET, expr, RBRACKET)
-    { `Addr (Ref (Var base), index) }
+    { `Addr (Val (Var base), index) }
   ;
 
 %inline binop:

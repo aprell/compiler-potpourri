@@ -12,7 +12,7 @@ type stmt =
 
 and expr =
   | Const of int
-  | Ref of var
+  | Val of var
   | Binop of binop * expr * expr
   | Relop of relop * expr * expr
 
@@ -43,8 +43,8 @@ let translate (`Addr (base, index)) =
   let t2 = gen_temp () in
   [ Move (Var t1, base);
     Move (Var t2, index);
-    Move (Var t2, Binop (Mul, Ref (Var t2), Const 4));
-    Move (Var t2, Binop (Plus, Ref (Var t1), Ref (Var t2))); ]
+    Move (Var t2, Binop (Mul, Val (Var t2), Const 4));
+    Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))); ]
   , Deref (Var t2)
 
 let lower = function
@@ -91,7 +91,7 @@ let lower = function
 
 let rec all_variables_expr = function
   | Const _ -> []
-  | Ref x -> [x]
+  | Val x -> [x]
   | Binop (_, e1, e2)
   | Relop (_, e1, e2) ->
     all_variables_expr e1 @ all_variables_expr e2
@@ -141,7 +141,7 @@ let string_of_label = function
 
 let rec string_of_expr = function
   | Const n -> string_of_int n
-  | Ref (Var x) -> x
+  | Val (Var x) -> x
   | Binop (op, e1, e2) ->
     string_of_expr e1 ^ " " ^ string_of_binop op ^ " " ^ string_of_expr e2
   | Relop (op, e1, e2) ->

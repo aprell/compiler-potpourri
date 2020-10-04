@@ -64,7 +64,7 @@ let rename_variables graph =
 
   let rec rename_variables_expr = function
     | Const _ as e -> e
-    | Ref x -> Ref (rename_variable x ~bump:false)
+    | Val x -> Val (rename_variable x ~bump:false)
     | Binop (op, e1, e2) ->
       let e1' = rename_variables_expr e1 in
       let e2' = rename_variables_expr e2 in
@@ -234,7 +234,7 @@ let minimize_phi_functions graph =
           match !stmt with
           | Phi (x, [x']) -> (
               (* Replace x := PHI(x') with x := x' and perform copy propagation *)
-              propagate (Move (x, Ref x'));
+              propagate (Move (x, Val x'));
               loop stmts
             )
           | Phi (x, xs) -> (
@@ -244,7 +244,7 @@ let minimize_phi_functions graph =
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and
                  * perform copy propagation *)
                 let x' = S.find_first (( <> ) x) xs in
-                propagate (Move (x, Ref x'));
+                propagate (Move (x, Val x'));
                 loop stmts
               ) else (
                 (* Keep this phi-function *)
@@ -262,7 +262,7 @@ let minimize_phi_functions graph =
       assert (block.name = "Entry" || block.name = "Exit")
 
   and propagate = function
-    | Move (x, Ref _) as copy ->
+    | Move (x, Val _) as copy ->
       Def_use_chain.basic_blocks_of_uses x
       |> List.iter (( ! ) >> add_task);
       Optim.propagate copy;

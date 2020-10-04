@@ -12,7 +12,7 @@ type stmt =
 
 and expr =
   | Const of int
-  | Ref of var
+  | Val of var
   | Binop of binop * expr * expr
   | Relop of relop * expr * expr
 
