@@ -7,6 +7,9 @@ let constant_fold = function
   | Binop (Mul, Const n, Const m) -> Const (n * m)
   | Binop (Div, Const n, Const m) ->
     if m <> 0 then Const (n / m) else failwith "Division by zero"
+  | Binop (Plus, Val x, Const 0)
+  | Binop (Plus, Const 0, Val x)
+  | Binop (Minus, Val x, Const 0) -> Val x
   | e -> e
 
 (* TODO: Add missing cases *)
