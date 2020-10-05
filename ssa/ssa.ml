@@ -265,9 +265,7 @@ let minimize_phi_functions graph =
     | Move (x, Val _) as copy ->
       Def_use_chain.basic_blocks_of_uses x
       |> List.iter (( ! ) >> add_task);
-      Optim.propagate copy;
-      assert (Def_use_chain.(get_uses x = Set.empty));
-      Def_use_chain.remove_def x
+      Optim.propagate copy
     | _ -> ()
   in
 

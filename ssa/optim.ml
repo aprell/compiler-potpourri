@@ -12,7 +12,6 @@ let constant_fold = function
   | Binop (Minus, Val x, Const 0) -> Val x
   | e -> e
 
-(* TODO: Add missing cases *)
 let rec replace_expr x y = function
   | Val x' when x' = x -> y
   | Binop (op, e1, e2) ->
@@ -25,7 +24,6 @@ let replace_list x = function
   | Val y -> List.map (fun z -> if z = x then y else z)
   | _ -> invalid_arg "replace_list"
 
-(* TODO: Add missing cases *)
 let replace_stmt x y = function
   | Move (x', e) ->
     Move (x', replace_expr x y e)
@@ -61,16 +59,19 @@ let propagate move =
     | _ -> invalid_arg "propagate"
   in
   let uses = Def_use_chain.get_uses x in
-  Def_use_chain.Set.iter (fun (block, stmt) ->
-      !stmt := replace_stmt x y !(!stmt);
+  Def_use_chain.Set.iter (fun (block, use) ->
+      !use := replace_stmt x y !(!use);
       match y with
-      | Val y -> Def_use_chain.add_use !block !stmt y
+      | Val y -> Def_use_chain.add_use !block !use y
       | _ -> ()
     ) uses;
-  Def_use_chain.remove_uses x
+  Def_use_chain.remove_uses x;
+  let (block, def) = Option.get (Def_use_chain.get_def x) in
+  let src = Option.get !block.source in
+  src.stmts <- List.filter (( <> ) !def) src.stmts;
+  Def_use_chain.remove_def x
 
-let optimize ?(dump = false) block =
-  let open Basic_block in
+let optimize ?(dump = false) () =
   let changed = ref true in
   let num_iter = ref 1 in
   while !changed do
@@ -84,13 +85,10 @@ let optimize ?(dump = false) block =
               propagate !(!stmt);
               assert (Def_use_chain.(get_uses x = Set.empty));
               if dump then (
-                print_endline ("Iteration " ^ (string_of_int !num_iter) ^ ":");
+                print_endline ("After iteration " ^ (string_of_int !num_iter) ^ ":");
                 Def_use_chain.print ();
                 print_newline ()
               );
-              let src = Option.get block.source in
-              src.stmts <- List.filter (( <> ) !stmt) src.stmts;
-              Def_use_chain.remove_def x;
               changed := true;
               incr num_iter
             | _ -> ()

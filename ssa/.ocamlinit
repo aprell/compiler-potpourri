@@ -40,7 +40,7 @@ let test cfg =
   convert_to_ssa cfg;
   let block = cfg.(1).block in
   print ~text:"Before optimization:" block;
-  Ssa__Optim.optimize block ~dump:true;
+  Ssa__Optim.optimize ~dump:true ();
   print ~text:"After optimization:" block
 
 let () =
