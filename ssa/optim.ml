@@ -26,6 +26,17 @@ let replace_list x = function
 let replace_stmt x y = function
   | Move (x', e) ->
     Move (x', replace_expr x y e)
+  | Load (x', Deref x'') as load -> (
+      match y with
+      | Val y when x = x'' -> Load (x', Deref y)
+      | _ -> load
+    )
+  | Store (Deref x', e) -> (
+      let e' = replace_expr x y e in
+      match y with
+      | Val y when x = x' -> Store (Deref y, e')
+      | _ -> Store (Deref x', e')
+    )
   | Jump (l, Some xs) ->
     Jump (l, Some (replace_list x y xs))
   | Cond (e, (l1, None), (l2, None)) ->
@@ -56,7 +67,7 @@ let propagate move =
   Def_use_chain.remove_uses x
 
 let optimize ?(dump = false) block =
-  Def_use_chain.build block;
+  let open Basic_block in
   let changed = ref true in
   let num_iter = ref 1 in
   while !changed do

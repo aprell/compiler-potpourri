@@ -1,25 +1,47 @@
 open Three_address_code__IR
-open Ssa__Optim
+open Three_address_code__Parse
+open Control_flow
 
-let test =
-  Basic_block.create "test" ~source:
-    { entry = "";
-      exits = [];
-      stmts = List.map ref [
-          Move (Var "t_0", Const 5);
-          Move (Var "x_0", Binop (Minus, Val (Var "t_0"), Const 4));
-          Move (Var "t_1", Binop (Plus, Val (Var "x_0"), Val (Var "t_0")));
-          Move (Var "z_0", Binop (Minus, Val (Var "t_1"), Const 1));
-          Return (Some (Val (Var "z_0")));
-        ]
-    }
+let src1 = [
+  "test() {";
+  "    a := 5";
+  "    b := a - 4";
+  "    a := a + b";
+  "    c := a - 1";
+  "    return c";
+  "}";
+]
 
-let print text =
+let src2 = [
+  "test(A) {";
+  "    x := 1";
+  "    A[0] := 2";
+  "    A[1] := x + 3";
+  "    y := A[0]";
+  "    return y";
+  "}";
+]
+
+let cfg_of src =
+  Cfg.construct [
+    Basic_block.create "B1" ~source:
+      { entry = "test";
+        exits = [];
+        stmts = List.map ref (parse_prog src) }
+  ]
+
+let print ~text block =
   print_endline text;
-  print_endline (Basic_block.to_string test)
+  print_endline (Basic_block.to_string block);
+  print_newline ()
+
+let test cfg =
+  let open Ssa in
+  convert_to_ssa cfg;
+  let block = cfg.(1).block in
+  print ~text:"Before optimization:" block;
+  Ssa__Optim.optimize block ~dump:true;
+  print ~text:"After optimization:" block
 
 let () =
-  print "Before optimization:";
-  print_newline ();
-  optimize test ~dump:true;
-  print "After optimization:"
+  List.(iter test (map cfg_of [src1; src2]))
