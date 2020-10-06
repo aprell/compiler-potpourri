@@ -36,6 +36,8 @@ val lower :
   | `While of expr * stmt list ]
   -> stmt list
 
+val constant_fold : expr -> expr
+
 val all_variables_expr : expr -> var list
 
 val all_variables_stmt : stmt -> var list

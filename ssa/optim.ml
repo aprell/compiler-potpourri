@@ -1,17 +1,5 @@
 open Three_address_code__IR
 
-(* TODO: Add missing cases *)
-let constant_fold = function
-  | Binop (Plus, Const n, Const m) -> Const (n + m)
-  | Binop (Minus, Const n, Const m) -> Const (n - m)
-  | Binop (Mul, Const n, Const m) -> Const (n * m)
-  | Binop (Div, Const n, Const m) ->
-    if m <> 0 then Const (n / m) else failwith "Division by zero"
-  | Binop (Plus, Val x, Const 0)
-  | Binop (Plus, Const 0, Val x)
-  | Binop (Minus, Val x, Const 0) -> Val x
-  | e -> e
-
 let rec replace_expr x y = function
   | Val x' when x' = x -> y
   | Binop (op, e1, e2) ->
