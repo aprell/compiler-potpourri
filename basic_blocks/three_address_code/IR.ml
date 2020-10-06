@@ -39,13 +39,20 @@ let gen_temp = Utils.gen_sym "$" 1
 
 let translate (`Addr (base, index)) =
   (* base + index * 4 *)
-  let t1 = gen_temp () in
-  let t2 = gen_temp () in
-  [ Move (Var t1, base);
-    Move (Var t2, index);
-    Move (Var t2, Binop (Mul, Val (Var t2), Const 4));
-    Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))); ]
-  , Deref (Var t2)
+  match index with
+  | Const i when i = 0 -> [], Deref base
+  | Const i ->
+    let t1 = gen_temp () in
+    [ Move (Var t1, (Binop (Plus, Val base, Const (i * 4)))) ]
+    , Deref (Var t1)
+  | _ ->
+    let t1 = gen_temp () in
+    let t2 = gen_temp () in
+    [ Move (Var t1, Val base);
+      Move (Var t2, index);
+      Move (Var t2, Binop (Mul, Val (Var t2), Const 4));
+      Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))); ]
+    , Deref (Var t2)
 
 let lower = function
   | `Proc (name, params, body) ->
@@ -97,12 +104,11 @@ let rec all_variables_expr = function
     all_variables_expr e1 @ all_variables_expr e2
 
 let all_variables_stmt = function
-  | Move (x, e) ->
+  | Move (x, e)
+  | Store (Deref x, e) ->
     x :: all_variables_expr e
   | Load (x, Deref y) ->
     [x; y]
-  | Store (Deref x, e) ->
-    x :: all_variables_expr e
   | Label _ | Jump _ -> []
   | Cond (e, _, _) ->
     all_variables_expr e

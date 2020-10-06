@@ -89,7 +89,7 @@ expr:
 
 mem:
   | base = NAME; index = delimited(LBRACKET, expr, RBRACKET)
-    { `Addr (Val (Var base), index) }
+    { `Addr (Var base, index) }
   ;
 
 %inline binop:

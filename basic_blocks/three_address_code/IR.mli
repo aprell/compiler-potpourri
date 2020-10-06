@@ -30,9 +30,9 @@ and name = string
 
 val lower :
   [> `If of expr * stmt list * stmt list
-  | `Load of var * [< `Addr of expr * expr ]
+  | `Load of var * [< `Addr of var * expr ]
   | `Proc of name * var list * stmt list
-  | `Store of [< `Addr of expr * expr ] * expr
+  | `Store of [< `Addr of var * expr ] * expr
   | `While of expr * stmt list ]
   -> stmt list
 
