@@ -45,6 +45,13 @@ let translate (`Addr (base, index)) =
     let t1 = gen_temp () in
     [ Move (Var t1, (Binop (Plus, Val base, Const (i * 4)))) ]
     , Deref (Var t1)
+  | Val _ ->
+    let t1 = gen_temp () in
+    let t2 = gen_temp () in
+    [ Move (Var t1, Val base);
+      Move (Var t2, Binop (Mul, index, Const 4));
+      Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))); ]
+    , Deref (Var t2)
   | _ ->
     let t1 = gen_temp () in
     let t2 = gen_temp () in
