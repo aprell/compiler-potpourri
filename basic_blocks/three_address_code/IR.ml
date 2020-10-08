@@ -112,7 +112,13 @@ let constant_fold = function
     if m <> 0 then Const (n / m) else failwith "Division by zero"
   | Binop (Plus, Val x, Const 0)
   | Binop (Plus, Const 0, Val x)
-  | Binop (Minus, Val x, Const 0) -> Val x
+  | Binop (Minus, Val x, Const 0)
+  | Binop (Mul, Val x, Const 1)
+  | Binop (Mul, Const 1, Val x)
+  | Binop (Div, Val x, Const 1) -> Val x
+  | Binop (Div, Val x, Val y) when x = y -> Const 1
+  | Binop (Mul, Val _, Const 0)
+  | Binop (Mul, Const 0, Val _) -> Const 0
   | e -> e
 
 let rec all_variables_expr = function
