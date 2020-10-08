@@ -1,1 +1,19 @@
-open Three_address_code
+open Three_address_code__IR
+open Three_address_code__Parse
+
+let src = [
+  "test() {";
+  "    a := 1 + 2";
+  "    b := a";
+  "    c := a + 0";
+  "    d := c";
+  "    a := d";
+  "    f := a - a";
+  "    g := f";
+  "    return g";
+  "}";
+]
+
+let () =
+  parse_prog src
+  |> dump

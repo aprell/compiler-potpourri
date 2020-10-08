@@ -1,5 +1,23 @@
 %{
   open IR
+
+  let prev = ref []
+
+  let peephole stmt =
+    match !prev, stmt with
+    | [Move (x, Const n)], Move (y, Val z) when x = z ->
+      (* Propagate constant to next statement *)
+      prev := [Move (y, Const n)]; !prev
+    | [Move (x, Val x')], Move (y, Val z) when x = z ->
+      (* Propagate copy to next statement *)
+      if x' <> y then (prev := [Move (y, Val x')]; !prev) else []
+    | _, Move (x, Binop (Minus, Val y, Val z)) when y = z ->
+      (* Subtract equal inputs *)
+      prev := [Move (x, Const 0)]; !prev
+    | _, Move (x, Val y) when x = y ->
+      (* Drop copy of self *)
+      []
+    | _ -> prev := [stmt]; !prev
 %}
 
 %token <int> INT
@@ -52,22 +70,25 @@ params:
   ;
 
 block:
-  | delimited(LBRACE, flatten(list(hl_stmt)), RBRACE)
-    { $1 }
+  | block_entry delimited(LBRACE, flatten(list(hir_stmt)), RBRACE)
+    { $2 }
   ;
+
+(* Reset peephole to avoid optimizing across basic block boundaries *)
+block_entry: { prev := [] }
 
 label:
   | NAME option(params)
     { ($1, $2) }
   ;
 
-hl_stmt:
+hir_stmt:
   | NAME GETS mem                        { `Load (Var $1, $3) |> lower }
   | mem GETS expr                        { `Store ($1, $3)    |> lower }
   | IF expr block                        { `If ($2, $3, [])   |> lower }
   | IF expr block ELSE block             { `If ($2, $3, $5)   |> lower }
   | WHILE expr block                     { `While ($2, $3)    |> lower }
-  | stmt                                 { [$1] }
+  | stmt                                 { peephole $1 }
   ;
 
 stmt:
