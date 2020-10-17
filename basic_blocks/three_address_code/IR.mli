@@ -28,6 +28,8 @@ and label = name * var list option
 
 and name = string
 
+val is_phi : stmt -> bool
+
 val lower :
   [> `If of expr * stmt list * stmt list
   | `Load of var * [< `Addr of var * expr ]

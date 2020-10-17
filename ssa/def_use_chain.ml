@@ -1,6 +1,5 @@
 open Three_address_code__IR
 open Basic_block
-open Utils
 
 module Set = Set.Make (struct
   type t = Basic_block.t ref * stmt ref ref
@@ -52,7 +51,7 @@ let remove_use use var =
 let remove_uses ?(keep_phi_functions = true) var =
   let filter =
     if keep_phi_functions then
-      Set.filter (fun (_, use) -> is_phi_function !(!use))
+      Set.filter (fun (_, use) -> is_phi !(!use))
     else
       fun _ -> Set.empty
   in

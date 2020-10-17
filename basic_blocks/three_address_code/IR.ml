@@ -28,6 +28,10 @@ and label = name * var list option
 
 and name = string
 
+let is_phi = function
+  | Phi _ -> true
+  | _ -> false
+
 (* Constructor for labels *)
 let gen_label ?params name : label = (name, params)
 

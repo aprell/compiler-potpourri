@@ -1,5 +1,4 @@
 open Three_address_code__IR
-open Utils
 
 let rec replace_expr x y = function
   | Val x' when x' = x -> y
@@ -51,7 +50,7 @@ let propagate_phi x y =
 let propagate_const x n =
   let uses = Def_use_chain.get_uses x in
   Def_use_chain.Set.iter (fun (_, stmt) ->
-      if not (is_phi_function !(!stmt)) then
+      if not (is_phi !(!stmt)) then
         !stmt := replace_stmt x (Const n) !(!stmt)
     ) uses;
   Def_use_chain.remove_uses x;
@@ -65,7 +64,7 @@ let propagate_const x n =
 let propagate_copy x y =
   let uses = Def_use_chain.get_uses x in
   Def_use_chain.Set.iter (fun (block, stmt) ->
-      if not (is_phi_function !(!stmt)) then (
+      if not (is_phi !(!stmt)) then (
         !stmt := replace_stmt x (Val y) !(!stmt);
         Def_use_chain.add_use !block !stmt y
       )
@@ -81,7 +80,7 @@ let propagate_copy x y =
 let can_optimize =
   Def_use_chain.Set.exists (
     fun (_, use) ->
-      not (is_phi_function !(!use))
+      not (is_phi !(!use))
   )
 
 (* TODO: Refactor *)
