@@ -1,4 +1,5 @@
 open Three_address_code__IR
+open Utils
 
 let rec replace_expr x y = function
   | Val x' when x' = x -> y
@@ -38,49 +39,83 @@ let replace_stmt x y = function
     Phi (x', replace_list x y xs)
   | s -> s
 
-(* Eliminate moves with constant propagation (1) and copy propagation (2):
- * (1) x := c => replace Val (Var x) with Const c
- * (2) x := y => replace Val (Var x) with Val (Var y) *)
-let propagate move =
-  let x, y = match move with
-    | Move (x, y) -> x, y
-    | _ -> invalid_arg "propagate"
-  in
+let propagate_phi x y =
   let uses = Def_use_chain.get_uses x in
-  Def_use_chain.Set.iter (fun (block, use) ->
-      !use := replace_stmt x y !(!use);
-      match y with
-      | Val y -> Def_use_chain.add_use !block !use y
-      | _ -> ()
+  Def_use_chain.Set.iter (fun (block, stmt) ->
+      !stmt := replace_stmt x (Val y) !(!stmt);
+      Def_use_chain.add_use !block !stmt y;
     ) uses;
-  Def_use_chain.remove_uses x;
-  let (block, def) = Option.get (Def_use_chain.get_def x) in
-  let src = Option.get !block.source in
-  src.stmts <- List.filter (( <> ) !def) src.stmts;
+  Def_use_chain.remove_uses x ~keep_phi_functions:false;
   Def_use_chain.remove_def x
 
-let optimize ?(dump = false) () =
-  let changed = ref true in
-  let num_iter = ref 1 in
-  while !changed do
-    changed := false;
-    Def_use_chain.iter (fun x def _ ->
-        match def with
-        | Some (_, stmt) -> (
-            match !(!stmt) with
-            | Move (_, Const _)
-            | Move (_, Val (Var _)) ->
-              propagate !(!stmt);
-              assert (Def_use_chain.(get_uses x = Set.empty));
-              if dump then (
-                print_endline ("After iteration " ^ (string_of_int !num_iter) ^ ":");
-                Def_use_chain.print ();
-                print_newline ()
-              );
-              changed := true;
-              incr num_iter
-            | _ -> ()
-          )
-        | None -> ()
+let propagate_const x n =
+  let uses = Def_use_chain.get_uses x in
+  Def_use_chain.Set.iter (fun (_, stmt) ->
+      if not (is_phi_function !(!stmt)) then
+        !stmt := replace_stmt x (Const n) !(!stmt)
+    ) uses;
+  Def_use_chain.remove_uses x;
+  if Def_use_chain.(get_uses x = Set.empty) then (
+    let (block, def) = Option.get (Def_use_chain.get_def x) in
+    let src = Option.get !block.source in
+    src.stmts <- List.filter (( <> ) !def) src.stmts;
+    Def_use_chain.remove_def x
+  )
+
+let propagate_copy x y =
+  let uses = Def_use_chain.get_uses x in
+  Def_use_chain.Set.iter (fun (block, stmt) ->
+      if not (is_phi_function !(!stmt)) then (
+        !stmt := replace_stmt x (Val y) !(!stmt);
+        Def_use_chain.add_use !block !stmt y
       )
+    ) uses;
+  Def_use_chain.remove_uses x;
+  if Def_use_chain.(get_uses x = Set.empty) then (
+    let (block, def) = Option.get (Def_use_chain.get_def x) in
+    let src = Option.get !block.source in
+    src.stmts <- List.filter (( <> ) !def) src.stmts;
+    Def_use_chain.remove_def x
+  )
+
+let can_optimize =
+  Def_use_chain.Set.exists (
+    fun (_, use) ->
+      not (is_phi_function !(!use))
+  )
+
+(* TODO: Refactor *)
+let optimize ?(dump = false) () =
+  let copy = ref (Some (Return None)) in
+  while Option.is_some !copy do
+    copy := None;
+    (* Find a constant or copy to propagate *)
+    begin
+      try Def_use_chain.iter (fun _ def uses ->
+          match def with
+          | Some (_, stmt) -> (
+              match !(!stmt) with
+              | Move (_, Const _)
+              | Move (_, Val _)
+                when can_optimize uses -> (
+                  copy := Some !(!stmt);
+                  raise_notrace Exit
+                )
+              | _ -> ()
+            )
+          | None -> ()
+        )
+      with Exit -> ()
+    end;
+    begin
+      match !copy with
+      | Some (Move (x, Const n)) -> propagate_const x n
+      | Some (Move (x, Val y)) -> propagate_copy x y
+      | _ -> ()
+    end;
+    if dump && Option.is_some !copy then (
+      print_endline ("After propagating " ^ (string_of_stmt (Option.get !copy)) ^ ":");
+      Def_use_chain.print ();
+      print_newline ()
+    )
   done

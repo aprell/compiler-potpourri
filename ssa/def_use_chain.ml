@@ -1,5 +1,6 @@
 open Three_address_code__IR
 open Basic_block
+open Utils
 
 module Set = Set.Make (struct
   type t = Basic_block.t ref * stmt ref ref
@@ -48,11 +49,17 @@ let remove_use use var =
     )
   | None -> ()
 
-let remove_uses var =
+let remove_uses ?(keep_phi_functions = true) var =
+  let filter =
+    if keep_phi_functions then
+      Set.filter (fun (_, use) -> is_phi_function !(!use))
+    else
+      fun _ -> Set.empty
+  in
   match Hashtbl.find_opt def_use_chains var with
-  | Some def_use_chain -> (
+  | Some ({ uses; _ } as def_use_chain) -> (
       Hashtbl.replace def_use_chains var
-        { def_use_chain with uses = Set.empty }
+        { def_use_chain with uses = filter uses }
     )
   | None -> ()
 

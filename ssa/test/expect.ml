@@ -27,6 +27,10 @@ let convert_to_ssa graph =
   print_endline hline;
 
   minimize_phi_functions graph;
+  print_basic_blocks graph;
+  print_endline hline;
+
+  Ssa__Optim.optimize ();
   print_basic_blocks graph
 
 let () =
