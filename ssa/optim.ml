@@ -44,7 +44,13 @@ let propagate_phi x y =
       !stmt := replace_stmt x (Val y) !(!stmt);
       Def_use_chain.add_use !block !stmt y;
     ) uses;
-  Def_use_chain.remove_uses x ~keep_phi_functions:false;
+  Def_use_chain.remove_uses x;
+  Def_use_chain.remove_def x
+
+let remove_def x =
+  let (block, def) = Option.get (Def_use_chain.get_def x) in
+  let src = Option.get !block.source in
+  src.stmts <- List.filter (( <> ) !def) src.stmts;
   Def_use_chain.remove_def x
 
 let propagate_const x n =
@@ -53,13 +59,9 @@ let propagate_const x n =
       if not (is_phi !(!stmt)) then
         !stmt := replace_stmt x (Const n) !(!stmt)
     ) uses;
-  Def_use_chain.remove_uses x;
-  if Def_use_chain.(get_uses x = Set.empty) then (
-    let (block, def) = Option.get (Def_use_chain.get_def x) in
-    let src = Option.get !block.source in
-    src.stmts <- List.filter (( <> ) !def) src.stmts;
-    Def_use_chain.remove_def x
-  )
+  Def_use_chain.filter_uses is_phi x;
+  if Def_use_chain.(get_uses x = Set.empty) then
+    remove_def x
 
 let propagate_copy x y =
   let uses = Def_use_chain.get_uses x in
@@ -69,13 +71,15 @@ let propagate_copy x y =
         Def_use_chain.add_use !block !stmt y
       )
     ) uses;
-  Def_use_chain.remove_uses x;
-  if Def_use_chain.(get_uses x = Set.empty) then (
-    let (block, def) = Option.get (Def_use_chain.get_def x) in
-    let src = Option.get !block.source in
-    src.stmts <- List.filter (( <> ) !def) src.stmts;
-    Def_use_chain.remove_def x
-  )
+  Def_use_chain.filter_uses is_phi x;
+  if Def_use_chain.(get_uses x = Set.empty) then
+    remove_def x
+
+let propagate = function
+  | Move (x, Const n) -> propagate_const x n
+  | Move (x, Val y) -> propagate_copy x y
+  | Phi (x, [y]) -> propagate_phi x y
+  | _ -> invalid_arg "propagate"
 
 let can_optimize =
   Def_use_chain.Set.exists (
@@ -83,38 +87,32 @@ let can_optimize =
       not (is_phi !(!use))
   )
 
-(* TODO: Refactor *)
 let optimize ?(dump = false) () =
-  let copy = ref (Some (Return None)) in
-  while Option.is_some !copy do
-    copy := None;
+  let changed = ref true in
+  while !changed do
+    changed := false;
     (* Find a constant or copy to propagate *)
-    begin
-      try Def_use_chain.iter (fun _ def uses ->
-          match def with
-          | Some (_, stmt) -> (
-              match !(!stmt) with
-              | Move (_, Const _)
-              | Move (_, Val _)
-                when can_optimize uses -> (
-                  copy := Some !(!stmt);
-                  raise_notrace Exit
-                )
-              | _ -> ()
-            )
-          | None -> ()
+    let def = Def_use_chain.find_first (fun { def; uses; } ->
+        match def with
+        | Some (_, stmt) -> (
+            match !(!stmt) with
+            | Move (_, Const _)
+            | Move (_, Val _)
+              when can_optimize uses -> true
+            | _ -> false
+          )
+        | None -> false
+      )
+    in
+    match def with
+    | Some (_, stmt) -> (
+        propagate !(!stmt);
+        changed := true;
+        if dump then (
+          print_endline ("After propagating " ^ (string_of_stmt !(!stmt)) ^ ":");
+          Def_use_chain.print ();
+          print_newline ()
         )
-      with Exit -> ()
-    end;
-    begin
-      match !copy with
-      | Some (Move (x, Const n)) -> propagate_const x n
-      | Some (Move (x, Val y)) -> propagate_copy x y
-      | _ -> ()
-    end;
-    if dump && Option.is_some !copy then (
-      print_endline ("After propagating " ^ (string_of_stmt (Option.get !copy)) ^ ":");
-      Def_use_chain.print ();
-      print_newline ()
-    )
+      )
+    | _ -> ()
   done

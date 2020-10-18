@@ -48,13 +48,16 @@ let remove_use use var =
     )
   | None -> ()
 
-let remove_uses ?(keep_phi_functions = true) var =
-  let filter =
-    if keep_phi_functions then
-      Set.filter (fun (_, use) -> is_phi !(!use))
-    else
-      fun _ -> Set.empty
-  in
+let remove_uses var =
+  match Hashtbl.find_opt def_use_chains var with
+  | Some def_use_chain -> (
+      Hashtbl.replace def_use_chains var
+        { def_use_chain with uses = Set.empty }
+    )
+  | None -> ()
+
+let filter_uses p var =
+  let filter = Set.filter (fun (_, use) -> p !(!use)) in
   match Hashtbl.find_opt def_use_chains var with
   | Some ({ uses; _ } as def_use_chain) -> (
       Hashtbl.replace def_use_chains var
@@ -136,6 +139,19 @@ let iter f =
   Hashtbl.iter (fun var { def; uses; } ->
       f var def uses
     ) def_use_chains
+
+let find_first p =
+  let first = ref None in
+  begin
+    try Hashtbl.iter (fun _ ({ def; _ } as def_use_chain) ->
+        if p def_use_chain then (
+          first := def;
+          raise_notrace Exit
+        )
+      ) def_use_chains
+    with Exit -> ()
+  end;
+  !first
 
 let to_string { def; uses; } =
   let string_of_stmt' (block, stmt) =

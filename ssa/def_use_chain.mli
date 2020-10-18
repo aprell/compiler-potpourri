@@ -23,10 +23,14 @@ val remove_def : var -> unit
 
 val remove_use : Set.elt -> var -> unit
 
-val remove_uses : ?keep_phi_functions:bool -> var -> unit
+val remove_uses : var -> unit
+
+val filter_uses : (stmt -> bool) -> var -> unit
 
 val build : Basic_block.t -> unit
 
 val iter : (var -> Set.elt option -> Set.t -> unit) -> unit
+
+val find_first : (t -> bool) -> Set.elt option
 
 val print : unit -> unit
