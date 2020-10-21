@@ -39,7 +39,7 @@ let parameterize_labels graph =
       assert (block.name = "Entry" || block.name = "Exit")
   in
 
-  Array.iter parameterize graph
+  Cfg.iter parameterize graph
 
 let rename_variables graph =
   let open Cfg.Node in
@@ -124,7 +124,7 @@ let rename_variables graph =
       assert (block.name = "Entry" || block.name = "Exit")
   in
 
-  Array.iter rename graph
+  Cfg.iter rename graph
 
 let create_phi_functions label jumps =
   match label with
@@ -210,7 +210,7 @@ let insert_phi_functions graph =
     ) graph;
 
   (* Erase remaining label parameters and build def-use chains *)
-  Array.iter (fun { block; _ } ->
+  Cfg.iter (fun { block; _ } ->
       erase_label_params block;
       Def_use_chain.build block
    ) graph
@@ -268,7 +268,7 @@ let minimize_phi_functions graph =
   in
 
   (* Seed work list *)
-  Array.iter (fun { block; _ } ->
+  Cfg.iter (fun { block; _ } ->
       add_task block
     ) graph;
 

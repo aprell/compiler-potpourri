@@ -80,6 +80,12 @@ let prune_unreachable_nodes (graph : t) : t =
 let unreachable (node : Node.t) =
   node.succ = NodeSet.empty && node.pred = NodeSet.empty
 
+let iter (f : Node.t -> unit) (graph : t) =
+  Array.iter (fun node ->
+      if unreachable node then ()
+      else f node
+    ) graph
+
 let construct (basic_blocks : Basic_block.t list) : t =
   let open Node in
   let graph =
