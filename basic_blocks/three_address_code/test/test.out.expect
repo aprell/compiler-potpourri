@@ -4,6 +4,7 @@ L4:
     if a < 100 goto L1 else goto L2
 L1:
     return a
+    b := a + 1
     goto L3
 L2:
     return b

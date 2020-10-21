@@ -68,6 +68,9 @@ let prune_unreachable_nodes (graph : t) : t =
   if NodeSet.cardinal reachable_nodes < Array.length graph then
     Array.iter (fun node ->
         if not (reachable node) then (
+          Option.iter (fun src ->
+              src.Basic_block.stmts <- []
+            ) node.block.source;
           node.succ <- NodeSet.empty;
           node.pred <- NodeSet.empty
         ) else (
@@ -133,8 +136,11 @@ let discard_source_info (graph : t) : t =
 
 let basic_blocks (graph : t) : Basic_block.t list =
   let open Node in
-  Array.map (fun node -> node.block) graph
-  |> Array.to_list
+  Array.fold_left (fun blocks node ->
+      if unreachable node then blocks
+      else node.block :: blocks
+    ) [] graph
+  |> List.rev
 
 let equal (a : t) (b : t) : bool =
   let open Node in

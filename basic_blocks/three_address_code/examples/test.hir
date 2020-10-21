@@ -2,6 +2,7 @@ test(a, b) {
     if a > b {
         if a < 100 {
             return a
+            b := a + 1
         } else {
             return b
         }
