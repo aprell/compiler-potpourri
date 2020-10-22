@@ -213,7 +213,7 @@ let insert_phi_functions graph =
   Cfg.iter (fun { block; _ } ->
       erase_label_params block;
       Def_use_chain.build block
-   ) graph
+    ) graph
 
 let minimize_phi_functions graph =
   let open Cfg.Node in
@@ -229,6 +229,11 @@ let minimize_phi_functions graph =
     let has_def =
       Def_use_chain.get_def >> Option.is_some
     in
+    let is_global var =
+      not (has_def var) && Def_use_chain.Set.exists (fun (_, use) ->
+          not (is_phi !(!use))
+        ) (Def_use_chain.get_uses var)
+    in
     let rec loop = function
       | stmt :: stmts -> (
           match !stmt with
@@ -238,7 +243,7 @@ let minimize_phi_functions graph =
               loop stmts
             )
           | Phi (x, xs) -> (
-              let xs = S.of_list (List.filter has_def xs) in
+              let xs = S.of_list (List.filter (fun x -> has_def x || is_global x) xs) in
               if S.cardinal xs = 1 && not (S.mem x xs) ||
                  S.cardinal xs = 2 && S.mem x xs then (
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and

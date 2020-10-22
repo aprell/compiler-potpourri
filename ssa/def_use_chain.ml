@@ -6,9 +6,12 @@ module Set = Set.Make (struct
   let compare = Stdlib.compare
 end)
 
-(* When building semi-pruned SSA form, we may encounter label parameters that,
- * after renaming, lack a definition, but these variables will be removed
- * during SSA minimization. *)
+(* Variables that have no (known) definition:
+ * - Local variables, when used as label parameters before being defined.
+ *   These variables look like global variables, but don't survive
+ *   SSA minimization.
+ * - Global variables, which are used outside of phi-functions *)
+
 type t = {
   def : Set.elt option;
   uses : Set.t;
