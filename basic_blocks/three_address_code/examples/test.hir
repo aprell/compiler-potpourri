@@ -4,6 +4,7 @@ test(a, b) {
             return a
             b := a + 1
         } else {
+            c := b + 1
             return b
         }
     } else {

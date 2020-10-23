@@ -31,6 +31,6 @@ val build : Basic_block.t -> unit
 
 val iter : (var -> Set.elt option -> Set.t -> unit) -> unit
 
-val find_first : (t -> bool) -> Set.elt option
+val find_first : (t -> bool) -> (var * t) option
 
 val print : unit -> unit

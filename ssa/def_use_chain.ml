@@ -44,47 +44,43 @@ let basic_blocks_of_uses var =
 
 let remove_use use var =
   match Hashtbl.find_opt def_use_chains var with
-  | Some ({ uses; _ } as def_use_chain) -> (
-      assert (uses <> Set.empty);
-      Hashtbl.replace def_use_chains var
-        { def_use_chain with uses = Set.remove use uses }
-    )
+  | Some ({ uses; _ } as def_use_chain) ->
+    assert (uses <> Set.empty);
+    Hashtbl.replace def_use_chains var
+      { def_use_chain with uses = Set.remove use uses }
   | None -> ()
 
 let remove_uses var =
   match Hashtbl.find_opt def_use_chains var with
-  | Some def_use_chain -> (
-      Hashtbl.replace def_use_chains var
-        { def_use_chain with uses = Set.empty }
-    )
+  | Some def_use_chain ->
+    Hashtbl.replace def_use_chains var
+      { def_use_chain with uses = Set.empty }
   | None -> ()
 
 let filter_uses p var =
   let filter = Set.filter (fun (_, use) -> p !(!use)) in
   match Hashtbl.find_opt def_use_chains var with
-  | Some ({ uses; _ } as def_use_chain) -> (
-      Hashtbl.replace def_use_chains var
-        { def_use_chain with uses = filter uses }
-    )
+  | Some ({ uses; _ } as def_use_chain) ->
+    Hashtbl.replace def_use_chains var
+      { def_use_chain with uses = filter uses }
   | None -> ()
 
 let remove_def var =
   match Hashtbl.find_opt def_use_chains var with
-  | Some { def; _ } -> (
-      assert (Option.is_some def);
-      let _, stmt as def = Option.get def in (
-        match !(!stmt) with
-        | Move (_, e) ->
-          List.iter (remove_use def) (all_variables_expr e)
-        | Load (_, Deref y) ->
-          remove_use def y
-        | Label (_, Some xs)
-        | Phi (_, xs) ->
-          List.iter (remove_use def) xs
-        | _ -> assert false
-      );
-      Hashtbl.remove def_use_chains var
-    )
+  | Some { def = Some ((_, stmt) as def); _ } -> (
+      match !(!stmt) with
+      | Move (_, e) ->
+        List.iter (remove_use def) (all_variables_expr e)
+      | Load (_, Deref y) ->
+        remove_use def y
+      | Label (_, Some xs)
+      | Phi (_, xs) ->
+        List.iter (remove_use def) xs
+      | _ -> assert false
+    );
+    Hashtbl.remove def_use_chains var
+  | Some { def = None; _ } ->
+    Hashtbl.remove def_use_chains var
   | None -> ()
 
 let add_def block stmt var =
@@ -146,9 +142,9 @@ let iter f =
 let find_first p =
   let first = ref None in
   begin
-    try Hashtbl.iter (fun _ ({ def; _ } as def_use_chain) ->
+    try Hashtbl.iter (fun x def_use_chain ->
         if p def_use_chain then (
-          first := def;
+          first := Some (x, def_use_chain);
           raise_notrace Exit
         )
       ) def_use_chains

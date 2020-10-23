@@ -1,6 +1,7 @@
 open Control_flow
 open Graphs
 open Ssa
+open Ssa__Optim
 
 let print_basic_blocks graph =
   Cfg.basic_blocks graph
@@ -17,4 +18,7 @@ let () =
        | _ -> "examples/pow.hir")
   in
   convert_to_ssa graph;
+  print_basic_blocks graph;
+  print_newline ();
+  optimize ~dump:true ();
   print_basic_blocks graph

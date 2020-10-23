@@ -9,6 +9,7 @@ L1:
     return a
 [B5]
 L2:
+    c := b + 1
     return b
 [B7]
 L5:
@@ -27,6 +28,7 @@ L1(a, b):
     return a
 [B5]
 L2(a, b):
+    c := b + 1
     return b
 [B7]
 L5(a, b):
@@ -45,6 +47,7 @@ L1(a_2, b_2):
     return a_2
 [B5]
 L2(a_3, b_3):
+    c_0 := b_3 + 1
     return b_3
 [B7]
 L5(a_4, b_4):
@@ -69,6 +72,7 @@ L1:
 L2:
     a_3 := PHI(a_1)
     b_3 := PHI(b_1)
+    c_0 := b_3 + 1
     return b_3
 [B7]
 L5:
@@ -89,6 +93,7 @@ L1:
     return a_0
 [B5]
 L2:
+    c_0 := b_0 + 1
     return b_0
 [B7]
 L5:

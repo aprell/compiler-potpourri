@@ -7,6 +7,7 @@ L1:
     b := a + 1
     goto L3
 L2:
+    c := b + 1
     return b
 L3:
     goto L6

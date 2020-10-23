@@ -42,7 +42,7 @@ let propagate_phi x y =
   let uses = Def_use_chain.get_uses x in
   Def_use_chain.Set.iter (fun (block, stmt) ->
       !stmt := replace_stmt x (Val y) !(!stmt);
-      Def_use_chain.add_use !block !stmt y;
+      Def_use_chain.add_use !block !stmt y
     ) uses;
   Def_use_chain.remove_uses x;
   Def_use_chain.remove_def x
@@ -75,7 +75,7 @@ let propagate_copy x y =
   if Def_use_chain.(get_uses x = Set.empty) then
     remove_def x
 
-let propagate = function
+let propagate' = function
   | Move (x, Const n) -> propagate_const x n
   | Move (x, Val y) -> propagate_copy x y
   | Phi (x, [y]) -> propagate_phi x y
@@ -87,12 +87,10 @@ let can_optimize =
       not (is_phi !(!use))
   )
 
-let optimize ?(dump = false) () =
-  let changed = ref true in
-  while !changed do
-    changed := false;
+let propagate ?(dump = false) () =
+  match (
     (* Find a constant or copy to propagate *)
-    let def = Def_use_chain.find_first (fun { def; uses; } ->
+    Def_use_chain.find_first (fun { def; uses; } ->
         match def with
         | Some (_, stmt) -> (
             match !(!stmt) with
@@ -103,16 +101,50 @@ let optimize ?(dump = false) () =
           )
         | None -> false
       )
-    in
-    match def with
-    | Some (_, stmt) -> (
-        propagate !(!stmt);
-        changed := true;
+  ) with
+  | Some (_, { def = Some (_, stmt); _ }) ->
+    propagate' !(!stmt);
+    if dump then (
+      print_endline ("After propagating " ^ (string_of_stmt !(!stmt)) ^ ":");
+      Def_use_chain.print ();
+      print_newline ()
+    );
+    true
+  | _ -> false
+
+let eliminate_dead_code ?(dump = false) () =
+  match (
+    (* Find a dead variable *)
+    Def_use_chain.find_first (fun { uses; _ } ->
+        Def_use_chain.Set.is_empty uses
+      )
+  ) with
+  | Some (_, { def = Some (_, stmt); _ }) -> (
+      match !(!stmt) with
+      | Move (x, _)
+      | Load (x, _)
+      | Receive x ->
+        (* Assume no side effects *)
+        remove_def x;
         if dump then (
-          print_endline ("After propagating " ^ (string_of_stmt !(!stmt)) ^ ":");
+          print_endline ("After removing " ^ (string_of_stmt !(!stmt)) ^ ":");
           Def_use_chain.print ();
           print_newline ()
-        )
-      )
-    | _ -> ()
+        );
+        true
+      | _ -> assert false
+    )
+  | Some (x, { def = None; _ }) ->
+    (* Remove leftover binding from SSA conversion *)
+    Def_use_chain.remove_def x;
+    true
+  | None -> false
+
+let optimize ?(dump = false) () =
+  let changed = ref true in
+  while !changed do
+    changed := List.exists (( = ) true) [
+        eliminate_dead_code ~dump ();
+        propagate ~dump ();
+      ]
   done

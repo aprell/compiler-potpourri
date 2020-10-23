@@ -6,6 +6,4 @@ val propagate_const : var -> int -> unit
 
 val propagate_copy : var -> var -> unit
 
-val propagate : stmt -> unit
-
 val optimize : ?dump:bool -> unit -> unit
