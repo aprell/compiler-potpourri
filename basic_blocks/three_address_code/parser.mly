@@ -5,18 +5,31 @@
 
   let peephole stmt =
     match !prev, stmt with
+
+    (* Propagate constant to next statement *)
     | [Move (x, Const n)], Move (y, Val z) when x = z ->
-      (* Propagate constant to next statement *)
       prev := [Move (y, Const n)]; !prev
+    | [Move (x, Const n)], Move (y, Binop (op, Val z, e)) when x = z ->
+      prev := [Move (y, constant_fold (Binop (op, Const n, e)))]; !prev
+    | [Move (x, Const n)], Move (y, Binop (op, e, Val z)) when x = z ->
+      prev := [Move (y, constant_fold (Binop (op, e, Const n)))]; !prev
+
+    (* Propagate copy to next statement *)
     | [Move (x, Val x')], Move (y, Val z) when x = z ->
-      (* Propagate copy to next statement *)
       if x' <> y then (prev := [Move (y, Val x')]; !prev) else []
+    | [Move (x, Val x')], Move (y, Binop (op, Val z, e)) when x = z ->
+      prev := [Move (y, constant_fold (Binop (op, Val x', e)))]; !prev
+    | [Move (x, Val x')], Move (y, Binop (op, e, Val z)) when x = z ->
+      prev := [Move (y, constant_fold (Binop (op, e, Val x')))]; !prev
+
+    (* Subtract equal inputs *)
     | _, Move (x, Binop (Minus, Val y, Val z)) when y = z ->
-      (* Subtract equal inputs *)
       prev := [Move (x, Const 0)]; !prev
+
+    (* Drop copy of self *)
     | _, Move (x, Val y) when x = y ->
-      (* Drop copy of self *)
       []
+
     | _ -> prev := [stmt]; !prev
 %}
 

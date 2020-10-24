@@ -95,6 +95,8 @@ let lower = function
     @ [Label l2]
     @ else_
     @ [Label l3]
+  | `If (Const 0, _, else_) -> else_
+  | `If (Const _, then_, _) -> then_
   | `While (Relop _ as e, body) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
