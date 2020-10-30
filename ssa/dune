@@ -1,7 +1,7 @@
 (library
   (name ssa)
   (public_name ssa)
-  (modules def_use_chain optim ssa utils)
+  (modules def_use_chain value_numbering optim ssa utils)
   (libraries control_flow))
 
 (executable

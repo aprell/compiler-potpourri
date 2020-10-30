@@ -76,12 +76,22 @@ let rename_variables graph =
   in
 
   let rename_variables_stmt stmt =
+    let open Value_numbering in
     match !stmt with
     | Move (x, e) ->
       (* Evaluation order matters *)
       let e' = rename_variables_expr e in
       let x' = rename_variable x ~bump:true in
-      stmt := Move (x', e')
+      let vn = value_number e' in
+      let _ = match e with
+        | Binop _ | Relop _ when Hashtbl.mem available_exprs vn ->
+          let y = Hashtbl.find available_exprs vn in
+          stmt := Move (x', Val y)
+        | _ ->
+          stmt := Move (x', e');
+          Hashtbl.add available_exprs vn x'
+      in
+      Hashtbl.add value_numbers (name_of_var x') vn
     | Load (x, Deref y) ->
       let y' = rename_variable y ~bump:false in
       let x' = rename_variable x ~bump:true in
@@ -98,20 +108,32 @@ let rename_variables graph =
       let xs' = List.map (rename_variable ~bump:false) xs in
       stmt := Jump (l, Some xs')
     | Jump (_, None) -> ()
-    | Cond (e, (l1, Some xs), (l2, Some ys)) ->
+    | Cond (e, (l1, Some xs), (l2, Some ys)) -> (
       let e' = rename_variables_expr e in
       let xs' = List.map (rename_variable ~bump:false) xs in
       let ys' = List.map (rename_variable ~bump:false) ys in
-      stmt := Cond (e', (l1, Some xs'), (l2, Some ys'))
-    | Cond (e, then_, else_) ->
+      let vn = value_number e' in
+      match Hashtbl.find_opt available_exprs vn with
+      | Some x -> stmt := Cond (Val x, (l1, Some xs'), (l2, Some ys'))
+      | None -> stmt := Cond (e', (l1, Some xs'), (l2, Some ys'))
+    )
+    | Cond (e, then_, else_) -> (
       let e' = rename_variables_expr e in
-      stmt := Cond (e', then_, else_)
+      let vn = value_number e' in
+      match Hashtbl.find_opt available_exprs vn with
+      | Some x -> stmt := Cond (Val x, then_, else_)
+      | None -> stmt := Cond (e', then_, else_)
+    )
     | Receive x ->
       let x' = rename_variable x ~bump:true in
       stmt := Receive x'
-    | Return (Some e) ->
+    | Return (Some e) -> (
       let e' = rename_variables_expr e in
-      stmt := Return (Some e')
+      let vn = value_number e' in
+      match Hashtbl.find_opt available_exprs vn with
+      | Some x -> stmt := Return (Some (Val x))
+      | None -> stmt := Return (Some e')
+    )
     | Return None -> ()
     | _ -> assert false
   in
