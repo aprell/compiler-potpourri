@@ -28,6 +28,8 @@ and label = name * var list option
 
 and name = string
 
+let name_of_var (Var x) = x
+
 let is_phi = function
   | Phi _ -> true
   | _ -> false
@@ -173,7 +175,7 @@ let string_of_relop = function
 let string_of_label = function
   | name, None -> name
   | name, Some params ->
-    let params = List.map (fun (Var x) -> x) params in
+    let params = List.map name_of_var params in
     name ^ "(" ^ String.concat ", " params ^ ")"
 
 let rec string_of_expr = function
@@ -208,7 +210,7 @@ let string_of_stmt ?(indent = 0) stmt =
   | Return None ->
     indent ^ "return"
   | Phi (Var x, xs) ->
-    let xs = List.map (fun (Var x) -> x) xs in
+    let xs = List.map name_of_var xs in
     indent ^ x ^ " := PHI(" ^ String.concat ", " xs ^ ")"
 
 let dump stmts =

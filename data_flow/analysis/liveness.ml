@@ -8,7 +8,7 @@ module S = struct
 
     let to_string set =
       elements set
-      |> List.map (fun (Var name) -> name)
+      |> List.map name_of_var
       |> String.concat ", "
   end
 

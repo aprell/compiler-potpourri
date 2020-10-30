@@ -28,6 +28,8 @@ and label = name * var list option
 
 and name = string
 
+val name_of_var : var -> name
+
 val is_phi : stmt -> bool
 
 val lower :
