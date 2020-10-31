@@ -18,7 +18,7 @@ let whitespace = [' ' '\t']+
 let newline = ['\n']
 let alpha = ['A'-'Z' 'a'-'z']
 let digit = ['0'-'9']
-let int = '-'? digit+
+let int = digit+
 let ident = ('_' | alpha) ('_' | alpha | digit)*
 
 rule read = parse

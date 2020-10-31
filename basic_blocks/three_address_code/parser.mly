@@ -117,7 +117,8 @@ stmt:
 expr:
   | INT               { Const $1 }
   | NAME              { Val (Var $1) }
-  | expr binop expr   { Binop ($2, $1, $3) |> constant_fold }
+  | MINUS expr        { Binop (Minus, Const 0, $2) |> constant_fold }
+  | expr binop expr   { Binop ($2, $1, $3)         |> constant_fold }
   | expr relop expr   { Relop ($2, $1, $3) }
   ;
 

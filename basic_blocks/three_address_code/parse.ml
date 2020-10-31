@@ -5,8 +5,14 @@ open Utils
   p "a := 1" = \
    Move (Var "a", Const 1)
 
+  p "a := -1" = \
+   Move (Var "a", Const (-1))
+
   p "a := b" = \
    Move (Var "a", Val (Var "b"))
+
+  p "a := -b" = \
+   Move (Var "a", Binop (Minus, Const 0, Val (Var "b")))
 
   p "a := a + 1" = \
    Move (Var "a", Binop (Plus, Val (Var "a"), Const 1))
