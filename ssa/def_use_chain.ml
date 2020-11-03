@@ -6,11 +6,8 @@ module Set = Set.Make (struct
   let compare = Stdlib.compare
 end)
 
-(* Variables that have no (known) definition:
- * - Local variables, when used as label parameters before being defined.
- *   These variables look like global variables, but don't survive
- *   SSA minimization.
- * - Global variables, which are used outside of phi-functions *)
+(* Variables that are used as basic block parameters may introduce SSA names
+ * for which no definitions exist. *)
 
 type t = {
   def : Set.elt option;
