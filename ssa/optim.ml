@@ -119,7 +119,7 @@ let eliminate_dead_code ?(dump = false) () =
         Def_use_chain.Set.is_empty uses
       )
   ) with
-  | Some (_, { def = Some (_, stmt); _ }) -> (
+  | Some (x, { def = Some (_, stmt); _ }) -> (
       match !(!stmt) with
       | Move (x, _)
       | Load (x, _)
@@ -132,6 +132,15 @@ let eliminate_dead_code ?(dump = false) () =
           print_newline ()
         );
         true
+      | Label (l, Some xs) -> (
+          assert (List.mem x xs);
+          begin match List.filter (( <> ) x) xs with
+            | [] -> !stmt := Label (l, None)
+            | xs -> !stmt := Label (l, Some xs)
+          end;
+          Def_use_chain.remove_def x;
+          true
+        )
       | _ -> assert false
     )
   | Some (x, { def = None; _ }) ->
