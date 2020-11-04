@@ -134,10 +134,7 @@ let eliminate_dead_code ?(dump = false) () =
         true
       | Label (l, Some xs) -> (
           assert (List.mem x xs);
-          begin match List.filter (( <> ) x) xs with
-            | [] -> !stmt := Label (l, None)
-            | xs -> !stmt := Label (l, Some xs)
-          end;
+          !stmt := Label (l, Some (List.filter (( <> ) x) xs));
           Def_use_chain.remove_def x;
           true
         )
