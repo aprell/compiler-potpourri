@@ -77,8 +77,10 @@ let lower = function
     @ [Load (x, addr')]
   | `Store (addr, e) ->
     let stmts, addr' = translate addr in
+    let t1 = gen_temp () in
     stmts
-    @ [Store (addr', e)]
+    @ [Move (Var t1, e)]
+    @ [Store (addr', Val (Var t1))]
   | `If (Relop _ as e, then_, []) ->
     let l1 = gen_label (gen_name ()) in
     let l2 = gen_label (gen_name ()) in
