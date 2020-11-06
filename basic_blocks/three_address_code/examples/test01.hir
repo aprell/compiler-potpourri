@@ -1,4 +1,4 @@
-test(a, b) {
+test01(a, b) {
     if a > b {
         if a < 100 {
             return a
@@ -8,6 +8,7 @@ test(a, b) {
             return b
         }
     } else {
-        return b
+        c := b + 1
+        return c
     }
 }

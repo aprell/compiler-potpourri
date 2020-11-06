@@ -1,4 +1,4 @@
-test(a, b):
+test01(a, b):
     if a > b goto L4 else goto L5
 L4:
     if a < 100 goto L1 else goto L2
@@ -12,5 +12,6 @@ L2:
 L3:
     goto L6
 L5:
-    return b
+    c := b + 1
+    return c
 L6:
