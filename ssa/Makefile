@@ -1,6 +1,6 @@
 LIB := ssa
 
-PROGS := test_ssa test/expect
+PROGS := test_ssa test_sscp test/expect
 
 all: $(LIB) $(PROGS) test
 

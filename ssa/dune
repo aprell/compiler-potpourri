@@ -8,3 +8,8 @@
   (name test_ssa)
   (modules test_ssa)
   (libraries ssa))
+
+(executable
+  (name test_sscp)
+  (modules test_sscp sscp)
+  (libraries ssa))
