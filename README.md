@@ -3,8 +3,9 @@
 A potpourri of programs, scripts, and tools for a compilers course covering:
 - Three-address code
 - Basic blocks
-- Control flow graphs, dominators, and back edges of natural loops
+- Control flow analysis
 - Data flow analysis
+- Static single assignment (SSA) form and SSA-based optimizations
 - Data dependences
 - Loop transformations
 - Parallel loops and tasks in OpenMP
@@ -18,6 +19,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [Compilers: Principles, Techniques, and Tools](https://www.pearson.com/us/higher-education/program/Aho-Compilers-Principles-Techniques-and-Tools-2nd-Edition/PGM167067.html)
 - [High-Performance Compilers for Parallel Computing](https://www.pearson.com/us/higher-education/program/Wolfe-High-Performance-Compilers-for-Parallel-Computing/PGM186908.html)
 - [Optimizing Compilers for Modern Architectures](https://www.elsevier.com/books/optimizing-compilers-for-modern-architectures/allen/978-0-08-051324-9)
+- [SSA-based Compiler Design](http://ssabook.gforge.inria.fr/latest/book.pdf)
 
 ### Papers
 - [Compiler Transformations for High-Performance Computing](http://dl.acm.org/citation.cfm?id=197406)
@@ -31,6 +33,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [Combining Analysis, Combining Optimizations](https://scholarship.rice.edu/handle/1911/16807)
 - [From Quads to Graphs: An Intermediate Representation's Journey](https://www.researchgate.net/publication/2746343_From_Quads_to_Graphs_An_Intermediate_Representation's_Journey)
 - [Value Numbering](http://softlib.rice.edu/pub/CRPC-TRs/reports/CRPC-TR94517-S.pdf)
+- [Constant Propagation with Conditional Branches](https://dl.acm.org/doi/10.1145/103135.103136)
 
 ### Articles
 - [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
@@ -38,3 +41,4 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 
 ### Courses
 - Compiler Design (CMU): [Fall 2014](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html), [Fall 2018](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html)
+- Introduction to Compilers (Cornell): [Spring 2020](https://www.cs.cornell.edu/courses/cs4120/2020sp)
