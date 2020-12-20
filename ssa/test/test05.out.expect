@@ -102,7 +102,7 @@ L3:
 
 [B1]
 test05():
-    if 1 < 2 goto L1 else goto L2
+    if 1 goto L1 else goto L2
 [B2]
 L1:
     y_1 := 6

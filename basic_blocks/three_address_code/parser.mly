@@ -119,7 +119,7 @@ expr:
   | NAME              { Val (Var $1) }
   | MINUS expr        { Binop (Minus, Const 0, $2) |> constant_fold }
   | expr binop expr   { Binop ($2, $1, $3)         |> constant_fold }
-  | expr relop expr   { Relop ($2, $1, $3) }
+  | expr relop expr   { Relop ($2, $1, $3)         |> constant_fold }
   ;
 
 mem:

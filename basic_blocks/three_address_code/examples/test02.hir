@@ -2,7 +2,7 @@ test02() {
     a := 1
     b := 2
     c := a * 3
-    if 0 {
+    if 1 == 2 {
         if c > 3 {
             d := c + 1
         } else {

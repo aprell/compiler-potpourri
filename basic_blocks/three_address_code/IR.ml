@@ -129,6 +129,18 @@ let constant_fold = function
   | Binop (Div, Val x, Val y) when x = y -> Const 1
   | Binop (Mul, Val _, Const 0)
   | Binop (Mul, Const 0, Val _) -> Const 0
+  | Relop (EQ, Const n, Const m) when n = m -> Const 1
+  | Relop (EQ, Const n, Const m) when n <> m -> Const 0
+  | Relop (NE, Const n, Const m) when n = m -> Const 0
+  | Relop (NE, Const n, Const m) when n <> m -> Const 1
+  | Relop (LT, Const n, Const m) when n < m -> Const 1
+  | Relop (LT, Const n, Const m) when n >= m -> Const 0
+  | Relop (GT, Const n, Const m) when n > m -> Const 1
+  | Relop (GT, Const n, Const m) when n <= m -> Const 0
+  | Relop (LE, Const n, Const m) when n <= m -> Const 1
+  | Relop (LE, Const n, Const m) when n > m -> Const 0
+  | Relop (GE, Const n, Const m) when n >= m -> Const 1
+  | Relop (GE, Const n, Const m) when n < m -> Const 0
   | e -> e
 
 let rec all_variables_expr = function
