@@ -13,3 +13,8 @@
   (name test_sscp)
   (modules test_sscp sscp)
   (libraries ssa))
+
+(executable
+  (name test_reachability)
+  (modules test_reachability reachability)
+  (libraries ssa))
