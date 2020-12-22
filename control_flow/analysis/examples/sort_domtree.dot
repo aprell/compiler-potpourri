@@ -1,0 +1,12 @@
+graph DominatorTree {
+    Entry -- B1;
+    B1 -- B2;
+    B2 -- B3;
+    B2 -- B9;
+    B3 -- B4;
+    B4 -- B5;
+    B4 -- B8;
+    B5 -- B6;
+    B5 -- B7;
+    B9 -- Exit;
+}
