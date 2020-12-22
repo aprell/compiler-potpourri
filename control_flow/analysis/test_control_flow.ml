@@ -1,13 +1,24 @@
 open Control_flow
 open Graphs
 
+let print_loops graph =
+  match Loop.back_edges graph with
+  | _ :: _ as edges ->
+    print_endline "\nLoops:";
+    List.iter (fun edge ->
+        print_string "\t";
+        Loop.(print (find edge))
+      ) edges
+  | [] -> ()
+
 let inspect graph ~output =
   let open Dom in
   let _ = dominators graph in
   let _ = immediate_dominators graph in
-  Cfg.inspect graph ~back_edges:(back_edges graph);
+  Cfg.inspect graph;
   Cfg.output_dot graph ~filename:(output ^ "_cfg.dot");
-  Domtree.(output_dot (create graph) ~filename:(output ^ "_domtree.dot"))
+  Domtree.(output_dot (create graph) ~filename:(output ^ "_domtree.dot"));
+  print_loops graph
 
 let test () =
   let fib_1 = Graphs.fib in

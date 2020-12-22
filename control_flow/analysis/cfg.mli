@@ -33,4 +33,4 @@ val iter : (Node.t -> unit) -> t -> unit
 
 val output_dot : ?filename:string -> t -> unit
 
-val inspect : ?back_edges:(Node.t * Node.t) list -> t -> unit
+val inspect : t -> unit

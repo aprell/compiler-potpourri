@@ -69,19 +69,6 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
     ) graph;
   idoms
 
-(* Find all edges i => n with n dom i in a graph *)
-let back_edges (graph : Cfg.t) : (Node.t * Node.t) list =
-  let open Node in
-  let dom n i = NodeSet.mem n i.doms in
-  let back_edges = ref [] in
-  Array.iter (fun i ->
-      NodeSet.iter (fun n ->
-          if dom n i then
-            back_edges := (i, n) :: !back_edges
-        ) i.succ
-    ) graph;
-  List.rev !back_edges
-
 module Domtree = struct
   type t = Cfg.t
   type elt = Node.t

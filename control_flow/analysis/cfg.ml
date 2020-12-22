@@ -175,7 +175,7 @@ let output_dot ?filename (graph : t) =
   print "}";
   if chan <> stdout then close_out chan
 
-let inspect ?back_edges (graph : t) =
+let inspect (graph : t) =
   let open Node in
   let node_name { block; _ } = block.name in
   let node_names nodes =
@@ -194,12 +194,4 @@ let inspect ?back_edges (graph : t) =
         "predecessors" (node_names pred)
         "dominators"   (node_names doms)
         "immediate dominator" (Option.fold idom ~some:node_name ~none:"None")
-    ) graph;
-  (* Print back edges, if known *)
-  match back_edges with
-  | Some edges ->
-    edges
-    |> List.map (fun (a, b) -> sprintf "%s => %s" (node_name a) (node_name b))
-    |> String.concat ", "
-    |> printf "\nBack edges: [%s]\n"
-  | None -> ()
+    ) graph

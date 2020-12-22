@@ -1,7 +1,7 @@
 (library
   (name control_flow)
   (public_name control_flow)
-  (modules cfg dom graphs)
+  (modules cfg dom loop graphs)
   (libraries basic_block))
 
 (executable
