@@ -63,13 +63,6 @@ let interpret { Cfg.Node.block; succ; _ } =
       [(label_of (Cfg.NodeSet.choose succ).block, v)]
     )
 
-let string_of_binop = function
-  | Plus -> "+"
-  | Minus -> "-"
-  | Mul -> "*"
-  | Div -> "/"
-  | Mod -> "%"
-
 let init graph =
   let worklist = Queue.create () in
   Cfg.iter (fun ({ block; _ } as node) ->
