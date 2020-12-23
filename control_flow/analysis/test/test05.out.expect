@@ -14,3 +14,6 @@ graph DominatorTree {
     B1 -- B4;
     B4 -- Exit;
 }
+
+graph LoopNestingForest {
+}

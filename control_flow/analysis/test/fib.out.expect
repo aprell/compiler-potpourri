@@ -19,3 +19,7 @@ graph DominatorTree {
     B4 -- B5;
     B4 -- B6;
 }
+
+graph LoopNestingForest {
+    B4 -- B5;
+}

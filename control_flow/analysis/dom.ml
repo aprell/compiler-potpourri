@@ -73,22 +73,23 @@ module Domtree = struct
   type t = Cfg.t
   type elt = Node.t
 
-  (* Add an edge from node a to node b *)
-  let ( => ) (a : elt) (b : elt) =
+  (* Add an edge between node a and node b *)
+  let ( -- ) (a : elt) (b : elt) =
     a.succ <- NodeSet.add b a.succ;
     b.pred <- NodeSet.add a b.pred
 
   (* Create a graph containing every node of the CFG, and for every node n, add
-   * an edge n.idom => n. Since n has at most one immediate dominator, this
+   * an edge n.idom -- n. Since n has at most one immediate dominator, this
    * graph is a tree, the dominator tree. *)
   let create (graph : Cfg.t) : t =
     let open Node in
     let tree = Array.map (fun node ->
-        { node with succ = NodeSet.empty; pred = NodeSet.empty; }) graph
+        { node with succ = NodeSet.empty;
+                    pred = NodeSet.empty; }) graph
     in
     Array.iter (fun node ->
         match node.idom with
-        | Some idom -> tree.(idom.index) => tree.(node.index)
+        | Some idom -> tree.(idom.index) -- tree.(node.index)
         | None -> ()
       ) tree;
     tree
@@ -107,7 +108,7 @@ module Domtree = struct
     in
     let indent = String.make 4 ' ' in
     print "graph DominatorTree {";
-    Array.iter (fun { block; succ; _ } ->
+    Cfg.iter (fun { block; succ; _ } ->
         let x = block.name in
         NodeSet.iter (fun { block; _ } ->
             let y = block.name in
@@ -117,7 +118,7 @@ module Domtree = struct
     print "}";
     if chan <> stdout then close_out chan
 
-  let inspect tree = Cfg.inspect tree
+  let inspect = Cfg.inspect
 end
 
 (* The dominance frontier of a node n is the set of nodes where n's dominance

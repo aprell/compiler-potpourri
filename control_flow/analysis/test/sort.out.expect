@@ -26,3 +26,12 @@ graph DominatorTree {
     B5 -- B7;
     B9 -- Exit;
 }
+
+graph LoopNestingForest {
+    B2 -- B3;
+    B2 -- B4;
+    B2 -- B8;
+    B4 -- B5;
+    B4 -- B6;
+    B4 -- B7;
+}
