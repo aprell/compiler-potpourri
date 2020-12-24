@@ -186,7 +186,7 @@ let insert_phi_functions graph =
           let jumps = List.fold_left (fun jumps block ->
               match block.source with
               | Some { stmts; _ } -> (
-                  match !(List.(hd (rev stmts))) with
+                  match !(last stmts) with
                   | Jump _ | Cond _ as jump -> jump :: jumps
                   | _ -> assert false
                 )

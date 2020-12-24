@@ -25,10 +25,6 @@ let value_of = Hashtbl.find values
 
 let ( <-= ) var = Hashtbl.replace values var
 
-let last lst =
-  assert (List.length lst > 0);
-  List.nth lst (List.length lst - 1)
-
 let label_of { Basic_block.name; source; } =
   match source with
   | Some { entry; _ } -> (entry, None)
