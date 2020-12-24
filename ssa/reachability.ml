@@ -62,9 +62,12 @@ let interpret { Cfg.Node.block; succ; _ } =
 let init graph =
   let worklist = Queue.create () in
   Cfg.iter (fun ({ block; _ } as node) ->
-      block.name <-= Reachable;
-      if block.name <> "Entry" then
+      if block.name = "Entry" then (
+        block.name <-= Reachable
+      ) else (
+        block.name <-= Unreachable;
         Queue.add node worklist
+      )
     ) graph;
   worklist
 
