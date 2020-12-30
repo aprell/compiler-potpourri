@@ -13,6 +13,17 @@ let src1 = [
 ]
 
 let src2 = [
+  "test() {";
+  "    a := 4";
+  "    b := 2";
+  "    s := a + b";
+  "    t := a + b";
+  "    p := s * t";
+  "    return p";
+  "}";
+]
+
+let src3 = [
   "test(A) {";
   "    x := 1";
   "    A[0] := 2";
@@ -44,4 +55,4 @@ let test cfg =
   print ~text:"After optimization:" block
 
 let () =
-  List.(iter test (map cfg_of [src1; src2]))
+  List.(iter test (map cfg_of [src1; src2; src3]))
