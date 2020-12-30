@@ -86,34 +86,30 @@ let init ?(value = Top) () =
 let propagate worklist = function
   | Move (x, e) ->
     let v = value_of x in
-    if v <> Bottom then (
-      begin match e with
-        | Val y ->
-          Printf.printf "%s := " (name_of_var x);
-          x <-= value_of y;
-          Printf.printf "%s\n" (string_of_value (value_of y))
-        | Binop (op, Val y, Const n) ->
-          Printf.printf "%s := " (name_of_var x);
-          x <-= interpret' op (value_of y) (Const n)
-        | Binop (op, Const n, Val y) ->
-          Printf.printf "%s := " (name_of_var x);
-          x <-= interpret' op (Const n) (value_of y)
-        | Binop (op, Val y, Val z) ->
-          Printf.printf "%s := " (name_of_var x);
-          x <-= interpret' op (value_of y) (value_of z)
-        | _ -> ()
-      end;
-      if value_of x <> v then
-        Queue.add x worklist
-    )
+    begin match e with
+      | Val y ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= value_of y;
+        Printf.printf "%s\n" (string_of_value (value_of y))
+      | Binop (op, Val y, Const n) ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= interpret' op (value_of y) (Const n)
+      | Binop (op, Const n, Val y) ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= interpret' op (Const n) (value_of y)
+      | Binop (op, Val y, Val z) ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= interpret' op (value_of y) (value_of z)
+      | _ -> ()
+    end;
+    if value_of x <> v then
+      Queue.add x worklist
   | Phi (x, [y; z]) ->
     let v = value_of x in
-    if v <> Bottom then (
-      Printf.printf "%s := " (name_of_var x);
-      x <-= meet' (value_of y) (value_of z);
-      if value_of x <> v then
-        Queue.add x worklist
-    )
+    Printf.printf "%s := " (name_of_var x);
+    x <-= meet' (value_of y) (value_of z);
+    if value_of x <> v then
+      Queue.add x worklist
   | _ -> ()
 
 let iterate worklist =
