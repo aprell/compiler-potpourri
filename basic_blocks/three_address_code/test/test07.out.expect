@@ -1,0 +1,13 @@
+test07(p):
+    x := 0
+    i := 1
+L1:
+    if p > 10 goto L2 else goto L3
+L2:
+    j := i
+    i := i + 1
+    i := j
+    x := x + j
+    goto L1
+L3:
+    return x
