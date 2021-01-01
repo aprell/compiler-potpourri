@@ -1,0 +1,271 @@
+(* Sparse conditional constant propagation *)
+
+open Three_address_code__IR
+open Basic_block__Utils
+open Control_flow
+open Ssa__Utils
+
+(* Abstract values *)
+type value =
+  | Top          (* Undefined *)
+  | Const of int (* A known constant *)
+  | Bottom       (* Unknown; not a constant *)
+
+let string_of_value = function
+  | Top -> "Top"
+  | Const n -> string_of_int n
+  | Bottom -> "Bottom"
+
+type op = Bin of binop | Rel of relop
+
+let string_of_op = function
+  | Bin Plus -> "+"
+  | Bin Minus -> "-"
+  | Bin Mul -> "*"
+  | Bin Div -> "/"
+  | Bin Mod -> "%"
+  | Rel EQ -> "=="
+  | Rel NE -> "!="
+  | Rel LT -> "<"
+  | Rel GT -> ">"
+  | Rel LE -> "<="
+  | Rel GE -> ">="
+
+(* Combine two abstract values *)
+let meet v1 v2 =
+  match v1, v2 with
+  | Top, any | any, Top -> any
+  | Const n1, Const n2 when n1 = n2 -> Const n1
+  | _ -> Bottom
+
+(* Interpret op over abstract values v1 and v2 *)
+let interpret op v1 v2 =
+  match op, v1, v2 with
+  | _, Top, _ | _, _, Top -> Top
+  | Bin Plus, Const n1, Const n2 -> Const (n1 + n2)
+  | Bin Minus, Const n1, Const n2 -> Const (n1 - n2)
+  | Bin Mul, Const n1, Const n2 -> Const (n1 * n2)
+  | Bin Div, Const n1, Const n2 -> Const (n1 / n2)
+  | Bin Mod, Const n1, Const n2 -> Const (n1 mod n2)
+  | Bin Mul, Bottom, Const 0 | Bin Mul, Const 0, Bottom -> Const 0
+  | Rel EQ, Const n1, Const n2 when n1 = n2 -> Const 1
+  | Rel EQ, Const n1, Const n2 when n1 <> n2 -> Const 0
+  | Rel NE, Const n1, Const n2 when n1 = n2 -> Const 0
+  | Rel NE, Const n1, Const n2 when n1 <> n2 -> Const 1
+  | Rel LT, Const n1, Const n2 when n1 < n2 -> Const 1
+  | Rel LT, Const n1, Const n2 when n1 >= n2 -> Const 0
+  | Rel GT, Const n1, Const n2 when n1 > n2 -> Const 1
+  | Rel GT, Const n1, Const n2 when n1 <= n2 -> Const 0
+  | Rel LE, Const n1, Const n2 when n1 <= n2 -> Const 1
+  | Rel LE, Const n1, Const n2 when n1 > n2 -> Const 0
+  | Rel GE, Const n1, Const n2 when n1 >= n2 -> Const 1
+  | Rel GE, Const n1, Const n2 when n1 < n2 -> Const 0
+  | _ -> Bottom
+
+let meet' v1 v2 =
+  let v3 = meet v1 v2 in
+  Printf.printf "%s meet %s = %s\n"
+    (string_of_value v1)
+    (string_of_value v2)
+    (string_of_value v3);
+  v3
+
+let interpret' op v1 v2 =
+  let v3 = interpret op v1 v2 in
+  Printf.printf "%s %s %s = %s\n"
+    (string_of_value v1)
+    (string_of_op op)
+    (string_of_value v2)
+    (string_of_value v3);
+  v3
+
+let label_of { Basic_block.name; source; } =
+  match source with
+  | Some { entry; _ } -> (entry, None)
+  | None -> (
+      match name with
+      | "Entry" -> ("entry", None)
+      | "Exit" -> ("exit", None)
+      | _ -> assert false
+    )
+
+let find_succ { Cfg.Node.succ; _ } label =
+  Cfg.NodeSet.elements succ
+  |> List.find (fun { Cfg.Node.block; _ } -> label_of block = label)
+
+(* Maps variables (SSA names) to abstract values *)
+let values = Hashtbl.create 10
+
+let value_of = Hashtbl.find values
+
+let ( <-= ) var = Hashtbl.replace values var
+
+type cfg_edge = Cfg.Node.t * Cfg.Node.t
+
+(* Keeps track of executed CFG edges *)
+let edges = Hashtbl.create 10
+
+let executed edge =
+  Option.value (Hashtbl.find_opt edges edge) ~default:false
+
+let execute edge =
+  Hashtbl.replace edges edge true
+
+let node_of { Basic_block.name; _ } graph =
+  Array.to_list graph
+  |> List.find (fun { Cfg.Node.block; _ } -> block.name = name)
+
+let in_edges node =
+  let open Cfg.Node in
+  Cfg.NodeSet.elements node.pred
+  |> List.map (fun pred -> (pred, node))
+
+let out_edges node =
+  let open Cfg.Node in
+  Cfg.NodeSet.elements node.succ
+  |> List.map (fun succ -> (node, succ))
+
+let reachable node =
+  in_edges node
+  |> List.exists executed
+
+type task = Edge of cfg_edge | Def of var
+
+let init graph =
+  let entry = graph.(0) in
+
+  let worklist = Queue.create () in
+  Cfg.NodeSet.iter (fun node ->
+      Queue.add (Edge (entry, node)) worklist
+    ) entry.succ;
+
+  Ssa__Def_use_chain.iter (fun x def _ ->
+      match def with
+      | Some (_, stmt) -> (
+          match !(!stmt) with
+          | Move (_, Const _) -> x <-= Top
+          | Load _ -> x <-= Bottom
+          | Label _ -> x <-= Bottom
+          | Phi _ -> x <-= Top
+          | _ -> x <-= Top
+        )
+      | None -> x <-= Top
+    );
+  worklist
+
+let visit_stmt node worklist stmt =
+  let open Cfg.Node in
+  match !stmt with
+  | Move (x, e) ->
+    let v = value_of x in
+    begin match e with
+      | Const n ->
+        Printf.printf "%s := %d\n" (name_of_var x) n;
+        x <-= Const n;
+      | Val y ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= value_of y;
+        Printf.printf "%s\n" (string_of_value (value_of y))
+      | Binop (op, Val y, Const n) ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= interpret' (Bin op) (value_of y) (Const n)
+      | Binop (op, Const n, Val y) ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= interpret' (Bin op) (Const n) (value_of y)
+      | Binop (op, Val y, Val z) ->
+        Printf.printf "%s := " (name_of_var x);
+        x <-= interpret' (Bin op) (value_of y) (value_of z)
+      | _ -> ()
+    end;
+    if value_of x <> v then
+      Queue.add (Def x) worklist
+  | Jump l ->
+    let target = find_succ node l in
+    Printf.printf "Queue %s -> %s (jump)\n" node.block.name target.block.name;
+    Queue.add (Edge (node, target)) worklist
+  | Cond (e, l1, l2) -> (
+      let v = match e with
+        | Relop (op, Val x, Const n) ->
+          Printf.printf "if ";
+          interpret' (Rel op) (value_of x) (Const n)
+        | Relop (op, Const n, Val x) ->
+          Printf.printf "if ";
+          interpret' (Rel op) (Const n) (value_of x)
+        | Relop (op, Val x, Val y) ->
+          Printf.printf "if ";
+          interpret' (Rel op) (value_of x) (value_of y)
+        | _ -> Bottom
+      in
+      match v with
+      | Const 1 ->
+        let then_ = find_succ node l1 in
+        Printf.printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
+        Queue.add (Edge (node, then_)) worklist
+      | Const 0 ->
+        let else_ = find_succ node l2 in
+        Printf.printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
+        Queue.add (Edge (node, else_)) worklist
+      | Bottom ->
+        let then_ = find_succ node l1 in
+        let else_ = find_succ node l2 in
+        Printf.printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
+        Printf.printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
+        Queue.add (Edge (node, then_)) worklist;
+        Queue.add (Edge (node, else_)) worklist
+      | _ -> assert false
+    )
+  | Phi (x, ([y; z] as args)) ->
+    let edges = in_edges node in
+    assert (List.length edges = 2);
+    let v = value_of x in
+    if v <> Bottom then (
+      let edges = List.combine args edges in
+      let e1 = List.assoc y edges in
+      let e2 = List.assoc z edges in
+      assert ((fst e1).index < (fst e2).index);
+      if not (executed e1) then assert (executed e2);
+      if not (executed e2) then assert (executed e1);
+      Printf.printf "%s := " (name_of_var x);
+      x <-= meet' (value_of y) (value_of z);
+      if value_of x <> v then
+        Queue.add (Def x) worklist
+    )
+  | _ -> ()
+
+let visit ({ Cfg.Node.block; _ } as node) worklist =
+  match block.source with
+  | Some { stmts; _ } -> (
+      let edges = in_edges node in
+      let phis, rest = List.partition (( ! ) >> is_phi) stmts in
+      List.iter (visit_stmt node worklist) phis;
+      if List.(length (filter executed edges) = 1) then
+        List.iter (visit_stmt node worklist) rest
+    )
+  | None -> assert false
+
+let iterate graph worklist =
+  while not (Queue.is_empty worklist) do
+    match Queue.take worklist with
+    | Edge ((m, n) as edge) ->
+      if not (executed edge) then (
+        Printf.printf "Execute %s -> %s\n" m.block.name n.block.name;
+        execute edge;
+        visit n worklist
+      ) else (
+        Printf.printf "Execute %s -> %s (already executed)\n" m.block.name n.block.name
+      )
+    | Def x ->
+      let uses = Ssa__Def_use_chain.get_uses x in
+      Ssa__Def_use_chain.Set.iter (fun (block, stmt) ->
+          let node = node_of !block graph in
+          if reachable node then
+            visit_stmt node worklist !stmt
+        ) uses
+  done
+
+let print () =
+  let rows = Hashtbl.fold (fun var value rows ->
+      [name_of_var var; string_of_value value] :: rows
+    ) values []
+  in
+  print_table ~rows:(["Variable"; "Value"] :: List.sort compare rows)

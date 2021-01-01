@@ -15,6 +15,11 @@
   (libraries ssa))
 
 (executable
+  (name test_sccp)
+  (modules test_sccp sccp)
+  (libraries ssa))
+
+(executable
   (name test_reachability)
   (modules test_reachability reachability)
   (libraries ssa))
