@@ -1,0 +1,146 @@
+[B1]
+sort(A_0, n_0):
+    i_0 := 0
+    goto L6
+[B2]
+L6:
+    i_1 := PHI(i_0, i_8)
+    if i_1 < n_0 - 1 goto L7 else goto L8
+[B3]
+L7:
+    min_2 := i_1
+    j_2 := i_1 + 1
+    goto L3
+[B4]
+L3:
+    j_3 := PHI(j_2, j_7)
+    min_3 := PHI(min_2, min_7)
+    if j_3 < n_0 goto L4 else goto L5
+[B5]
+L4:
+    $1_0 := A_0
+    $2_0 := j_3 * 4
+    $2_1 := $1_0 + $2_0
+    t0_0 := *$2_1
+    $3_0 := A_0
+    $4_0 := min_3 * 4
+    $4_1 := $3_0 + $4_0
+    t1_0 := *$4_1
+    if t0_0 < t1_0 goto L1 else goto L2
+[B6]
+L1:
+    min_6 := j_3
+    goto L2
+[B7]
+L2:
+    min_7 := PHI(min_3, min_6)
+    j_7 := j_3 + 1
+    goto L3
+[B8]
+L5:
+    $5_0 := A_0
+    $6_0 := i_1 * 4
+    $6_1 := $5_0 + $6_0
+    t0_1 := *$6_1
+    $7_0 := A_0
+    $8_0 := min_3 * 4
+    $8_1 := $7_0 + $8_0
+    t1_1 := *$8_1
+    $9_0 := A_0
+    $10_0 := $6_0
+    $10_1 := $6_1
+    $11_0 := t1_1
+    *$10_1 := $11_0
+    $12_0 := A_0
+    $13_0 := $8_0
+    $13_1 := $8_1
+    $14_0 := t0_1
+    *$13_1 := $14_0
+    i_8 := i_1 + 1
+    goto L6
+[B9]
+L8:
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| $10_0    | Bottom |
+| $10_1    | Bottom |
+| $11_0    | Bottom |
+| $12_0    | Bottom |
+| $13_0    | Bottom |
+| $13_1    | Bottom |
+| $14_0    | Bottom |
+| $1_0     | Bottom |
+| $2_0     | Bottom |
+| $2_1     | Bottom |
+| $3_0     | Bottom |
+| $4_0     | Bottom |
+| $4_1     | Bottom |
+| $5_0     | Bottom |
+| $6_0     | Bottom |
+| $6_1     | Bottom |
+| $7_0     | Bottom |
+| $8_0     | Bottom |
+| $8_1     | Bottom |
+| $9_0     | Bottom |
+| A_0      | Bottom |
+| i_0      | 0      |
+| i_1      | Bottom |
+| i_8      | Bottom |
+| j_2      | Bottom |
+| j_3      | Bottom |
+| j_7      | Bottom |
+| min_2    | Bottom |
+| min_3    | Bottom |
+| min_6    | Bottom |
+| min_7    | Bottom |
+| n_0      | Bottom |
+| t0_0     | Bottom |
+| t0_1     | Bottom |
+| t1_0     | Bottom |
+| t1_1     | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| $10_0    | Bottom |
+| $10_1    | Bottom |
+| $11_0    | Bottom |
+| $12_0    | Bottom |
+| $13_0    | Bottom |
+| $13_1    | Bottom |
+| $14_0    | Bottom |
+| $1_0     | Bottom |
+| $2_0     | Bottom |
+| $2_1     | Bottom |
+| $3_0     | Bottom |
+| $4_0     | Bottom |
+| $4_1     | Bottom |
+| $5_0     | Bottom |
+| $6_0     | Bottom |
+| $6_1     | Bottom |
+| $7_0     | Bottom |
+| $8_0     | Bottom |
+| $8_1     | Bottom |
+| $9_0     | Bottom |
+| A_0      | Bottom |
+| i_0      | 0      |
+| i_1      | Bottom |
+| i_8      | Bottom |
+| j_2      | Bottom |
+| j_3      | Bottom |
+| j_7      | Bottom |
+| min_2    | Bottom |
+| min_3    | Bottom |
+| min_6    | Bottom |
+| min_7    | Bottom |
+| n_0      | Bottom |
+| t0_0     | Bottom |
+| t0_1     | Bottom |
+| t1_0     | Bottom |
+| t1_1     | Bottom |
++----------+--------+

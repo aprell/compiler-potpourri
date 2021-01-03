@@ -1,0 +1,68 @@
+[B1]
+test04(A_0, N_0):
+    i_0 := 1
+    j_0 := 0
+    goto L1
+[B2]
+L1:
+    i_1 := PHI(i_0, i_3)
+    if i_1 < N_0 goto L2 else goto L3
+[B3]
+L2:
+    $1_0 := A_0
+    $2_0 := i_1 - 1
+    $2_1 := $2_0 * 4
+    $2_2 := $1_0 + $2_1
+    $3_0 := i_1 + 1
+    *$2_2 := $3_0
+    $4_0 := A_0
+    $5_0 := j_0 * 4
+    $5_1 := $4_0 + $5_0
+    $6_0 := $2_0
+    *$5_1 := $6_0
+    i_3 := $3_0
+    goto L1
+[B4]
+L3:
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| $1_0     | Bottom |
+| $2_0     | Bottom |
+| $2_1     | Bottom |
+| $2_2     | Bottom |
+| $3_0     | Bottom |
+| $4_0     | Bottom |
+| $5_0     | 0      |
+| $5_1     | Bottom |
+| $6_0     | Bottom |
+| A_0      | Bottom |
+| N_0      | Bottom |
+| i_0      | 1      |
+| i_1      | Bottom |
+| i_3      | Bottom |
+| j_0      | 0      |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| $1_0     | Bottom |
+| $2_0     | Bottom |
+| $2_1     | Bottom |
+| $2_2     | Bottom |
+| $3_0     | Bottom |
+| $4_0     | Bottom |
+| $5_0     | 0      |
+| $5_1     | Bottom |
+| $6_0     | Bottom |
+| A_0      | Bottom |
+| N_0      | Bottom |
+| i_0      | 1      |
+| i_1      | Bottom |
+| i_3      | Bottom |
+| j_0      | 0      |
++----------+--------+

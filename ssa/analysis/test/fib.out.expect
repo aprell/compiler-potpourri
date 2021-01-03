@@ -1,0 +1,62 @@
+[B1]
+fib(n_0):
+    t0_0 := 0
+    t1_0 := 1
+    if n_0 < 2 goto L1 else goto L2
+[B2]
+L1:
+    return n_0
+[B3]
+L2:
+    i_2 := 2
+    goto L3
+[B4]
+L3:
+    i_3 := PHI(i_2, i_5)
+    t0_3 := PHI(t0_0, t0_5)
+    t1_3 := PHI(t1_0, t1_5)
+    if i_3 <= n_0 goto L4 else goto L5
+[B5]
+L4:
+    t2_0 := t0_3 + t1_3
+    t0_5 := t1_3
+    t1_5 := t2_0
+    i_5 := i_3 + 1
+    goto L3
+[B6]
+L5:
+    return t1_3
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_2      | 2      |
+| i_3      | Bottom |
+| i_5      | Bottom |
+| n_0      | Bottom |
+| t0_0     | 0      |
+| t0_3     | Bottom |
+| t0_5     | Bottom |
+| t1_0     | 1      |
+| t1_3     | Bottom |
+| t1_5     | Bottom |
+| t2_0     | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_2      | 2      |
+| i_3      | Bottom |
+| i_5      | Bottom |
+| n_0      | Bottom |
+| t0_0     | 0      |
+| t0_3     | Bottom |
+| t0_5     | Bottom |
+| t1_0     | 1      |
+| t1_3     | Bottom |
+| t1_5     | Bottom |
+| t2_0     | Bottom |
++----------+--------+

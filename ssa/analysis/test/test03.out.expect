@@ -1,0 +1,37 @@
+[B1]
+test03(x_0):
+    i_0 := 0
+    goto L1
+[B2]
+L1:
+    i_1 := PHI(i_0, i_3)
+    if i_1 < 10 goto L2 else goto L3
+[B3]
+L2:
+    x_1 := 2 * i_1
+    i_3 := i_1 + 1
+    goto L1
+[B4]
+L3:
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_0      | 0      |
+| i_1      | Bottom |
+| i_3      | Bottom |
+| x_0      | Bottom |
+| x_1      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_0      | 0      |
+| i_1      | Bottom |
+| i_3      | Bottom |
+| x_0      | Bottom |
+| x_1      | Bottom |
++----------+--------+

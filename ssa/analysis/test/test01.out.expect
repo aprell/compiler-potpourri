@@ -1,0 +1,37 @@
+[B1]
+test01(a_0, b_0):
+    if a_0 > b_0 goto L4 else goto L5
+[B2]
+L4:
+    if a_0 < 100 goto L1 else goto L2
+[B3]
+L1:
+    return a_0
+[B5]
+L2:
+    c_0 := b_0 + 1
+    return b_0
+[B7]
+L5:
+    c_1 := b_0 + 1
+    return c_1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| a_0      | Bottom |
+| b_0      | Bottom |
+| c_0      | Bottom |
+| c_1      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| a_0      | Bottom |
+| b_0      | Bottom |
+| c_0      | Bottom |
+| c_1      | Bottom |
++----------+--------+

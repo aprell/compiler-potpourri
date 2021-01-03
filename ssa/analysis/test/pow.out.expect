@@ -1,0 +1,43 @@
+[B1]
+pow(b_0, e_0):
+    r_0 := 1
+    goto L1
+[B2]
+L1:
+    e_1 := PHI(e_0, e_3)
+    r_1 := PHI(r_0, r_3)
+    if e_1 > 0 goto L2 else goto L3
+[B3]
+L2:
+    r_3 := r_1 * b_0
+    e_3 := e_1 - 1
+    goto L1
+[B4]
+L3:
+    return r_1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| b_0      | Bottom |
+| e_0      | Bottom |
+| e_1      | Bottom |
+| e_3      | Bottom |
+| r_0      | 1      |
+| r_1      | Bottom |
+| r_3      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| b_0      | Bottom |
+| e_0      | Bottom |
+| e_1      | Bottom |
+| e_3      | Bottom |
+| r_0      | 1      |
+| r_1      | Bottom |
+| r_3      | Bottom |
++----------+--------+

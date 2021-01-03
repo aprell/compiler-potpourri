@@ -1,0 +1,58 @@
+[B1]
+fastpow(b_0, e_0):
+    r_0 := 1
+    goto L3
+[B2]
+L3:
+    b_1 := PHI(b_0, b_5)
+    e_1 := PHI(e_0, e_5)
+    r_1 := PHI(r_0, r_5)
+    if e_1 > 0 goto L4 else goto L5
+[B3]
+L4:
+    if e_1 % 2 != 0 goto L1 else goto L2
+[B4]
+L1:
+    r_4 := r_1 * b_1
+    goto L2
+[B5]
+L2:
+    r_5 := PHI(r_1, r_4)
+    b_5 := b_1 * b_1
+    e_5 := e_1 / 2
+    goto L3
+[B6]
+L5:
+    return r_1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| b_0      | Bottom |
+| b_1      | Bottom |
+| b_5      | Bottom |
+| e_0      | Bottom |
+| e_1      | Bottom |
+| e_5      | Bottom |
+| r_0      | 1      |
+| r_1      | Bottom |
+| r_4      | Bottom |
+| r_5      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| b_0      | Bottom |
+| b_1      | Bottom |
+| b_5      | Bottom |
+| e_0      | Bottom |
+| e_1      | Bottom |
+| e_5      | Bottom |
+| r_0      | 1      |
+| r_1      | Bottom |
+| r_4      | Bottom |
+| r_5      | Bottom |
++----------+--------+
