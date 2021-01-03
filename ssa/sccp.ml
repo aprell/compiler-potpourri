@@ -5,6 +5,12 @@ open Basic_block__Utils
 open Control_flow
 open Ssa__Utils
 
+let verbose_flag = ref false
+
+let printf fmt =
+  if !verbose_flag then Printf.fprintf stdout fmt
+  else Printf.ifprintf stdout fmt
+
 (* Abstract values *)
 type value =
   | Top          (* Undefined *)
@@ -64,7 +70,7 @@ let interpret op v1 v2 =
 
 let meet' v1 v2 =
   let v3 = meet v1 v2 in
-  Printf.printf "%s meet %s = %s\n"
+  printf "%s meet %s = %s\n"
     (string_of_value v1)
     (string_of_value v2)
     (string_of_value v3);
@@ -72,7 +78,7 @@ let meet' v1 v2 =
 
 let interpret' op v1 v2 =
   let v3 = interpret op v1 v2 in
-  Printf.printf "%s %s %s = %s\n"
+  printf "%s %s %s = %s\n"
     (string_of_value v1)
     (string_of_op op)
     (string_of_value v2)
@@ -131,7 +137,8 @@ let reachable node =
 
 type task = Edge of cfg_edge | Def of var
 
-let init graph =
+let init ?(verbose = false) graph =
+  verbose_flag := verbose;
   let entry = graph.(0) in
 
   let worklist = Queue.create () in
@@ -160,20 +167,20 @@ let visit_stmt node worklist stmt =
     let v = value_of x in
     begin match e with
       | Const n ->
-        Printf.printf "%s := %d\n" (name_of_var x) n;
+        printf "%s := %d\n" (name_of_var x) n;
         x <-= Const n;
       | Val y ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= value_of y;
-        Printf.printf "%s\n" (string_of_value (value_of y))
+        printf "%s\n" (string_of_value (value_of y))
       | Binop (op, Val y, Const n) ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= interpret' (Bin op) (value_of y) (Const n)
       | Binop (op, Const n, Val y) ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= interpret' (Bin op) (Const n) (value_of y)
       | Binop (op, Val y, Val z) ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= interpret' (Bin op) (value_of y) (value_of z)
       | _ -> ()
     end;
@@ -181,35 +188,35 @@ let visit_stmt node worklist stmt =
       Queue.add (Def x) worklist
   | Jump l ->
     let target = find_succ node l in
-    Printf.printf "Queue %s -> %s (jump)\n" node.block.name target.block.name;
+    printf "Queue %s -> %s (jump)\n" node.block.name target.block.name;
     Queue.add (Edge (node, target)) worklist
   | Cond (e, l1, l2) -> (
       let v = match e with
         | Relop (op, Val x, Const n) ->
-          Printf.printf "if ";
+          printf "if ";
           interpret' (Rel op) (value_of x) (Const n)
         | Relop (op, Const n, Val x) ->
-          Printf.printf "if ";
+          printf "if ";
           interpret' (Rel op) (Const n) (value_of x)
         | Relop (op, Val x, Val y) ->
-          Printf.printf "if ";
+          printf "if ";
           interpret' (Rel op) (value_of x) (value_of y)
         | _ -> Bottom
       in
       match v with
       | Const 1 ->
         let then_ = find_succ node l1 in
-        Printf.printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
+        printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
         Queue.add (Edge (node, then_)) worklist
       | Const 0 ->
         let else_ = find_succ node l2 in
-        Printf.printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
+        printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
         Queue.add (Edge (node, else_)) worklist
       | Bottom ->
         let then_ = find_succ node l1 in
         let else_ = find_succ node l2 in
-        Printf.printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
-        Printf.printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
+        printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
+        printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
         Queue.add (Edge (node, then_)) worklist;
         Queue.add (Edge (node, else_)) worklist
       | _ -> assert false
@@ -225,7 +232,7 @@ let visit_stmt node worklist stmt =
       assert ((fst e1).index < (fst e2).index);
       if not (executed e1) then assert (executed e2);
       if not (executed e2) then assert (executed e1);
-      Printf.printf "%s := " (name_of_var x);
+      printf "%s := " (name_of_var x);
       x <-= meet' (value_of y) (value_of z);
       if value_of x <> v then
         Queue.add (Def x) worklist
@@ -248,11 +255,11 @@ let iterate graph worklist =
     match Queue.take worklist with
     | Edge ((m, n) as edge) ->
       if not (executed edge) then (
-        Printf.printf "Execute %s -> %s\n" m.block.name n.block.name;
+        printf "Execute %s -> %s\n" m.block.name n.block.name;
         execute edge;
         visit n worklist
       ) else (
-        Printf.printf "Execute %s -> %s (already executed)\n" m.block.name n.block.name
+        printf "Execute %s -> %s (already executed)\n" m.block.name n.block.name
       )
     | Def x ->
       let uses = Ssa__Def_use_chain.get_uses x in

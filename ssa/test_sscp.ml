@@ -18,7 +18,7 @@ let () =
   in
   convert_to_ssa graph;
   print_basic_blocks graph;
-  let worklist = Sscp.init ~value:Sscp.Top () in
+  let worklist = Sscp.init ~value:Sscp.Top () ~verbose:true in
   print_newline ();
   Sscp.print ();
   print_newline ();

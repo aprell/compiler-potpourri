@@ -3,6 +3,12 @@
 open Three_address_code__IR
 open Basic_block__Utils
 
+let verbose_flag = ref false
+
+let printf fmt =
+  if !verbose_flag then Printf.fprintf stdout fmt
+  else Printf.ifprintf stdout fmt
+
 (* Abstract values *)
 type value =
   | Top          (* Undefined *)
@@ -42,7 +48,7 @@ let string_of_binop = function
 
 let meet' v1 v2 =
   let v3 = meet v1 v2 in
-  Printf.printf "%s meet %s = %s\n"
+  printf "%s meet %s = %s\n"
     (string_of_value v1)
     (string_of_value v2)
     (string_of_value v3);
@@ -50,7 +56,7 @@ let meet' v1 v2 =
 
 let interpret' op v1 v2 =
   let v3 = interpret op v1 v2 in
-  Printf.printf "%s %s %s = %s\n"
+  printf "%s %s %s = %s\n"
     (string_of_value v1)
     (string_of_binop op)
     (string_of_value v2)
@@ -64,7 +70,8 @@ let value_of = Hashtbl.find values
 
 let ( <-= ) var = Hashtbl.replace values var
 
-let init ?(value = Top) () =
+let init ?(value = Top) ?(verbose = false) () =
+  verbose_flag := verbose;
   let worklist = Queue.create () in
   Ssa__Def_use_chain.iter (fun x def _ -> (
         match def with
@@ -88,17 +95,17 @@ let propagate worklist = function
     let v = value_of x in
     begin match e with
       | Val y ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= value_of y;
-        Printf.printf "%s\n" (string_of_value (value_of y))
+        printf "%s\n" (string_of_value (value_of y))
       | Binop (op, Val y, Const n) ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= interpret' op (value_of y) (Const n)
       | Binop (op, Const n, Val y) ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= interpret' op (Const n) (value_of y)
       | Binop (op, Val y, Val z) ->
-        Printf.printf "%s := " (name_of_var x);
+        printf "%s := " (name_of_var x);
         x <-= interpret' op (value_of y) (value_of z)
       | _ -> ()
     end;
@@ -106,7 +113,7 @@ let propagate worklist = function
       Queue.add x worklist
   | Phi (x, [y; z]) ->
     let v = value_of x in
-    Printf.printf "%s := " (name_of_var x);
+    printf "%s := " (name_of_var x);
     x <-= meet' (value_of y) (value_of z);
     if value_of x <> v then
       Queue.add x worklist

@@ -18,7 +18,7 @@ let () =
   in
   convert_to_ssa graph;
   print_basic_blocks graph;
-  let worklist = Sccp.init graph in
+  let worklist = Sccp.init graph ~verbose:true in
   print_newline ();
   Sccp.print ();
   print_newline ();
