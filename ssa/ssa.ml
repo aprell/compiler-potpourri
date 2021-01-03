@@ -297,7 +297,9 @@ let minimize_phi_functions graph =
   (* Iterate *)
   while not (Queue.is_empty worklist) do
     Queue.take worklist ()
-  done
+  done;
+
+  Def_use_chain.clean_up ()
 
 (* Roughly follows the simple generation of SSA form by Aycock and Horspool:
  * (1) Insert phi-functions "everywhere" (the "really crude" approach)

@@ -140,10 +140,7 @@ let eliminate_dead_code ?(dump = false) () =
         )
       | _ -> assert false
     )
-  | Some (x, { def = None; _ }) ->
-    (* Remove leftover binding from SSA conversion *)
-    Def_use_chain.remove_def x;
-    true
+  | Some (_, { def = None; _ }) -> assert false
   | None -> false
 
 let optimize ?(dump = false) () =

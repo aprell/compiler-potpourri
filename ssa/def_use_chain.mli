@@ -33,4 +33,6 @@ val iter : (var -> Set.elt option -> Set.t -> unit) -> unit
 
 val find_first : (t -> bool) -> (var * t) option
 
+val clean_up : unit -> unit
+
 val print : unit -> unit

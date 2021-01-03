@@ -149,6 +149,21 @@ let find_first p =
   end;
   !first
 
+let clean_up () =
+  let rec loop () =
+    match (
+      (* Find a dead SSA name without a definition *)
+      find_first (fun { def; uses; } ->
+          Option.is_none def && Set.is_empty uses
+        )
+    ) with
+    | Some (x, _) ->
+      remove_def x;
+      loop ()
+    | None -> ()
+  in
+  loop ()
+
 let to_string { def; uses; } =
   let string_of_stmt' (block, stmt) =
     Printf.sprintf "%s (%s)" (string_of_stmt !(!stmt)) !block.name
