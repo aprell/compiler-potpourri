@@ -4,81 +4,88 @@ open Utils
 
 type t = {
   name : string;
-  source : source_info option;
-}
-
-and source_info = {
-  entry : string;
-  exits : string list;
+  number : int;
   mutable stmts : stmt ref list;
+  mutable pred : t list;
+  mutable succ : t list;
 }
 
 (* Constructor for basic blocks *)
-let create ?source name = { name; source; }
+let create ?name ?(stmts = []) number =
+  { name = Option.value name ~default:("B" ^ string_of_int number);
+    number; stmts; pred = []; succ = [] }
+
+let compare a b = Stdlib.compare a.number b.number
 
 let to_string block =
-  match block.source with
-  | Some { stmts; _ } ->
-    Printf.sprintf "[%s]\n%s"
-      block.name
-      (stmts
-       |> List.map (fun stmt -> string_of_stmt !stmt ~indent:4)
-       |> String.concat "\n")
-  | None -> block.name
+  Printf.sprintf "[%s]\n%s"
+    block.name
+    (block.stmts
+     |> List.map (fun stmt -> string_of_stmt !stmt ~indent:4)
+     |> String.concat "\n")
 
-let jump_targets = function
-  | Jump (target, _) -> [target]
-  | Cond (_, (then_, _), (else_, _)) -> [then_; else_]
-  | Return _ -> ["exit"]
-  | _ -> []
+let first_stmt { stmts; _ } =
+  match stmts with
+  | stmt :: _ -> Some stmt
+  | _ -> None
+
+let last_stmt { stmts; _ } =
+  match List.rev stmts with
+  | stmt :: _ -> Some stmt
+  | _ -> None
+
+let entry_label block =
+  match first_stmt block with
+  | Some { contents = Label l } -> l
+  | _ -> (block.name, None)
 
 let create_basic_blocks source =
-  let gen_name = gen_sym "B" 1 in
-  List.fold_left (fun (label, lines, code, blocks) stmt ->
+  let block_number = gen_number 1 in
+  List.fold_left (fun (lines, code, blocks) stmt ->
       match stmt with
       | Label (name, _) ->
         if lines = 0 then
           (* Extend basic block *)
-          (name, lines + 1, code, blocks)
+          (lines + 1, code, blocks)
         else
           (* End previous basic block *)
           let stmts, code = split lines code in
           let stmts = List.map ref stmts in
-          let block = create (gen_name ()) ~source:
-              { entry = label;
-                exits = [name];
+          let block = create (block_number ())
+              ~stmts:
                 (* Insert explicit jump *)
-                stmts = stmts @ [ref (Jump (name, None))]; }
+                (stmts @ [ref (Jump (name, None))])
           in
           (* This line starts a new basic block *)
-          (name, 1, code, block :: blocks)
+          (1, code, block :: blocks)
       | Jump _ | Cond _ | Return _ ->
         (* End current basic block *)
         let stmts, code = split (lines + 1) code in
         let stmts = List.map ref stmts in
-        let block = create (gen_name ()) ~source:
-            { entry = label;
-              exits = jump_targets stmt;
-              stmts; }
-        in
+        let block = create (block_number ()) ~stmts in
         (* Next line starts a new basic block *)
-        ("next", 0, code, block :: blocks)
+        (0, code, block :: blocks)
       | _ ->
         (* Extend basic block *)
-        (label, lines + 1, code, blocks)
-    ) ("entry", 0, source, []) source
-  |> fun (label, _, code, blocks) ->
+        (lines + 1, code, blocks)
+    ) (0, source, []) source
+  |> fun (_, code, blocks) ->
   if code <> [] then
-    (* Close open basic block with an implicit return *)
+    (* Close open basic block *)
     let stmts = List.map ref code in
-    let block = create (gen_name ()) ~source:
-        { entry = label;
-          exits = ["exit"];
-          stmts; }
+    let block = create (block_number ())
+        ~stmts:
+          (* Insert explicit return *)
+          (stmts @ [ref (Return None)])
     in
     List.rev (block :: blocks)
   else
     List.rev blocks
+
+let print_basic_blocks blocks =
+  List.map to_string blocks
+  |> String.concat "\n"
+  |> print_endline
 
 module Liveness = struct
   module Set = Set.Make (struct
@@ -129,9 +136,5 @@ module Liveness = struct
         assert (Set.is_empty (Set.inter use def));
         (use, def)
     in
-    match block.source with
-    | Some { stmts; _ } ->
-      loop (Set.empty, Set.empty) (List.rev stmts)
-    | None ->
-      (Set.empty, Set.empty)
+    loop (Set.empty, Set.empty) (List.rev block.stmts)
 end

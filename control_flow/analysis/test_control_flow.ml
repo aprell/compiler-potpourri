@@ -23,9 +23,7 @@ let inspect graph ~output =
 let test () =
   let fib_1 = Graphs.fib in
   let fib_2 = graph_of_input "basic_blocks/examples/fib.hir" in
-  (* fib_1 lacks source information *)
-  assert (not (Cfg.equal fib_1 fib_2));
-  assert (Cfg.equal fib_1 (Cfg.discard_source_info fib_2))
+  assert (Cfg.equal fib_1 fib_2)
 
 let () =
   match Sys.argv with

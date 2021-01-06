@@ -85,20 +85,6 @@ let interpret' op v1 v2 =
     (string_of_value v3);
   v3
 
-let label_of { Basic_block.name; source; } =
-  match source with
-  | Some { entry; _ } -> (entry, None)
-  | None -> (
-      match name with
-      | "Entry" -> ("entry", None)
-      | "Exit" -> ("exit", None)
-      | _ -> assert false
-    )
-
-let find_succ { Cfg.Node.succ; _ } label =
-  Cfg.NodeSet.elements succ
-  |> List.find (fun { Cfg.Node.block; _ } -> label_of block = label)
-
 (* Maps variables (SSA names) to abstract values *)
 let values = Hashtbl.create 10
 
@@ -106,7 +92,9 @@ let value_of = Hashtbl.find values
 
 let ( <-= ) var = Hashtbl.replace values var
 
-type cfg_edge = Cfg.Node.t * Cfg.Node.t
+type cfg_edge = Basic_block.t * Basic_block.t
+
+(* type def_use_edge = Def_use_chain.Set.elt * Def_use_chain.Set.elt *)
 
 (* Keeps track of executed CFG edges *)
 let edges = Hashtbl.create 10
@@ -117,33 +105,27 @@ let executed edge =
 let execute edge =
   Hashtbl.replace edges edge true
 
-let node_of { Basic_block.name; _ } graph =
-  Array.to_list graph
-  |> List.find (fun { Cfg.Node.block; _ } -> block.name = name)
+let in_edges block =
+  let open Basic_block in
+  List.map (fun pred -> (pred, block)) block.pred
 
-let in_edges node =
-  let open Cfg.Node in
-  Cfg.NodeSet.elements node.pred
-  |> List.map (fun pred -> (pred, node))
+let out_edges block =
+  let open Basic_block in
+  List.map (fun succ -> (block, succ)) block.succ
 
-let out_edges node =
-  let open Cfg.Node in
-  Cfg.NodeSet.elements node.succ
-  |> List.map (fun succ -> (node, succ))
-
-let reachable node =
-  in_edges node
+let reachable block =
+  in_edges block
   |> List.exists executed
 
 type task = Edge of cfg_edge | Def of var
 
-let init ?(verbose = false) graph =
+let init ?(verbose = false) (graph : Cfg.t) =
   verbose_flag := verbose;
-  let entry = graph.(0) in
+  let entry = graph.(0).block in
 
   let worklist = Queue.create () in
-  Cfg.NodeSet.iter (fun node ->
-      Queue.add (Edge (entry, node)) worklist
+  List.iter (fun block ->
+      Queue.add (Edge (entry, block)) worklist
     ) entry.succ;
 
   Ssa__Def_use_chain.iter (fun x def _ ->
@@ -160,8 +142,8 @@ let init ?(verbose = false) graph =
     );
   worklist
 
-let visit_stmt node worklist stmt =
-  let open Cfg.Node in
+let visit_stmt block worklist stmt =
+  let open Basic_block in
   match !stmt with
   | Move (x, e) ->
     let v = value_of x in
@@ -187,10 +169,16 @@ let visit_stmt node worklist stmt =
     if value_of x <> v then
       Queue.add (Def x) worklist
   | Jump l ->
-    let target = find_succ node l in
-    printf "Queue %s -> %s (jump)\n" node.block.name target.block.name;
-    Queue.add (Edge (node, target)) worklist
+    let target = List.hd block.succ in
+    assert (entry_label target = l);
+    printf "Queue %s -> %s (jump)\n" block.name target.name;
+    Queue.add (Edge (block, target)) worklist
   | Cond (e, l1, l2) -> (
+      let then_, else_ = match block.succ with
+        | [b1; b2] when entry_label b1 = l1 && entry_label b2 = l2 -> b1, b2
+        | [b1; b2] when entry_label b1 = l2 && entry_label b2 = l1 -> b2, b1
+        | _ -> assert false
+      in
       let v = match e with
         | Relop (op, Val x, Const n) ->
           printf "if ";
@@ -205,31 +193,27 @@ let visit_stmt node worklist stmt =
       in
       match v with
       | Const 1 ->
-        let then_ = find_succ node l1 in
-        printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
-        Queue.add (Edge (node, then_)) worklist
+        printf "Queue %s -> %s (then)\n" block.name then_.name;
+        Queue.add (Edge (block, then_)) worklist
       | Const 0 ->
-        let else_ = find_succ node l2 in
-        printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
-        Queue.add (Edge (node, else_)) worklist
+        printf "Queue %s -> %s (else)\n" block.name else_.name;
+        Queue.add (Edge (block, else_)) worklist
       | Bottom ->
-        let then_ = find_succ node l1 in
-        let else_ = find_succ node l2 in
-        printf "Queue %s -> %s (then)\n" node.block.name then_.block.name;
-        printf "Queue %s -> %s (else)\n" node.block.name else_.block.name;
-        Queue.add (Edge (node, then_)) worklist;
-        Queue.add (Edge (node, else_)) worklist
+        printf "Queue %s -> %s (then)\n" block.name then_.name;
+        printf "Queue %s -> %s (else)\n" block.name else_.name;
+        Queue.add (Edge (block, then_)) worklist;
+        Queue.add (Edge (block, else_)) worklist
       | _ -> assert false
     )
   | Phi (x, ([y; z] as args)) ->
-    let edges = in_edges node in
+    let edges = in_edges block in
     assert (List.length edges = 2);
     let v = value_of x in
     if v <> Bottom then (
       let edges = List.combine args edges in
       let e1 = List.assoc y edges in
       let e2 = List.assoc z edges in
-      assert ((fst e1).index < (fst e2).index);
+      assert ((fst e1).number < (fst e2).number);
       if not (executed e1) then assert (executed e2);
       if not (executed e2) then assert (executed e1);
       printf "%s := " (name_of_var x);
@@ -239,34 +223,29 @@ let visit_stmt node worklist stmt =
     )
   | _ -> ()
 
-let visit ({ Cfg.Node.block; _ } as node) worklist =
-  match block.source with
-  | Some { stmts; _ } -> (
-      let edges = in_edges node in
-      let phis, rest = List.partition (( ! ) >> is_phi) stmts in
-      List.iter (visit_stmt node worklist) phis;
-      if List.(length (filter executed edges) = 1) then
-        List.iter (visit_stmt node worklist) rest
-    )
-  | None -> assert false
+let visit block worklist =
+  let edges = in_edges block in
+  let phis, rest = List.partition (( ! ) >> is_phi) block.stmts in
+  List.iter (visit_stmt block worklist) phis;
+  if List.(length (filter executed edges) = 1) then
+    List.iter (visit_stmt block worklist) rest
 
-let iterate graph worklist =
+let iterate worklist =
   while not (Queue.is_empty worklist) do
     match Queue.take worklist with
     | Edge ((m, n) as edge) ->
       if not (executed edge) then (
-        printf "Execute %s -> %s\n" m.block.name n.block.name;
+        printf "Execute %s -> %s\n" m.name n.name;
         execute edge;
         visit n worklist
       ) else (
-        printf "Execute %s -> %s (already executed)\n" m.block.name n.block.name
+        printf "Execute %s -> %s (already executed)\n" m.name n.name
       )
     | Def x ->
       let uses = Ssa__Def_use_chain.get_uses x in
       Ssa__Def_use_chain.Set.iter (fun (block, stmt) ->
-          let node = node_of !block graph in
-          if reachable node then
-            visit_stmt node worklist !stmt
+          if reachable !block then
+            visit_stmt !block worklist !stmt
         ) uses
   done
 

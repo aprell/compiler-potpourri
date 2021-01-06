@@ -1,9 +1,8 @@
 module rec Node : sig
   type t = {
-    index : int;
     block : Basic_block.t;
-    mutable succ : NodeSet.t;
     mutable pred : NodeSet.t;
+    mutable succ : NodeSet.t;
     mutable doms : NodeSet.t;
     mutable idom : Node.t option;
   }
@@ -12,26 +11,29 @@ end = Node
 
 and NodeSet : Set.S with type elt = Node.t = Set.Make(struct
   type t = Node.t
-  let compare x y = Stdlib.compare x.Node.index y.Node.index
+  let compare x y = Basic_block.compare x.Node.block y.Node.block
 end)
 
 type t = Node.t array
 
 (* Add an edge from node a to node b *)
 let ( => ) (a : Node.t) (b : Node.t) =
+  a.block.succ <- List.sort Basic_block.compare (b.block :: a.block.succ);
+  b.block.pred <- List.sort Basic_block.compare (a.block :: b.block.pred);
   a.succ <- NodeSet.add b a.succ;
   b.pred <- NodeSet.add a b.pred
 
 let define ~(nodes : int list) ~(edges : (int * int) list) : t =
   let open Node in
-  let basic_blocks =
-    List.map (fun i -> Basic_block.create ("B" ^ string_of_int i)) nodes
-  in
   let graph =
-    Basic_block.(create "Entry" :: basic_blocks @ [create "Exit"])
+    Basic_block.(
+      create 0 ~name:"Entry"
+      :: List.map create nodes
+      @ [create (List.length nodes + 1) ~name:"Exit"]
+    )
     |> Array.of_list
-    |> Array.mapi (fun index block ->
-        { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
+    |> Array.map (fun block ->
+        { block; succ = NodeSet.empty; pred = NodeSet.empty;
           doms = NodeSet.empty; idom = None; })
   in
   let entry = 0 in
@@ -49,9 +51,11 @@ let dfs_reverse_postorder (graph : t) =
   let entry = 0 in
   let exit = num_nodes - 1 in
   let rec visit node =
-    visited.(node.index) <- true;
-    if node.index <> exit then (
-      NodeSet.iter (fun s -> if not visited.(s.index) then visit s) node.succ
+    visited.(node.block.number) <- true;
+    if node.block.number <> exit then (
+      NodeSet.iter (fun s ->
+          if not visited.(s.block.number) then visit s
+        ) node.succ
     );
     order := node :: !order;
   in
@@ -68,9 +72,7 @@ let prune_unreachable_nodes (graph : t) : t =
   if NodeSet.cardinal reachable_nodes < Array.length graph then
     Array.iter (fun node ->
         if not (reachable node) then (
-          Option.iter (fun src ->
-              src.Basic_block.stmts <- []
-            ) node.block.source;
+          node.block.stmts <- [];
           node.succ <- NodeSet.empty;
           node.pred <- NodeSet.empty
         ) else (
@@ -92,20 +94,20 @@ let iter (f : Node.t -> unit) (graph : t) =
 let construct (basic_blocks : Basic_block.t list) : t =
   let open Node in
   let graph =
-    Basic_block.(create "Entry" :: basic_blocks @ [create "Exit"])
+    Basic_block.(
+      create 0 ~name:"Entry"
+      :: basic_blocks
+      @ [create (List.length basic_blocks + 1) ~name:"Exit"]
+    )
     |> Array.of_list
-    |> Array.mapi (fun index block ->
-        { index; block; succ = NodeSet.empty; pred = NodeSet.empty;
+    |> Array.map (fun block ->
+        { block; succ = NodeSet.empty; pred = NodeSet.empty;
           doms = NodeSet.empty; idom = None; })
   in
-  (* Create a list that associates labels with basic blocks *)
+  (* Create a list that associates labels with basic block numbers *)
   let labels =
-    List.mapi (fun i (block : Basic_block.t) ->
-        match block.source with
-        | Some { entry; _ } ->
-          (entry, i + 1)
-        | None ->
-          invalid_arg "Basic block lacks source information"
+    List.map (fun block ->
+        (Basic_block.entry_label block, block.number)
       ) basic_blocks
   in
   let entry = 0 in
@@ -114,33 +116,34 @@ let construct (basic_blocks : Basic_block.t list) : t =
   graph.(entry) => graph.(1);
   (* Connect basic blocks *)
   Array.iteri (fun i { block; _ } ->
-      match block.source with
-      | Some { exits; _ } ->
-        List.iter (function
-            | "exit" ->
-              graph.(i) => graph.(exit)
-            | label ->
-              let target = List.assoc label labels in
-              graph.(i) => graph.(target)
-          ) exits
-      | None ->
-        if i <> entry && i <> exit then
-          invalid_arg "Basic block lacks source information"
+      match Basic_block.last_stmt block with
+      | Some { contents = Jump l } ->
+        let target = List.assoc l labels in
+        graph.(i) => graph.(target)
+      | Some { contents = Cond (_, l1, l2) } ->
+        let targets = List.(assoc l1 labels, assoc l2 labels) in
+        graph.(i) => graph.(fst targets);
+        graph.(i) => graph.(snd targets)
+      | Some { contents = Return _ } ->
+        graph.(i) => graph.(exit)
+      | _ ->
+        assert (i = entry || i = exit)
     ) graph;
   prune_unreachable_nodes graph
 
-let discard_source_info (graph : t) : t =
-  let open Node in
-  Array.map (fun ({ block; _ } as node) ->
-      { node with block = Basic_block.create block.name }) graph
-
 let basic_blocks (graph : t) : Basic_block.t list =
   let open Node in
-  Array.fold_left (fun blocks node ->
+  Array.fold_left (fun blocks ({ block; _ } as node) ->
       if unreachable node then blocks
-      else node.block :: blocks
+      else block :: blocks
     ) [] graph
   |> List.rev
+
+let print_basic_blocks (graph : t) =
+  let open Basic_block in
+  basic_blocks graph
+  |> List.filter (fun { name; _ } -> name <> "Entry" && name <> "Exit")
+  |> print_basic_blocks
 
 let equal (a : t) (b : t) : bool =
   let open Node in
@@ -148,7 +151,7 @@ let equal (a : t) (b : t) : bool =
   else
     let ab = Array.map2 (fun node_a node_b -> (node_a, node_b)) a b in
     not (Array.exists (fun (node_a, node_b) ->
-        node_a.block <> node_b.block ||
+        Basic_block.compare node_a.block node_b.block <> 0 ||
         not (NodeSet.equal node_a.succ node_b.succ) ||
         not (NodeSet.equal node_a.pred node_b.pred) ||
         not (NodeSet.equal node_a.doms node_b.doms) ||

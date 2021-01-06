@@ -23,6 +23,7 @@ L5:
     return c
 [B8]
 L6:
+    return
 
 +----+-----+------+
 |    | use | def  |

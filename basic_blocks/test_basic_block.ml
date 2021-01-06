@@ -4,9 +4,7 @@ open Basic_block
 let print_basic_blocks filename =
   parse_file filename
   |> create_basic_blocks
-  |> List.map to_string
-  |> String.concat "\n"
-  |> print_endline
+  |> print_basic_blocks
 
 let () =
   print_basic_blocks

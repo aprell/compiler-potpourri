@@ -5,5 +5,5 @@ let () =
   parse_file
     (match Sys.argv with
      | [| _; filename |] -> filename
-     | _ -> "examples/test.hir")
+     | _ -> "examples/test01.hir")
   |> dump

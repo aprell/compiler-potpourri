@@ -12,9 +12,14 @@ let read_file name =
   close_in file;
   lines
 
-let gen_sym pref init =
+let gen_number init =
   let count = ref init in
-  fun ?(pref = pref) () ->
+  fun () ->
     let c = !count in
-    incr count;
+    incr count; c
+
+let gen_name pref init =
+  let next_number = gen_number init in
+  fun ?(pref = pref) () ->
+    let c = next_number () in
     pref ^ string_of_int c

@@ -1,9 +1,8 @@
 module rec Node : sig
   type t = {
-    index : int;
     block : Basic_block.t;
-    mutable succ : NodeSet.t;
     mutable pred : NodeSet.t;
+    mutable succ : NodeSet.t;
     mutable doms : NodeSet.t;
     mutable idom : Node.t option;
   }
@@ -19,7 +18,7 @@ val construct : Basic_block.t list -> t
 
 val basic_blocks : t -> Basic_block.t list
 
-val discard_source_info : t -> t
+val print_basic_blocks : t -> unit
 
 val equal : t -> t -> bool
 

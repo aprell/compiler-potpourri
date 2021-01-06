@@ -5,7 +5,7 @@ let dominators (graph : Cfg.t) : NodeSet.t array =
   let entry = 0 in
   (* Initialization *)
   Array.iter (fun node ->
-      if node.index = entry || unreachable node then
+      if node.block.number = entry || unreachable node then
         node.doms <- NodeSet.singleton node
       else
         node.doms <- NodeSet.of_list (Array.to_list graph)
@@ -35,7 +35,7 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
   let entry = 0 in
   let idoms = Array.make (Array.length graph) None in
   let rec immediate_dominator node =
-    if node.index = entry || unreachable node then
+    if node.block.number = entry || unreachable node then
       NodeSet.empty
     else
       let idom = ref (NodeSet.inter node.doms node.pred) in
@@ -43,7 +43,7 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
         (* The immediate dominator is not a direct predecessor *)
         try NodeSet.iter (fun p ->
             let idom' = NodeSet.inter (
-                match idoms.(p.index) with
+                match idoms.(p.block.number) with
                 | Some idom -> NodeSet.singleton idom
                 | None -> immediate_dominator p
               ) node.doms
@@ -56,7 +56,7 @@ let immediate_dominators (graph : Cfg.t) : Node.t option array =
         with Exit -> ()
       );
       assert (NodeSet.cardinal !idom = 1);
-      idoms.(node.index) <- Some (NodeSet.choose !idom);
+      idoms.(node.block.number) <- Some (NodeSet.choose !idom);
       !idom
   in
   Array.iter (fun node ->
@@ -89,7 +89,7 @@ module Domtree = struct
     in
     Array.iter (fun node ->
         match node.idom with
-        | Some idom -> tree.(idom.index) -- tree.(node.index)
+        | Some idom -> tree.(idom.block.number) -- tree.(node.block.number)
         | None -> ()
       ) tree;
     tree
@@ -127,24 +127,26 @@ end
  * dominance, i.e., n sdom d if n dom d and n != d. *)
 let dominance_frontiers (graph : Cfg.t) (domtree : Domtree.t) : NodeSet.t array =
   let open Node in
-  let idom { index = n; _ } { idom; _ } =
-    match idom with Some { index = i; _ } -> i = n | None -> false
+  let idom { block = a; _ } { idom; _ } =
+    match idom with
+    | Some { block = b; _ } -> a.number = b.number
+    | None -> false
   in
   let dom n i = NodeSet.mem n i.doms in
   let df = Array.make (Array.length graph) NodeSet.empty in
-  let rec dominance_frontier ({ index = i; succ; _ } as node) =
+  let rec dominance_frontier ({ block; succ; _ } as node) =
     NodeSet.iter (fun s ->
         if not (idom node s) then (
           assert (not (dom node s));
-          df.(i) <- NodeSet.union df.(i) (NodeSet.singleton s)
+          df.(block.number) <- NodeSet.union df.(block.number) (NodeSet.singleton s)
         )
       ) succ;
-    List.iter (fun { index = c; _ } ->
+    List.iter (fun { block = child; _ } ->
         NodeSet.iter (fun n ->
             if not (dom node n) then
-              df.(i) <- NodeSet.union df.(i) (NodeSet.singleton n)
-          ) (dominance_frontier graph.(c))
-      ) (Domtree.children domtree.(i));
-    df.(i)
+              df.(block.number) <- NodeSet.union df.(block.number) (NodeSet.singleton n)
+          ) (dominance_frontier graph.(child.number))
+      ) (Domtree.children domtree.(block.number));
+    df.(block.number)
   in
   let _ = dominance_frontier graph.(0) in df

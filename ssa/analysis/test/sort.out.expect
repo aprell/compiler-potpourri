@@ -60,6 +60,7 @@ L5:
     goto L6
 [B9]
 L8:
+    return
 
 Result of SSCP:
 +----------+--------+

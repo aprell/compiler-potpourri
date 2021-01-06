@@ -24,6 +24,7 @@ L2:
     goto L1
 [B4]
 L3:
+    return
 
 Result of SSCP:
 +----------+--------+

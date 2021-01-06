@@ -1,14 +1,9 @@
 open Three_address_code__IR
+open Three_address_code__Utils
 
 let value_numbers = Hashtbl.create 10
 
 let available_exprs = Hashtbl.create 10
-
-let gen_number init =
-  let count = ref init in
-  fun () ->
-    let c = !count in
-    incr count; c
 
 let next_value_number = gen_number 1
 

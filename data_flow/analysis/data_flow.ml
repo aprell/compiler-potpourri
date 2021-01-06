@@ -35,14 +35,14 @@ module Forward_flow (A : AnalysisType) = struct
   let traverse = Cfg.dfs_reverse_postorder
 
   let update (node : Cfg.Node.t) sets =
-    let { gen; kill; global_in; _ } = sets.(node.index) in
+    let { gen; kill; global_in; _ } = sets.(node.block.number) in
     match node.block.name with
     | "Entry" -> (global_in, Set.union gen global_in)
     | _ -> (
         assert (Cfg.NodeSet.cardinal node.pred > 0);
         let in_set = Cfg.NodeSet.fold (fun p set ->
-            A.meet sets.(p.index).global_out set
-          ) node.pred (sets.((Cfg.NodeSet.choose node.pred).index).global_out)
+            A.meet sets.(p.block.number).global_out set
+          ) node.pred (sets.((Cfg.NodeSet.choose node.pred).block.number).global_out)
         in
         let out_set = Set.(union gen (diff in_set kill)) in
         (in_set, out_set)
@@ -55,14 +55,14 @@ module Backward_flow (A : AnalysisType) = struct
   let traverse = Cfg.dfs_postorder
 
   let update (node : Cfg.Node.t) sets =
-    let { gen; kill; global_out; _ } = sets.(node.index) in
+    let { gen; kill; global_out; _ } = sets.(node.block.number) in
     match node.block.name with
     | "Exit" -> (Set.union gen global_out, global_out)
     | _ -> (
         assert (Cfg.NodeSet.cardinal node.succ > 0);
         let out_set = Cfg.NodeSet.fold (fun s set ->
-            A.meet sets.(s.index).global_in set
-          ) node.succ (sets.((Cfg.NodeSet.choose node.succ).index).global_in)
+            A.meet sets.(s.block.number).global_in set
+          ) node.succ (sets.((Cfg.NodeSet.choose node.succ).block.number).global_in)
         in
         let in_set = Set.(union gen (diff out_set kill)) in
         (in_set, out_set)
@@ -115,11 +115,11 @@ module Data_flow_analysis (DF : DataFlowType) = struct
       changed := false;
       List.iter (fun node ->
           let in_set', out_set' = DF.update node sets in
-          if (not (DF.Set.equal in_set' sets.(node.index).global_in) ||
-              not (DF.Set.equal out_set' sets.(node.index).global_out)) then
+          if (not (DF.Set.equal in_set' sets.(node.block.number).global_in) ||
+              not (DF.Set.equal out_set' sets.(node.block.number).global_out)) then
             changed := true;
-          sets.(node.index).global_in <- in_set';
-          sets.(node.index).global_out <- out_set'
+          sets.(node.block.number).global_in <- in_set';
+          sets.(node.block.number).global_out <- out_set'
         ) traversal;
       if dump then (
         print_endline ("Iteration " ^ (string_of_int !num_iter) ^ ":");

@@ -2,4 +2,6 @@ val input_lines : in_channel -> string list
 
 val read_file : string -> string list
 
-val gen_sym : string -> int -> ?pref:string -> unit -> string
+val gen_number : int -> unit -> int
+
+val gen_name : string -> int -> ?pref:string -> unit -> string

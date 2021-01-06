@@ -49,8 +49,7 @@ let propagate_phi x y =
 
 let remove_def x =
   let (block, def) = Option.get (Def_use_chain.get_def x) in
-  let src = Option.get !block.source in
-  src.stmts <- List.filter (( <> ) !def) src.stmts;
+  !block.stmts <- List.filter (( <> ) !def) !block.stmts;
   Def_use_chain.remove_def x
 
 let propagate_const x n =

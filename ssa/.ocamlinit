@@ -35,10 +35,8 @@ let src3 = [
 
 let cfg_of src =
   Cfg.construct [
-    Basic_block.create "B1" ~source:
-      { entry = "test";
-        exits = [];
-        stmts = List.map ref (parse_prog src) }
+    Basic_block.create 1
+      ~stmts:(List.map ref (parse_prog src))
   ]
 
 let print ~text block =

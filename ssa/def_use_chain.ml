@@ -35,9 +35,7 @@ let basic_blocks_of_uses var =
   get_uses var
   |> Set.elements
   |> List.map fst
-  |> List.sort_uniq (fun block block' ->
-      compare !block.name !block'.name
-    )
+  |> List.sort_uniq (fun a b -> compare !a !b)
 
 let remove_use use var =
   match Hashtbl.find_opt def_use_chains var with
@@ -99,37 +97,33 @@ let add_use block stmt var =
     Hashtbl.add def_use_chains var
       { def = None; uses = Set.singleton (ref block, ref stmt); }
 
-let visit block stmt =
-  match !stmt with
-  | Move (x, e) ->
-    add_def block stmt x;
-    List.iter (add_use block stmt) (all_variables_expr e)
-  | Load (x, Deref y) ->
-    add_def block stmt x;
-    add_use block stmt y
-  | Store (Deref x, e) ->
-    add_use block stmt x;
-    List.iter (add_use block stmt) (all_variables_expr e)
-  | Label (_, Some xs) ->
-    List.iter (add_def block stmt) xs
-  | Cond (e, _, _) ->
-    List.iter (add_use block stmt) (all_variables_expr e)
-  | Receive x ->
-    add_def block stmt x
-  | Return (Some e) ->
-    List.iter (add_use block stmt) (all_variables_expr e)
-  | Return None -> ()
-  | Phi (x, xs) ->
-    add_def block stmt x;
-    List.iter (add_use block stmt) xs
-  | _ -> ()
-
 let build block =
-  match block.source with
-  | Some { stmts; _ } ->
-    List.iter (visit block) stmts
-  | None ->
-    assert (block.name = "Entry" || block.name = "Exit")
+  let visit stmt =
+    match !stmt with
+    | Move (x, e) ->
+      add_def block stmt x;
+      List.iter (add_use block stmt) (all_variables_expr e)
+    | Load (x, Deref y) ->
+      add_def block stmt x;
+      add_use block stmt y
+    | Store (Deref x, e) ->
+      add_use block stmt x;
+      List.iter (add_use block stmt) (all_variables_expr e)
+    | Label (_, Some xs) ->
+      List.iter (add_def block stmt) xs
+    | Cond (e, _, _) ->
+      List.iter (add_use block stmt) (all_variables_expr e)
+    | Receive x ->
+      add_def block stmt x
+    | Return (Some e) ->
+      List.iter (add_use block stmt) (all_variables_expr e)
+    | Return None -> ()
+    | Phi (x, xs) ->
+      add_def block stmt x;
+      List.iter (add_use block stmt) xs
+    | _ -> ()
+  in
+  List.iter visit block.stmts
 
 let iter f =
   Hashtbl.iter (fun var { def; uses; } ->

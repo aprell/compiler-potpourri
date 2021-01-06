@@ -3,11 +3,6 @@ open Three_address_code__Parse
 open Basic_block
 open Basic_block__Utils
 
-let print_basic_blocks blocks =
-  List.map to_string blocks
-  |> String.concat "\n"
-  |> print_endline
-
 let string_of_vars vars =
   List.map (fun (Var x) -> x) vars
   |> String.concat ", "

@@ -25,39 +25,25 @@ let value_of = Hashtbl.find values
 
 let ( <-= ) var = Hashtbl.replace values var
 
-let label_of { Basic_block.name; source; } =
-  match source with
-  | Some { entry; _ } -> (entry, None)
-  | None -> (
-      match name with
-      | "Entry" -> ("entry", None)
-      | "Exit" -> ("exit", None)
-      | _ -> assert false
-    )
-
 let interpret { Cfg.Node.block; succ; _ } =
   let v = value_of block.name in
-  match block.source with
-  | Some { stmts; _ } -> (
-      match !(last stmts) with
-      (* Reachable * v = v,
-       * Unreachable * v = Unreachable *)
-      | Jump l -> [(l, v)]
-      | Cond (e, l1, l2) -> (
-          match constant_fold e with
-          | Const 0 -> [(l1, Unreachable); (l2, v)]
-          | Const 1 -> [(l1, v); (l2, Unreachable)]
-          | _ -> [(l1, v); (l2, v)]
-        )
-      | Label _ (* Falls through to exit *)
-      | Return _ -> [(("exit", None), v)]
-      | _ -> assert false
+  match Basic_block.last_stmt block with
+  (* Reachable * v = v,
+   * Unreachable * v = Unreachable *)
+  | Some { contents = Jump l } -> [(l, v)]
+  | Some { contents = Cond (e, l1, l2) } -> (
+      match constant_fold e with
+      | Const 0 -> [(l1, Unreachable); (l2, v)]
+      | Const 1 -> [(l1, v); (l2, Unreachable)]
+      | _ -> [(l1, v); (l2, v)]
     )
-  | None -> (
-      assert (block.name = "Entry");
-      assert (Cfg.NodeSet.cardinal succ = 1);
-      [(label_of (Cfg.NodeSet.choose succ).block, v)]
-    )
+  | Some { contents = Label _ } (* Falls through to exit *)
+  | Some { contents = Return _ } -> [(("Exit", None), v)]
+  | Some _ -> assert false
+  | None ->
+    assert (block.name = "Entry");
+    assert (Cfg.NodeSet.cardinal succ = 1);
+    [(Basic_block.entry_label (Cfg.NodeSet.choose succ).block, v)]
 
 let init graph =
   let worklist = Queue.create () in
@@ -76,7 +62,7 @@ let propagate worklist ({ Cfg.Node.block; pred; _ } as node) =
   let v = value_of block.name in (
     match
       Cfg.NodeSet.elements pred
-      |> List.(map (interpret >> assoc (label_of block)))
+      |> List.(map (interpret >> assoc (Basic_block.entry_label block)))
     with
     | [v] ->
       Printf.printf "%s := " block.name;

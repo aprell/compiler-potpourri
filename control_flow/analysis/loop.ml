@@ -67,9 +67,9 @@ module NestingForest = struct
     let has_parent = Hashtbl.mem parents in
     let add_parent = Hashtbl.add parents in
     List.iter (fun loop ->
-        let x = loop.head.index in
+        let x = loop.head.block.number in
         NodeSet.iter (fun node ->
-            let y = node.index in
+            let y = node.block.number in
             if x <> y && not (has_parent y) then (
               forest.(x) -- forest.(y);
               add_parent y x
