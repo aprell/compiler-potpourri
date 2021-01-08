@@ -73,6 +73,12 @@ let prune_unreachable_nodes (graph : t) : t =
     Array.iter (fun node ->
         if not (reachable node) then (
           node.block.stmts <- [];
+          NodeSet.iter (fun succ ->
+              if (reachable succ) then
+                succ.block.pred <- List.filter (fun pred ->
+                    Basic_block.compare pred node.block <> 0
+                  ) succ.block.pred;
+            ) node.succ;
           node.succ <- NodeSet.empty;
           node.pred <- NodeSet.empty
         ) else (
