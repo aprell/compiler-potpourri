@@ -90,7 +90,8 @@ let init ?(value = Top) ?(verbose = false) () =
     );
   worklist
 
-let propagate worklist = function
+let propagate stmt worklist =
+  match !(!stmt) with
   | Move (x, e) ->
     let v = value_of x in
     begin match e with
@@ -124,7 +125,7 @@ let iterate worklist =
     let x = Queue.take worklist in
     let uses = Ssa__Def_use_chain.get_uses x in
     Ssa__Def_use_chain.Set.iter (fun (_, stmt) ->
-        propagate worklist !(!stmt)
+        propagate stmt worklist
       ) uses
   done
 

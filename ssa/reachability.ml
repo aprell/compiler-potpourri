@@ -5,6 +5,12 @@ open Basic_block__Utils
 open Control_flow
 open Ssa__Utils
 
+let verbose_flag = ref false
+
+let printf fmt =
+  if !verbose_flag then Printf.fprintf stdout fmt
+  else Printf.ifprintf stdout fmt
+
 (* Abstract values *)
 type value = Reachable | Unreachable
 
@@ -25,9 +31,10 @@ let value_of = Hashtbl.find values
 
 let ( <-= ) var = Hashtbl.replace values var
 
-let interpret { Cfg.Node.block; succ; _ } =
+let interpret block =
+  let open Basic_block in
   let v = value_of block.name in
-  match Basic_block.last_stmt block with
+  match last_stmt block with
   (* Reachable * v = v,
    * Unreachable * v = Unreachable *)
   | Some { contents = Jump l } -> [(l, v)]
@@ -42,46 +49,44 @@ let interpret { Cfg.Node.block; succ; _ } =
   | Some _ -> assert false
   | None ->
     assert (block.name = "Entry");
-    assert (Cfg.NodeSet.cardinal succ = 1);
-    [(Basic_block.entry_label (Cfg.NodeSet.choose succ).block, v)]
+    assert (List.length block.succ = 1);
+    [(entry_label (List.hd block.succ), v)]
 
-let init graph =
+let init ?(verbose = false) graph =
+  verbose_flag := verbose;
   let worklist = Queue.create () in
-  Cfg.iter (fun ({ block; _ } as node) ->
+  Cfg.iter (fun { block; _ } ->
       if block.name = "Entry" then (
         block.name <-= Reachable
       ) else (
         block.name <-= Unreachable;
-        Queue.add node worklist
+        Queue.add block worklist
       )
     ) graph;
   worklist
 
-let propagate worklist ({ Cfg.Node.block; pred; _ } as node) =
-  assert (not (Cfg.NodeSet.is_empty pred));
+let propagate block worklist =
+  let open Basic_block in
   let v = value_of block.name in (
-    match
-      Cfg.NodeSet.elements pred
-      |> List.(map (interpret >> assoc (Basic_block.entry_label block)))
-    with
+    match List.(map (interpret >> assoc (entry_label block))) block.pred with
     | [v] ->
-      Printf.printf "%s := " block.name;
+      printf "%s := " block.name;
       block.name <-= v;
-      Printf.printf "%s\n" (string_of_value v)
+      printf "%s\n" (string_of_value v)
     | v :: _ as vs ->
-      Printf.printf "%s := %s = "
+      printf "%s := %s = "
         block.name (String.concat " + " (List.map string_of_value vs));
       block.name <-= List.fold_left plus v vs;
-      Printf.printf "%s\n" (string_of_value (value_of block.name))
+      printf "%s\n" (string_of_value (value_of block.name))
     | [] -> assert false
   );
   if value_of block.name <> v then
-    Queue.add node worklist
+    Queue.add block worklist
 
 let iterate worklist =
   while not (Queue.is_empty worklist) do
-    let node = Queue.take worklist in
-    propagate worklist node
+    let block = Queue.take worklist in
+    propagate block worklist
   done
 
 let print () =

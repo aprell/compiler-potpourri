@@ -12,7 +12,7 @@ let () =
   convert_to_ssa graph;
 (*   Ssa__Optim.optimize (); *)
   Cfg.print_basic_blocks graph;
-  let worklist = Reachability.init graph in
+  let worklist = Reachability.init graph ~verbose:true in
   print_newline ();
   Reachability.print ();
   print_newline ();
