@@ -136,54 +136,40 @@ let rename_variables graph =
 
   Cfg.iter rename graph
 
-let create_phi_functions label jumps =
-  match label with
-  | Label (name, Some params) ->
-    let rec loop i phi_funcs = function
-      | x :: xs ->
-        let xs' = List.map (function
-            | Jump (name', Some xs') ->
-              assert (name' = name);
-              List.nth xs' i
-            | Cond (_, (name', Some xs'), (name'', Some xs'')) ->
-              if (name' = name) then (
-                List.nth xs' i
-              ) else (
-                assert (name'' = name);
-                List.nth xs'' i
-              )
-            | _ -> invalid_arg "create_phi_functions"
-          ) jumps
-        in
-        loop (i + 1) (Phi (x, xs') :: phi_funcs) xs
-      | [] -> List.rev phi_funcs
-    in
-    loop 0 [] params
-  | _ -> invalid_arg "create_phi_functions"
-
 let insert_phi_functions graph =
-  let open Cfg.Node in
+  let rec create_phi_functions res args =
+    match res with
+    | x :: xs ->
+      Phi (x, List.(map hd) args)
+      :: create_phi_functions xs (List.(map tl) args)
+    | [] -> []
+  in
 
   let insert block =
     match first_stmt block with
-    | Some { contents = Label (l, _) as label } ->
-      let jumps =
+    | Some { contents = Label (l, Some xs) } ->
+      let args =
         block.pred
-        |> List.fold_left (fun jumps block ->
+        |> List.fold_left (fun args block ->
             match last_stmt block with
-            | Some { contents = Jump _ as jump }
-            | Some { contents = Cond _ as jump } -> jump :: jumps
+            | Some { contents = Jump (l', Some ys) } ->
+              assert (l' = l);
+              ys :: args
+            | Some { contents = Cond (_, (l1, Some ys), _) } when l1 = l ->
+              ys :: args
+            | Some { contents = Cond (_, _, (l2, Some ys)) } when l2 = l ->
+              ys :: args
             | Some _ -> assert false
-            | None -> jumps
+            | None -> args
           ) []
         |> List.rev
       in
-      if jumps = [] then (
+      if args = [] then (
         assert (block.name = "B1");
         assert (List.length block.pred = 1);
         assert ((List.hd block.pred).name = "Entry")
       ) else (
-        let phi_funcs = create_phi_functions label jumps in
+        let phi_funcs = create_phi_functions xs args in
         (* Insert phi-functions and erase label parameters *)
         block.stmts <- List.map ref (Label (l, None) :: phi_funcs) @ List.tl block.stmts
       )
@@ -208,7 +194,7 @@ let insert_phi_functions graph =
       if block.name <> "Entry" && block.name <> "Exit" then
         (* Insert phi-functions for every labeled jump (not only at join
          * points, where two or more control flow paths merge) *)
-        if List.length block.pred > 0 then insert block
+        insert block
     ) graph;
 
   (* Erase remaining label parameters and build def-use chains *)
@@ -218,8 +204,6 @@ let insert_phi_functions graph =
     ) graph
 
 let minimize_phi_functions graph =
-  let open Cfg.Node in
-
   let worklist = Queue.create () in
 
   let rec add_task block =
