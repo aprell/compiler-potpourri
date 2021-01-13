@@ -10,23 +10,29 @@ end
 
 and NodeSet : Set.S with type elt = Node.t
 
-type t = Node.t array
+type t
 
 val define : nodes:int list -> edges:(int * int) list -> t
 
 val construct : Basic_block.t list -> t
 
-val basic_blocks : t -> Basic_block.t list
+val get_node : t -> int -> Node.t
 
-val print_basic_blocks : t -> unit
+val get_entry_node : t -> Node.t
+
+val get_exit_node : t -> Node.t
+
+val get_nodes : t -> Node.t list
+
+val get_order : t -> int
 
 val equal : t -> t -> bool
+
+val print_basic_blocks : t -> unit
 
 val dfs_reverse_postorder : t -> Node.t list
 
 val dfs_postorder : t -> Node.t list
-
-val unreachable : Node.t -> bool
 
 val iter : (Node.t -> unit) -> t -> unit
 

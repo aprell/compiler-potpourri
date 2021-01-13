@@ -9,11 +9,11 @@ type t = {
 }
 
 (* Find all edges i => n with n dom i in a graph *)
-let back_edges graph =
+let back_edges (graph : Cfg.t) : back_edge list =
   let open Node in
   let dom n i = NodeSet.mem n i.doms in
   let back_edges = ref [] in
-  Array.iter (fun i ->
+  Cfg.iter (fun i ->
       NodeSet.iter (fun n ->
           if dom n i then
             back_edges := (i, n) :: !back_edges
@@ -21,7 +21,7 @@ let back_edges graph =
     ) graph;
   List.rev !back_edges
 
-let find (tail, head) =
+let find ((tail, head) : back_edge) : t =
   let open Node in
   let nodes = ref (NodeSet.of_list [head]) in
   let rec visit node =
@@ -36,22 +36,32 @@ let find (tail, head) =
 
 let node_name { Node.block; _ } = block.name
 
-let print loop =
+let print (loop : t) =
   Printf.printf "%s => %s: {%s}\n"
     (node_name loop.tail)
     (node_name loop.head)
     (String.concat ", " (List.map node_name (NodeSet.elements loop.nodes)))
 
 module NestingForest = struct
-  type t = Cfg.t
-  type elt = Node.t
+  module M = Map.Make (struct
+    type t = int
+    let compare = Stdlib.compare
+  end)
 
-  (* Add an edge between node a and node b *)
-  let ( -- ) (a : elt) (b : elt) =
-    a.succ <- NodeSet.add b a.succ;
-    b.pred <- NodeSet.add a b.pred
+  type t = elt M.t
 
-  let create graph =
+  and elt = {
+    block : Basic_block.t;
+    mutable children : elt list;
+  }
+
+  let compare a b = Basic_block.compare a.block b.block
+
+  (* Connect parent a and child b *)
+  let ( -- ) a b =
+    a.children <- List.sort compare (b :: a.children)
+
+  let create (graph : Cfg.t) : t =
     let open Node in
     let loops =
       back_edges graph
@@ -59,9 +69,11 @@ module NestingForest = struct
       |> List.sort (fun loop1 loop2 ->
           NodeSet.(cardinal loop1.nodes - cardinal loop2.nodes))
     in
-    let forest = Array.map (fun node ->
-        { node with succ = NodeSet.empty;
-                    pred = NodeSet.empty; }) graph
+    let forest =
+      get_nodes graph
+      |> List.fold_left (fun forest { block; _ } ->
+          M.add block.number { block; children = [] } forest
+        ) M.empty
     in
     let parents = Hashtbl.create 10 in
     let has_parent = Hashtbl.mem parents in
@@ -71,15 +83,14 @@ module NestingForest = struct
         NodeSet.iter (fun node ->
             let y = node.block.number in
             if x <> y && not (has_parent y) then (
-              forest.(x) -- forest.(y);
+              M.find x forest -- M.find y forest;
               add_parent y x
             )
           ) loop.nodes
       ) loops;
     forest
 
-  let output_dot ?filename forest =
-    let open Node in
+  let output_dot ?filename (forest : t) =
     let chan = match filename with
       | Some filename -> open_out filename
       | None -> stdout
@@ -89,15 +100,13 @@ module NestingForest = struct
     in
     let indent = String.make 4 ' ' in
     print "graph LoopNestingForest {";
-    Cfg.iter (fun { block; succ; _ } ->
+    M.iter (fun _ { block; children; } ->
         let x = block.name in
-        NodeSet.iter (fun { block; _ } ->
+        List.iter (fun { block; _ } ->
             let y = block.name in
             print ~indent (x ^ " -- " ^ y ^ ";")
-          ) succ
+          ) children
       ) forest;
     print "}";
     if chan <> stdout then close_out chan
-
-  let inspect = Cfg.inspect
 end

@@ -10,10 +10,10 @@ let parameterize_labels graph =
 
   (* Collect all variables that are live on entry to _some_ basic block
    * (see semi-pruned SSA form) *)
-  let variables = Array.fold_left (fun non_locals { block; _ } ->
+  let variables = List.fold_left (fun non_locals { block; _ } ->
       let use, _ = Liveness.compute block in
       S.union use non_locals
-    ) S.empty graph
+    ) S.empty (Cfg.get_nodes graph)
   |> S.elements
   in
 

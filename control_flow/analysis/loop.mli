@@ -16,8 +16,6 @@ val print : t -> unit
 
 module NestingForest : sig
   type t
-  type elt = Node.t
   val create : Cfg.t -> t
   val output_dot : ?filename:string -> t -> unit
-  val inspect : t -> unit
 end

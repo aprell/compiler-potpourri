@@ -17,9 +17,8 @@ module S = struct
   let meet = Set.inter
 
   let basic_block_names graph =
-    let open Basic_block in
-    basic_blocks graph
-    |> List.map (fun block -> block.name)
+    get_nodes graph
+    |> List.map (fun { Node.block; _ } -> block.name)
     |> Set.of_list
 
   let init { Node.block; _ } graph =

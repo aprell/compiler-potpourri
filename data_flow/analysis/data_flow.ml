@@ -95,8 +95,8 @@ module Data_flow_analysis (DF : DataFlowType) = struct
     print_table ~rows:([""; "IN"; "OUT"] :: rows)
 
   let init graph =
-    let num_nodes = Array.length graph in
-    Array.init num_nodes (fun i -> DF.init graph.(i) graph)
+    let num_nodes = Cfg.get_order graph in
+    Array.init num_nodes (fun i -> DF.init (Cfg.get_node graph i) graph)
 
   let compute ?(dump = false) graph =
     let traversal = DF.traverse graph in

@@ -115,7 +115,7 @@ let reachable block =
 
 let init ?(verbose = false) (graph : Cfg.t) =
   verbose_flag := verbose;
-  let entry = graph.(0).block in
+  let { Cfg.Node.block = entry; _ } = Cfg.get_entry_node graph in
 
   let worklist = Queue.create () in
   List.iter (fun block ->
@@ -218,10 +218,10 @@ let visit_stmt stmt block worklist =
   | _ -> ()
 
 let visit block worklist =
-  let edges = in_edges block in
+  let open Basic_block in
   let phis, rest = List.partition (( ! ) >> is_phi) block.stmts in
   List.iter (fun phi -> visit_stmt phi block worklist) phis;
-  if List.(length (filter executed edges) = 1) then
+  if List.(length (filter executed (in_edges block)) = 1) then
     List.iter (fun non_phi -> visit_stmt non_phi block worklist) rest
 
 let iterate worklist =

@@ -16,6 +16,15 @@ end)
 
 type t = Node.t array
 
+let get_node (graph : t) (number : int) =
+  graph.(number)
+
+let get_entry_node (graph : t) =
+  graph.(0)
+
+let get_exit_node (graph : t) =
+  graph.(Array.length graph - 1)
+
 (* Add an edge from node a to node b *)
 let ( => ) (a : Node.t) (b : Node.t) =
   a.block.succ <- List.sort Basic_block.compare (b.block :: a.block.succ);
@@ -91,6 +100,19 @@ let prune_unreachable_nodes (graph : t) : t =
 let unreachable (node : Node.t) =
   node.succ = NodeSet.empty && node.pred = NodeSet.empty
 
+let get_nodes (graph : t) =
+  Array.fold_left (fun nodes node ->
+      if unreachable node then nodes
+      else node :: nodes
+    ) [] graph
+|> List.rev
+
+let get_order (graph : t) =
+  Array.fold_left (fun n node ->
+      if unreachable node then n
+      else n + 1
+    ) 0 graph
+
 let iter (f : Node.t -> unit) (graph : t) =
   Array.iter (fun node ->
       if unreachable node then ()
@@ -137,13 +159,9 @@ let construct (basic_blocks : Basic_block.t list) : t =
     ) graph;
   prune_unreachable_nodes graph
 
-let basic_blocks (graph : t) : Basic_block.t list =
-  let open Node in
-  Array.fold_left (fun blocks ({ block; _ } as node) ->
-      if unreachable node then blocks
-      else block :: blocks
-    ) [] graph
-  |> List.rev
+let basic_blocks (graph : t) =
+  get_nodes graph
+  |> List.map (fun { Node.block; _ } -> block)
 
 let print_basic_blocks (graph : t) =
   let open Basic_block in
