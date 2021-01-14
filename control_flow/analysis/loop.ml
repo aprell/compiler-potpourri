@@ -43,10 +43,7 @@ let print (loop : t) =
     (String.concat ", " (List.map node_name (NodeSet.elements loop.nodes)))
 
 module NestingForest = struct
-  module M = Map.Make (struct
-    type t = int
-    let compare = Stdlib.compare
-  end)
+  module M = Utils.M
 
   type t = elt M.t
 

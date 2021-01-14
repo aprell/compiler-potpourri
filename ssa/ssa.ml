@@ -1,7 +1,7 @@
 open Three_address_code__IR
 open Basic_block
 open Control_flow
-open Utils
+open Ssa__Utils
 
 module S = Liveness.Set
 

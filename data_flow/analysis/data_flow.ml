@@ -127,7 +127,7 @@ module Data_flow_analysis (DF : DataFlowType) = struct
               not (DF.Set.equal out_set' (find node).global_out)) then
             changed := true;
           (find node).global_in <- in_set';
-          (find node).global_out <- out_set';
+          (find node).global_out <- out_set'
         ) traversal;
       if dump then (
         print_endline ("Iteration " ^ (string_of_int !num_iter) ^ ":");

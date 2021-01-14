@@ -66,10 +66,7 @@ let immediate_dominators (graph : Cfg.t) =
     ) graph
 
 module Domtree = struct
-  module M = Map.Make (struct
-    type t = int
-    let compare = Stdlib.compare
-  end)
+  module M = Utils.M
 
   type t = elt M.t
 
@@ -152,7 +149,7 @@ let dominance_frontiers (graph : Cfg.t) (domtree : Domtree.t) : NodeSet.t array 
         NodeSet.iter (fun n ->
             if not (dom node n) then
               df.(block.number) <- NodeSet.union df.(block.number) (NodeSet.singleton n)
-          ) (dominance_frontier (get_node graph child.number))
+          ) (dominance_frontier (get_node child.number graph))
       ) (Domtree.get_node block.number domtree).children;
     df.(block.number)
   in
