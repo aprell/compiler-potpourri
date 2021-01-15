@@ -6,17 +6,33 @@ module rec Node : sig
     mutable doms : NodeSet.t;
     mutable idom : Node.t option;
   }
-end = Node
-(* https://blog.janestreet.com/a-trick-recursive-modules-from-recursive-signatures *)
+  val create : Basic_block.t -> t
+  val equal : t -> t -> bool
+end = struct
+  type t = {
+    block : Basic_block.t;
+    mutable pred : NodeSet.t;
+    mutable succ : NodeSet.t;
+    mutable doms : NodeSet.t;
+    mutable idom : Node.t option;
+  }
+
+  let create (block : Basic_block.t) : t =
+    { block; pred = NodeSet.empty; succ = NodeSet.empty;
+      doms = NodeSet.empty; idom = None; }
+
+  let equal (n : t) (m : t) : bool =
+    Basic_block.compare n.block m.block = 0 &&
+    NodeSet.equal n.pred m.pred &&
+    NodeSet.equal n.succ m.succ &&
+    NodeSet.equal n.doms m.doms &&
+    m.idom = n.idom
+end
 
 and NodeSet : Set.S with type elt = Node.t = Set.Make (struct
   type t = Node.t
   let compare x y = Basic_block.compare x.Node.block y.Node.block
 end)
-
-let create_node (block : Basic_block.t) : Node.t =
-  { block; succ = NodeSet.empty; pred = NodeSet.empty;
-    doms = NodeSet.empty; idom = None; }
 
 module M = Utils.M
 
@@ -38,18 +54,24 @@ let get_nodes (graph : t) : Node.t list =
   M.bindings graph
   |> List.map snd
 
-let basic_blocks (graph : t) : Basic_block.t list =
+let get_basic_blocks (graph : t) : Basic_block.t list =
   get_nodes graph
   |> List.map (fun { Node.block; _ } -> block)
 
 let print_basic_blocks (graph : t) =
   let open Basic_block in
-  basic_blocks graph
+  get_basic_blocks graph
   |> List.filter (fun { name; _ } -> name <> "Entry" && name <> "Exit")
   |> print_basic_blocks
 
 let get_order (graph : t) : int =
   M.cardinal graph
+
+let equal (a : t) (b : t) : bool =
+  M.equal Node.equal a b
+
+let iter (f : Node.t -> unit) (graph : t) =
+  M.iter (fun _ node -> f node) graph
 
 (* Add an edge from node a to node b *)
 let ( => ) (a : Node.t) (b : Node.t) =
@@ -67,7 +89,7 @@ let define ~(nodes : int list) ~(edges : (int * int) list) : t =
       @ [create (List.length nodes + 1) ~name:"Exit"]
     )
     |> List.fold_left (fun graph block ->
-        M.add block.number (create_node block) graph
+        M.add block.number (Node.create block) graph
       ) M.empty
   in
   let entry = 0 in
@@ -98,7 +120,7 @@ let dfs_postorder (graph : t) =
   dfs_reverse_postorder graph
   |> List.rev
 
-let prune_unreachable_nodes (graph : t) : t =
+let remove_unreachable_nodes (graph : t) : t =
   let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder graph) in
   let reachable node = NodeSet.mem node reachable_nodes in
   M.filter (fun _ node ->
@@ -117,9 +139,6 @@ let prune_unreachable_nodes (graph : t) : t =
       )
     ) graph
 
-let iter (f : Node.t -> unit) (graph : t) =
-  M.iter (fun _ node -> f node) graph
-
 let construct (basic_blocks : Basic_block.t list) : t =
   let open Basic_block in
   let open Node in
@@ -130,7 +149,7 @@ let construct (basic_blocks : Basic_block.t list) : t =
       @ [create (List.length basic_blocks + 1) ~name:"Exit"]
     )
     |> List.fold_left (fun graph block ->
-        M.add block.number (create_node block) graph
+        M.add block.number (Node.create block) graph
       ) M.empty
   in
   (* Create a list that associates labels with basic block numbers *)
@@ -159,18 +178,7 @@ let construct (basic_blocks : Basic_block.t list) : t =
       | _ ->
         assert (name = "Entry" || name = "Exit")
     ) graph;
-  prune_unreachable_nodes graph
-
-let equal (a : t) (b : t) : bool =
-  let open Node in
-  let cmp n m =
-    Basic_block.compare n.block m.block = 0 &&
-    NodeSet.equal n.pred m.pred &&
-    NodeSet.equal n.succ m.succ &&
-    NodeSet.equal n.doms m.doms &&
-    m.idom = n.idom
-  in
-  M.equal cmp a b
+  remove_unreachable_nodes graph
 
 let output_dot ?filename (graph : t) =
   let open Node in
