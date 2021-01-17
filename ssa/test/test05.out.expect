@@ -102,17 +102,10 @@ L3:
 
 [B1]
 test05():
-    if 1 goto L1 else goto L2
+    goto L1
 [B2]
 L1:
-    y_1 := 6
-    goto L3
-[B3]
-L2:
-    y_3 := -41
     goto L3
 [B4]
 L3:
-    y_4 := PHI(y_1, y_3)
-    z_0 := y_4 * y_4
-    return z_0
+    return 36

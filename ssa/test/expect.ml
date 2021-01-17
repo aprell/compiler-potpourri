@@ -23,7 +23,7 @@ let convert_to_ssa graph =
   Cfg.print_basic_blocks graph;
   print_endline hline;
 
-  Ssa__Optim.optimize ();
+  let graph = Ssa__Optim.optimize graph in
   Cfg.print_basic_blocks graph
 
 let () =

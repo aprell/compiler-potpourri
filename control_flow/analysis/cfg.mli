@@ -39,3 +39,5 @@ val print_basic_blocks : t -> unit
 val output_dot : ?filename:string -> t -> unit
 
 val inspect : t -> unit
+
+val optimize : t -> t

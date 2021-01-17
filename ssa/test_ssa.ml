@@ -13,5 +13,5 @@ let () =
   convert_to_ssa graph;
   Cfg.print_basic_blocks graph;
   print_newline ();
-  optimize ~dump:true ();
+  let graph = optimize graph ~dump:true in
   Cfg.print_basic_blocks graph

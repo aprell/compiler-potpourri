@@ -1,4 +1,5 @@
 open Three_address_code__IR
+open Control_flow
 
 let rec replace_expr x y = function
   | Val x' when x' = x -> y
@@ -142,11 +143,49 @@ let eliminate_dead_code ?(dump = false) () =
   | Some (_, { def = None; _ }) -> assert false
   | None -> false
 
-let optimize ?(dump = false) () =
+let reachable { Basic_block.number; _ } graph =
+  match Cfg.get_node number graph with
+  | _ -> true
+  | exception Not_found -> false
+
+let eliminate_unreachable_code ?(dump = false) graph =
+  graph := Cfg.optimize !graph;
+  match (
+    (* Find a definition that has become unreachable *)
+    Def_use_chain.find_first (fun { def; _ } ->
+        match def with
+        | Some (block, _)
+          when not (reachable !block !graph) -> true
+        | _ -> false
+      )
+  ) with
+  | Some (x, { def = Some (_, stmt); uses; }) ->
+    Def_use_chain.Set.iter (fun (block, stmt) ->
+        if reachable !block !graph then (
+          match !(!stmt) with
+          | Phi (x_3, [x_1; x_2]) ->
+            assert (x = x_1 || x = x_2);
+            !stmt := Move (x_3, Val (if x = x_1 then x_2 else x_1))
+          | _ -> assert false
+        )
+      ) uses;
+    Def_use_chain.remove_def x;
+    if dump then (
+      print_endline ("After removing " ^ (string_of_stmt !(!stmt)) ^ ":");
+      Def_use_chain.print ();
+      print_newline ()
+    );
+    true
+  | _ -> false
+
+let optimize ?(dump = false) graph =
+  let graph = ref graph in
   let changed = ref true in
   while !changed do
     changed := List.exists (( = ) true) [
+        eliminate_unreachable_code graph ~dump;
         eliminate_dead_code ~dump ();
         propagate ~dump ();
       ]
-  done
+  done;
+  !graph

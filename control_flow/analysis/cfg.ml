@@ -8,6 +8,8 @@ module rec Node : sig
   }
   val create : Basic_block.t -> t
   val equal : t -> t -> bool
+  val ( => ) : t -> t -> unit
+  val ( =|> ) : t -> t -> unit
 end = struct
   type t = {
     block : Basic_block.t;
@@ -27,6 +29,20 @@ end = struct
     NodeSet.equal n.succ m.succ &&
     NodeSet.equal n.doms m.doms &&
     m.idom = n.idom
+
+  (* Add an edge from node a to node b *)
+  let ( => ) (a : t) (b : t) =
+    a.block.succ <- List.sort Basic_block.compare (b.block :: a.block.succ);
+    b.block.pred <- List.sort Basic_block.compare (a.block :: b.block.pred);
+    a.succ <- NodeSet.add b a.succ;
+    b.pred <- NodeSet.add a b.pred
+
+  (* Remove the edge between node a and node b *)
+  let ( =|> ) (a : t) (b : t) =
+    a.block.succ <- List.filter (fun succ -> Basic_block.compare succ b.block <> 0) a.block.succ;
+    b.block.pred <- List.filter (fun pred -> Basic_block.compare pred a.block <> 0) b.block.pred;
+    a.succ <- NodeSet.remove b a.succ;
+    b.pred <- NodeSet.remove a b.pred
 end
 
 and NodeSet : Set.S with type elt = Node.t = Set.Make (struct
@@ -73,15 +89,9 @@ let equal (a : t) (b : t) : bool =
 let iter (f : Node.t -> unit) (graph : t) =
   M.iter (fun _ node -> f node) graph
 
-(* Add an edge from node a to node b *)
-let ( => ) (a : Node.t) (b : Node.t) =
-  a.block.succ <- List.sort Basic_block.compare (b.block :: a.block.succ);
-  b.block.pred <- List.sort Basic_block.compare (a.block :: b.block.pred);
-  a.succ <- NodeSet.add b a.succ;
-  b.pred <- NodeSet.add a b.pred
-
 let define ~(nodes : int list) ~(edges : (int * int) list) : t =
   let open Basic_block in
+  let open Node in
   let graph =
     Basic_block.(
       create 0 ~name:"Entry"
@@ -139,6 +149,31 @@ let remove_unreachable_nodes (graph : t) : t =
       )
     ) graph
 
+let optimize (graph : t) : t =
+  let open Node in
+  let remove_branch node ~target =
+    let branch_target = NodeSet.find_first (fun succ ->
+        Basic_block.entry_label succ.block = target
+      ) node.succ
+    in
+    node =|> branch_target
+  in
+  iter (fun ({ block; _ } as node) ->
+      match Basic_block.last_stmt block with
+      | Some stmt -> (
+          match !stmt with
+          | Cond (Const 0, then_, else_) ->
+            stmt := Jump else_;
+            remove_branch node ~target:then_
+          | Cond (Const 1, then_, else_) ->
+            stmt := Jump then_;
+            remove_branch node ~target:else_
+          | _ -> ()
+        )
+      | None -> ()
+    ) graph;
+  remove_unreachable_nodes graph
+
 let construct (basic_blocks : Basic_block.t list) : t =
   let open Basic_block in
   let open Node in
@@ -178,7 +213,7 @@ let construct (basic_blocks : Basic_block.t list) : t =
       | _ ->
         assert (name = "Entry" || name = "Exit")
     ) graph;
-  remove_unreachable_nodes graph
+  optimize graph
 
 let output_dot ?filename (graph : t) =
   let open Node in
