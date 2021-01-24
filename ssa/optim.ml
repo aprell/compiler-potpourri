@@ -144,12 +144,10 @@ let eliminate_dead_code ?(dump = false) () =
   | None -> false
 
 let reachable { Basic_block.number; _ } graph =
-  match Cfg.get_node number graph with
-  | _ -> true
-  | exception Not_found -> false
+  Option.is_some (Cfg.get_node_opt number graph)
 
 let eliminate_unreachable_code ?(dump = false) graph =
-  graph := Cfg.optimize !graph;
+  graph := Cfg.simplify !graph;
   match (
     (* Find a definition that has become unreachable *)
     Def_use_chain.find_first (fun { def; _ } ->

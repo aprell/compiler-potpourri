@@ -57,13 +57,17 @@ type t = Node.t M.t
 let get_node (number : int) (graph : t) : Node.t =
   M.find number graph
 
+let get_node_opt (number : int) (graph : t) : Node.t option =
+  M.find_opt number graph
+
 let get_entry_node (graph : t) : Node.t =
   let number, entry = M.min_binding graph in
-  assert (number = 0);
+  assert (number = 0 && entry.block.name = "Entry");
   entry
 
 let get_exit_node (graph : t) : Node.t =
   let _, exit = M.max_binding graph in
+  assert (exit.block.name = "Exit");
   exit
 
 let get_nodes (graph : t) : Node.t list =
@@ -72,12 +76,15 @@ let get_nodes (graph : t) : Node.t list =
 
 let get_basic_blocks (graph : t) : Basic_block.t list =
   get_nodes graph
-  |> List.map (fun { Node.block; _ } -> block)
+  |> List.filter_map (fun { Node.block; _ } ->
+      match block.name with
+      | "Entry" | "Exit" -> None
+      | _ -> Some block
+    )
 
 let print_basic_blocks (graph : t) =
   let open Basic_block in
   get_basic_blocks graph
-  |> List.filter (fun { name; _ } -> name <> "Entry" && name <> "Exit")
   |> print_basic_blocks
 
 let get_order (graph : t) : int =
@@ -149,29 +156,75 @@ let remove_unreachable_nodes (graph : t) : t =
       )
     ) graph
 
-let optimize (graph : t) : t =
+let simplify (graph : t) : t =
   let open Node in
-  let remove_branch node ~target =
-    let branch_target = NodeSet.find_first (fun succ ->
-        Basic_block.entry_label succ.block = target
+
+  let remove_branch node ~label =
+    let target = NodeSet.find_first (fun succ ->
+        Basic_block.entry_label succ.block = label
       ) node.succ
     in
-    node =|> branch_target
+    node =|> target
   in
-  iter (fun ({ block; _ } as node) ->
-      match Basic_block.last_stmt block with
+
+  let simplify_branch node =
+    match Basic_block.last_stmt node.block with
+    | Some stmt -> (
+        match !stmt with
+        | Cond (Const 0, then_, else_) ->
+          stmt := Jump else_;
+          remove_branch node ~label:then_
+        | Cond (Const 1, then_, else_) ->
+          stmt := Jump then_;
+          remove_branch node ~label:else_
+        | _ -> ()
+      )
+    | None -> ()
+  in
+
+  let is_empty { Basic_block.stmts; _ } =
+    List.length stmts = 2 &&
+    match !(List.hd stmts), !(List.(hd (tl stmts))) with
+    | Label (_, None), Jump (_, None) -> true
+    | _ -> false
+  in
+
+  let can_skip node =
+    NodeSet.cardinal node.succ = 1 &&
+    (* A current restriction *)
+    NodeSet.(cardinal (choose node.succ).pred) = 1
+  in
+
+  let retarget_branch node ~label succ =
+    let label' = Basic_block.entry_label succ.block in
+    begin match Basic_block.last_stmt node.block with
       | Some stmt -> (
           match !stmt with
-          | Cond (Const 0, then_, else_) ->
-            stmt := Jump else_;
-            remove_branch node ~target:then_
-          | Cond (Const 1, then_, else_) ->
-            stmt := Jump then_;
-            remove_branch node ~target:else_
-          | _ -> ()
+          | Jump l when l = label ->
+            stmt := Jump label';
+            remove_branch node ~label
+          | _ -> assert false
         )
       | None -> ()
+    end;
+    node => succ
+  in
+
+  let skip node =
+    assert (NodeSet.cardinal node.succ = 1);
+    let succ = NodeSet.choose node.succ in
+    node =|> succ;
+    NodeSet.iter (fun pred ->
+        retarget_branch pred succ
+          ~label:(Basic_block.entry_label node.block)
+      ) node.pred;
+  in
+
+  iter (fun node ->
+      simplify_branch node;
+      if is_empty node.block && can_skip node then skip node
     ) graph;
+
   remove_unreachable_nodes graph
 
 let construct (basic_blocks : Basic_block.t list) : t =
@@ -213,7 +266,7 @@ let construct (basic_blocks : Basic_block.t list) : t =
       | _ ->
         assert (name = "Entry" || name = "Exit")
     ) graph;
-  optimize graph
+  simplify graph
 
 let output_dot ?filename (graph : t) =
   let open Node in

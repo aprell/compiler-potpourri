@@ -102,9 +102,6 @@ L3:
 
 [B1]
 test05():
-    goto L1
-[B2]
-L1:
     goto L3
 [B4]
 L3:

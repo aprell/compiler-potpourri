@@ -18,6 +18,8 @@ val construct : Basic_block.t list -> t
 
 val get_node : int -> t -> Node.t
 
+val get_node_opt : int -> t -> Node.t option
+
 val get_entry_node : t -> Node.t
 
 val get_exit_node : t -> Node.t
@@ -40,4 +42,4 @@ val output_dot : ?filename:string -> t -> unit
 
 val inspect : t -> unit
 
-val optimize : t -> t
+val simplify : t -> t
