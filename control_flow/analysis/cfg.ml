@@ -189,12 +189,6 @@ let simplify (graph : t) : t =
     | _ -> false
   in
 
-  let can_skip node =
-    NodeSet.cardinal node.succ = 1 &&
-    (* A current restriction *)
-    NodeSet.(cardinal (choose node.succ).pred) = 1
-  in
-
   let retarget_branch node ~label succ =
     let label' = Basic_block.entry_label succ.block in
     begin match Basic_block.last_stmt node.block with
@@ -202,6 +196,12 @@ let simplify (graph : t) : t =
           match !stmt with
           | Jump l when l = label ->
             stmt := Jump label';
+            remove_branch node ~label
+          | Cond (e, l1, l2) when l1 = label ->
+            stmt := Cond (e, label', l2);
+            remove_branch node ~label
+          | Cond (e, l1, l2) when l2 = label ->
+            stmt := Cond (e, l1, label');
             remove_branch node ~label
           | _ -> assert false
         )
@@ -222,7 +222,7 @@ let simplify (graph : t) : t =
 
   iter (fun node ->
       simplify_branch node;
-      if is_empty node.block && can_skip node then skip node
+      if is_empty node.block then skip node
     ) graph;
 
   remove_unreachable_nodes graph

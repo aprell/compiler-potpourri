@@ -3,10 +3,9 @@ digraph CFG {
     B1 -> B2;
     B2 -> B3;
     B2 -> B6;
+    B3 -> B2;
     B3 -> B4;
-    B3 -> B5;
-    B4 -> B5;
-    B5 -> B2;
+    B4 -> B2;
     B6 -> Exit;
 }
 
@@ -16,12 +15,10 @@ graph DominatorTree {
     B2 -- B3;
     B2 -- B6;
     B3 -- B4;
-    B3 -- B5;
     B6 -- Exit;
 }
 
 graph LoopNestingForest {
     B2 -- B3;
     B2 -- B4;
-    B2 -- B5;
 }

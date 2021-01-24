@@ -199,19 +199,17 @@ let visit_stmt stmt block worklist =
         Queue.add (`CFG_edge (block, else_)) worklist
       | _ -> assert false
     )
-  | Phi (x, ([y; z] as args)) ->
+  | Phi (x, xs) ->
     let edges = in_edges block in
-    assert (List.length edges = 2);
+    assert (List.length edges = List.length xs);
     let v = value_of x in
     if v <> Bottom then (
-      let edges = List.combine args edges in
-      let e1 = List.assoc y edges in
-      let e2 = List.assoc z edges in
-      assert ((fst e1).number < (fst e2).number);
-      if not (executed e1) then assert (executed e2);
-      if not (executed e2) then assert (executed e1);
+      let edges = List.combine xs edges in
+      let edge_of x = List.assoc x edges in
+      assert List.(exists executed (map edge_of xs));
+      let vs = List.map value_of xs in
       printf "%s := " (name_of_var x);
-      x <-= meet' (value_of y) (value_of z);
+      x <-= List.fold_left meet' (List.hd vs) (List.tl vs);
       if value_of x <> v then
         Queue.add (`Def_use_edges x) worklist
     )

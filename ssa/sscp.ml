@@ -112,12 +112,14 @@ let propagate stmt worklist =
     end;
     if value_of x <> v then
       Queue.add x worklist
-  | Phi (x, [y; z]) ->
+  | Phi (x, xs) ->
     let v = value_of x in
+    let vs = List.map value_of xs in
     printf "%s := " (name_of_var x);
-    x <-= meet' (value_of y) (value_of z);
+    x <-= List.fold_left meet' (List.hd vs) (List.tl vs);
     if value_of x <> v then
       Queue.add x worklist
+
   | _ -> ()
 
 let iterate worklist =

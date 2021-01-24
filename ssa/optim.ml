@@ -161,9 +161,12 @@ let eliminate_unreachable_code ?(dump = false) graph =
     Def_use_chain.Set.iter (fun (block, stmt) ->
         if reachable !block !graph then (
           match !(!stmt) with
-          | Phi (x_3, [x_1; x_2]) ->
-            assert (x = x_1 || x = x_2);
-            !stmt := Move (x_3, Val (if x = x_1 then x_2 else x_1))
+          | Phi (xn, xs) -> (
+              assert (List.mem x xs);
+              match List.filter (( <> ) x) xs with
+              | [x1] -> !stmt := Move (xn, Val x1)
+              | xs -> !stmt := Phi (xn, xs)
+            )
           | _ -> assert false
         )
       ) uses;

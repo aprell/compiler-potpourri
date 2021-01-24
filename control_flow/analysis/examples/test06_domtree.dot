@@ -4,6 +4,5 @@ graph DominatorTree {
     B2 -- B3;
     B2 -- B6;
     B3 -- B4;
-    B3 -- B5;
     B6 -- Exit;
 }
