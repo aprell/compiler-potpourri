@@ -270,3 +270,57 @@ let convert_to_ssa graph =
   rename_variables graph;
   insert_phi_functions graph;
   minimize_phi_functions graph
+
+module Graph = struct
+  type t = (var, def) Hashtbl.t
+  and def = Def_use_chain.Set.elt * use list
+  and use = Def_use_chain.Set.elt * Def_use_chain.Set.elt
+
+  let create () =
+    let graph = Hashtbl.create 10 in
+    Def_use_chain.iter (fun x def uses ->
+        assert (Option.is_some def);
+        let def = Option.get def in
+        let uses =
+          Def_use_chain.Set.elements uses
+          |> List.map (fun use -> (use, def))
+        in
+        Hashtbl.add graph x (def, uses)
+      );
+    graph
+
+  let node_name_of_stmt (block, stmt) =
+    let rec loop i = function
+      | s :: _ when s = !stmt -> i
+      | _ :: stmts -> loop (i + 1) stmts
+      | [] -> failwith "node_name_of_stmt"
+    in
+    Printf.sprintf "%s_%d" !block.name (loop 1 !block.stmts)
+
+  let node_label_of_stmt (_, stmt) =
+    string_of_stmt !(!stmt)
+
+  let output_dot ?filename graph =
+    let chan = match filename with
+      | Some filename -> open_out filename
+      | None -> stdout
+    in
+    let print ?(indent="") str =
+      output_string chan (indent ^ str ^ "\n")
+    in
+    let indent = String.make 4 ' ' in
+    print "digraph SSA {";
+    print ~indent "node [shape=box];";
+    Hashtbl.iter (fun (Var v) (def, uses) ->
+        let x = node_name_of_stmt def in
+        print ~indent (x ^ " [label=\"" ^ node_label_of_stmt def ^ "\"];");
+        List.iter (fun (use, _) ->
+            let y = node_name_of_stmt use in
+            print ~indent (y ^ " [label=\"" ^ node_label_of_stmt use ^ "\"];");
+            print ~indent (x ^ " -> " ^ y ^ " [label=\"use (" ^ v ^ ")\"];");
+            print ~indent (y ^ " -> " ^ x ^ " [label=\"def (" ^ v ^ ")\"];")
+          ) uses
+      ) graph;
+    print "}";
+    if chan <> stdout then close_out chan
+end
