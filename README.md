@@ -32,12 +32,14 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [Practical Improvements to the Construction and Destruction of Static Single Assignment Form](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.49.9683)
 - [Combining Analysis, Combining Optimizations](https://scholarship.rice.edu/handle/1911/16807)
 - [From Quads to Graphs: An Intermediate Representation's Journey](https://www.researchgate.net/publication/2746343_From_Quads_to_Graphs_An_Intermediate_Representation's_Journey)
+- [Intermediate Representations in Imperative Compilers: A Survey](https://dl.acm.org/doi/abs/10.1145/2480741.2480743)
 - [Value Numbering](http://softlib.rice.edu/pub/CRPC-TRs/reports/CRPC-TR94517-S.pdf)
 - [Constant Propagation with Conditional Branches](https://dl.acm.org/doi/10.1145/103135.103136)
 
 ### Articles
 - [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
 - [Understanding Static Single Assignment Forms](https://blog.yossarian.net/2020/10/23/Understanding-static-single-assignment-forms)
+- A New Backend for Cranelift: [Part 1](https://cfallin.org/blog/2020/09/18/cranelift-isel-1), [Part 2](https://cfallin.org/blog/2021/01/22/cranelift-isel-2)
 
 ### Courses
 - Compiler Design (CMU): [Fall 2014](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html), [Fall 2018](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html)
