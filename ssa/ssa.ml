@@ -197,10 +197,9 @@ let insert_phi_functions graph =
         insert block
     ) graph;
 
-  (* Erase remaining label parameters and build def-use chains *)
+  (* Erase remaining label parameters *)
   Cfg.iter (fun { block; _ } ->
-      erase_label_params block;
-      Def_use_chain.build block
+      erase_label_params block
     ) graph
 
 let minimize_phi_functions graph =
@@ -249,8 +248,9 @@ let minimize_phi_functions graph =
     Optim.propagate_phi x y
   in
 
-  (* Seed work list *)
+  (* Build def-use chains and seed work list *)
   Cfg.iter (fun { block; _ } ->
+      Def_use_chain.build block;
       add_task block
     ) graph;
 
