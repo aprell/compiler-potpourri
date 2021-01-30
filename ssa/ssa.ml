@@ -245,7 +245,16 @@ let minimize_phi_functions graph =
   and propagate x y =
     Def_use_chain.basic_blocks_of_uses x
     |> List.iter (( ! ) >> add_task);
-    Optim.propagate_phi x y
+    propagate_phi x y
+
+  and propagate_phi x y =
+    let uses = Def_use_chain.get_uses x in
+    Def_use_chain.Set.iter (fun (block, stmt) ->
+        !stmt := replace_stmt x (Val y) !(!stmt);
+        Def_use_chain.add_use !block !stmt y
+      ) uses;
+    Def_use_chain.remove_uses x;
+    Def_use_chain.remove_def x
   in
 
   (* Build def-use chains and seed work list *)

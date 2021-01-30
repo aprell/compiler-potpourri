@@ -1,6 +1,7 @@
 open Control_flow
 open Graphs
 open Ssa
+open Optim
 
 let convert_to_ssa graph =
   let hline = "\n" ^ String.make 80 '-' ^ "\n" in
@@ -23,7 +24,7 @@ let convert_to_ssa graph =
   Cfg.print_basic_blocks graph;
   print_endline hline;
 
-  let graph = Ssa__Optim.optimize graph in
+  let graph = optimize graph in
   Cfg.print_basic_blocks graph
 
 let () =

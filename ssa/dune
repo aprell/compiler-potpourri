@@ -1,13 +1,19 @@
 (library
   (name ssa)
   (public_name ssa)
-  (modules def_use_chain value_numbering optim ssa utils)
+  (modules def_use_chain value_numbering ssa utils)
   (libraries control_flow))
+
+(library
+  (name optim)
+  (public_name optim)
+  (modules optim)
+  (libraries ssa))
 
 (executable
   (name test_ssa)
   (modules test_ssa)
-  (libraries ssa))
+  (libraries ssa optim))
 
 (executable
   (name test_sscp)

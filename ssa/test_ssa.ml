@@ -1,7 +1,7 @@
 open Control_flow
 open Graphs
 open Ssa
-open Ssa__Optim
+open Optim
 
 let () =
   let graph =
