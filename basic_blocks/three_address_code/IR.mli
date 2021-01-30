@@ -48,6 +48,8 @@ val all_variables_stmt : stmt -> var list
 
 val all_variables : stmt list -> var list
 
+val replace_stmt : var -> expr -> stmt -> stmt
+
 val string_of_expr : expr -> string
 
 val string_of_stmt : ?indent:int -> stmt -> string
