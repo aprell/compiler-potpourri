@@ -372,17 +372,13 @@ module Graph = struct
     end;
     !first
 
-  let to_string ((def, uses) : def_use) =
-    let string_of_stmt' (block, stmt) =
-      Printf.sprintf "%s (%s)" (string_of_stmt !(!stmt)) !block.name
-    in
-    string_of_stmt' def,
-    String.concat ", " (List.map (fst >> string_of_stmt') uses)
-
   let print (graph : t) =
-    iter (fun (Var x) def_use_chain ->
-        let def, uses = to_string def_use_chain in
-        Printf.printf "%s: def = %s, uses = [%s]\n" x def uses
+    iter (fun _ ((_, def), uses) ->
+        List.iter (fun ((_, use), _) ->
+            Printf.printf "%s -use-> %s\n"
+              (string_of_stmt !(!def))
+              (string_of_stmt !(!use))
+          ) uses
       ) graph
 
   let node_name_of_stmt (block, stmt) =
