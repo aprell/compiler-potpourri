@@ -314,8 +314,11 @@ module Graph = struct
 
   let add_use (x : var) (use : use) (graph : t) =
     match get_def_use x graph with
-    | Some (def, uses) ->
-      Hashtbl.replace graph x (def, (use, def) :: uses);
+    | Some (def, uses) -> (
+        try ignore (List.assoc use uses)
+        with Not_found ->
+          Hashtbl.replace graph x (def, (use, def) :: uses)
+      )
     | None -> ()
 
   let set_uses (x : var) (uses : use list) (graph : t) =
