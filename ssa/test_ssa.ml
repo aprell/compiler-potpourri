@@ -1,7 +1,6 @@
 open Control_flow
 open Graphs
 open Ssa
-open Optim
 
 let () =
   let graph =
@@ -10,8 +9,7 @@ let () =
        | [| _; filename |] -> filename
        | _ -> "examples/pow.hir")
   in
-  convert_to_ssa graph;
+  let ssa_graph = convert_to_ssa graph in
   Cfg.print_basic_blocks graph;
   print_newline ();
-  let graph = optimize graph ~dump:true in
-  Cfg.print_basic_blocks graph
+  Ssa.Graph.output_dot ssa_graph

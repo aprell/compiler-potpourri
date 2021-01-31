@@ -24,7 +24,8 @@ let convert_to_ssa graph =
   Cfg.print_basic_blocks graph;
   print_endline hline;
 
-  let graph = optimize graph in
+  let ssa_graph = Ssa.Graph.create () in
+  let graph = optimize graph ssa_graph in
   Cfg.print_basic_blocks graph
 
 let () =

@@ -70,24 +70,20 @@ let value_of = Hashtbl.find values
 
 let ( <-= ) var = Hashtbl.replace values var
 
-let init ?(value = Top) ?(verbose = false) () =
+let init ?(value = Top) ?(verbose = false) ssa_graph =
   verbose_flag := verbose;
   let worklist = Queue.create () in
-  Ssa__Def_use_chain.iter (fun x def _ -> (
-        match def with
-        | Some (_, stmt) -> (
-            match !(!stmt) with
-            | Move (_, Const n) -> x <-= Const n
-            | Load _ -> x <-= Bottom
-            | Label _ -> x <-= Bottom
-            | Phi _ -> x <-= value
-            | _ -> x <-= value
-          )
-        | None -> x <-= value
-      );
+  Ssa.Graph.iter (fun x ((_, stmt), _) ->
+      begin match !(!stmt) with
+        | Move (_, Const n) -> x <-= Const n
+        | Load _ -> x <-= Bottom
+        | Label _ -> x <-= Bottom
+        | Phi _ -> x <-= value
+        | _ -> x <-= value
+      end;
       if value_of x <> Top then
         Queue.add x worklist
-    );
+    ) ssa_graph;
   worklist
 
 let propagate stmt worklist =
@@ -119,14 +115,13 @@ let propagate stmt worklist =
     x <-= List.fold_left meet' (List.hd vs) (List.tl vs);
     if value_of x <> v then
       Queue.add x worklist
-
   | _ -> ()
 
-let iterate worklist =
+let iterate worklist ssa_graph =
   while not (Queue.is_empty worklist) do
     let x = Queue.take worklist in
-    let uses = Ssa__Def_use_chain.get_uses x in
-    Ssa__Def_use_chain.Set.iter (fun (_, stmt) ->
+    let uses = Ssa.Graph.get_uses x ssa_graph in
+    List.iter (fun (_, stmt) ->
         propagate stmt worklist
       ) uses
   done

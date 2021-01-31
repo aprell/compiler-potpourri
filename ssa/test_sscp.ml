@@ -9,12 +9,12 @@ let () =
        | [| _; filename |] -> filename
        | _ -> "examples/pow.hir")
   in
-  convert_to_ssa graph;
+  let ssa_graph = convert_to_ssa graph in
   Cfg.print_basic_blocks graph;
-  let worklist = Sscp.init ~value:Sscp.Top ~verbose:true () in
+  let worklist = Sscp.init ssa_graph ~value:Sscp.Top ~verbose:true in
   print_newline ();
   Sscp.print ();
   print_newline ();
-  Sscp.iterate worklist;
+  Sscp.iterate worklist ssa_graph;
   print_newline ();
   Sscp.print ()

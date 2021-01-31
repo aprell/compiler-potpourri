@@ -11,10 +11,6 @@ val get_def : var -> Set.elt option
 
 val get_uses : var -> Set.t
 
-val basic_block_of_def : var -> Basic_block.t ref option
-
-val basic_blocks_of_uses : var -> Basic_block.t ref list
-
 val add_def : Basic_block.t -> stmt ref -> var -> unit
 
 val add_use : Basic_block.t -> stmt ref -> var -> unit
@@ -25,14 +21,8 @@ val remove_use : Set.elt -> var -> unit
 
 val remove_uses : var -> unit
 
-val filter_uses : (stmt -> bool) -> var -> unit
-
 val build : Basic_block.t -> unit
 
 val iter : (var -> Set.elt option -> Set.t -> unit) -> unit
 
-val find_first : (t -> bool) -> (var * t) option
-
-val clean_up : unit -> unit
-
-val print : unit -> unit
+val clear : unit -> unit

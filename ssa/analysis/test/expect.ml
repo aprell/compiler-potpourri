@@ -3,16 +3,16 @@ open Graphs
 open Ssa
 
 (* Sparse simple constant propagation *)
-let sscp _graph =
-  let worklist = Sscp.init ~value:Sscp.Top () in
-  Sscp.iterate worklist;
+let sscp ssa_graph =
+  let worklist = Sscp.init ssa_graph ~value:Sscp.Top in
+  Sscp.iterate worklist ssa_graph;
   print_endline "Result of SSCP:";
   Sscp.print ()
 
 (* Sparse conditional constant propagation *)
-let sccp graph =
-  let worklist = Sccp.init graph in
-  Sccp.iterate worklist;
+let sccp graph ssa_graph =
+  let worklist = Sccp.init graph ssa_graph in
+  Sccp.iterate worklist ssa_graph;
   print_endline "Result of SCCP:";
   Sccp.print ()
 
@@ -23,9 +23,9 @@ let () =
        | [| _; filename |] -> filename
        | _ -> failwith "Input file required")
   in
-  convert_to_ssa graph;
+  let ssa_graph = convert_to_ssa graph in
   Cfg.print_basic_blocks graph;
   print_newline ();
-  sscp graph;
+  sscp ssa_graph;
   print_newline ();
-  sccp graph
+  sccp graph ssa_graph

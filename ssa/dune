@@ -16,6 +16,11 @@
   (libraries ssa optim))
 
 (executable
+  (name test_optim)
+  (modules test_optim)
+  (libraries ssa optim))
+
+(executable
   (name test_sscp)
   (modules test_sscp sscp)
   (libraries ssa))

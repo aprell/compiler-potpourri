@@ -26,17 +26,6 @@ let get_uses var =
   | Some { uses; _ } -> uses
   | None -> Set.empty
 
-let basic_block_of_def var =
-  match get_def var with
-  | Some (block, _) -> Some block
-  | None -> None
-
-let basic_blocks_of_uses var =
-  get_uses var
-  |> Set.elements
-  |> List.map fst
-  |> List.sort_uniq (fun a b -> compare !a !b)
-
 let remove_use use var =
   match Hashtbl.find_opt def_use_chains var with
   | Some ({ uses; _ } as def_use_chain) ->
@@ -50,14 +39,6 @@ let remove_uses var =
   | Some def_use_chain ->
     Hashtbl.replace def_use_chains var
       { def_use_chain with uses = Set.empty }
-  | None -> ()
-
-let filter_uses p var =
-  let filter = Set.filter (fun (_, use) -> p !(!use)) in
-  match Hashtbl.find_opt def_use_chains var with
-  | Some ({ uses; _ } as def_use_chain) ->
-    Hashtbl.replace def_use_chains var
-      { def_use_chain with uses = filter uses }
   | None -> ()
 
 let remove_def var =
@@ -130,46 +111,5 @@ let iter f =
       f var def uses
     ) def_use_chains
 
-let find_first p =
-  let first = ref None in
-  begin
-    try Hashtbl.iter (fun x def_use_chain ->
-        if p def_use_chain then (
-          first := Some (x, def_use_chain);
-          raise_notrace Exit
-        )
-      ) def_use_chains
-    with Exit -> ()
-  end;
-  !first
-
-let clean_up () =
-  let rec loop () =
-    match (
-      (* Find a dead SSA name without a definition *)
-      find_first (fun { def; uses; } ->
-          Option.is_none def && Set.is_empty uses
-        )
-    ) with
-    | Some (x, _) ->
-      remove_def x;
-      loop ()
-    | None -> ()
-  in
-  loop ()
-
-let to_string { def; uses; } =
-  let string_of_stmt' (block, stmt) =
-    Printf.sprintf "%s (%s)" (string_of_stmt !(!stmt)) !block.name
-  in
-  Printf.sprintf "%s"
-    (Option.fold ~some:string_of_stmt' ~none:"---" def)
-  ,
-  Printf.sprintf "%s"
-    (Set.elements uses |> List.map string_of_stmt' |> String.concat ", ")
-
-let print () =
-  Hashtbl.iter (fun (Var x) def_use_chain ->
-      let def, uses = to_string def_use_chain in
-      Printf.printf "%s: def = %s, uses = [%s]\n" x def uses
-    ) def_use_chains
+let clear () =
+  Hashtbl.reset def_use_chains

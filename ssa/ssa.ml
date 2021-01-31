@@ -243,8 +243,11 @@ let minimize_phi_functions graph =
     block.stmts <- loop block.stmts
 
   and propagate x y =
-    Def_use_chain.basic_blocks_of_uses x
-    |> List.iter (( ! ) >> add_task);
+    Def_use_chain.get_uses x
+    |> Def_use_chain.Set.elements
+    |> List.map (fst >> ( ! ))
+    |> List.sort_uniq Basic_block.compare
+    |> List.iter add_task;
     propagate_phi x y
 
   and propagate_phi x y =
@@ -266,37 +269,118 @@ let minimize_phi_functions graph =
   (* Iterate *)
   while not (Queue.is_empty worklist) do
     Queue.take worklist ()
-  done;
-
-  Def_use_chain.clean_up ()
-
-(* Roughly follows the simple generation of SSA form by Aycock and Horspool:
- * (1) Insert phi-functions "everywhere" (the "really crude" approach)
- * (2) Delete unnecessary phi-functions, optimize, and repeat
- * The result is minimal, or close to minimal, SSA form *)
-let convert_to_ssa graph =
-  parameterize_labels graph;
-  rename_variables graph;
-  insert_phi_functions graph;
-  minimize_phi_functions graph
+  done
 
 module Graph = struct
-  type t = (var, def) Hashtbl.t
-  and def = Def_use_chain.Set.elt * use list
-  and use = Def_use_chain.Set.elt * Def_use_chain.Set.elt
+  type t = (var, def_use) Hashtbl.t
+  and def_use = def * use_def list
+  and use_def = use * def
+  and def = Def_use_chain.Set.elt
+  and use = Def_use_chain.Set.elt
 
   let create () =
     let graph = Hashtbl.create 10 in
     Def_use_chain.iter (fun x def uses ->
-        assert (Option.is_some def);
-        let def = Option.get def in
-        let uses =
-          Def_use_chain.Set.elements uses
-          |> List.map (fun use -> (use, def))
-        in
-        Hashtbl.add graph x (def, uses)
+        match def with
+        | Some def ->
+          let uses =
+            Def_use_chain.Set.elements uses
+            |> List.map (fun use -> (use, def))
+          in
+          Hashtbl.add graph x (def, uses)
+        | None ->
+          (* Dead SSA name *)
+          assert (Def_use_chain.Set.is_empty uses)
       );
+    Def_use_chain.clear ();
     graph
+
+  let get_def_use (x : var) (graph : t) =
+    Hashtbl.find_opt graph x
+
+  let get_def (x : var) (graph : t) =
+    match get_def_use x graph with
+    | Some (def, _) -> Some def
+    | None -> None
+
+  let get_use_def (x : var) (graph : t) =
+    match get_def_use x graph with
+    | Some (_, uses) -> uses
+    | None -> []
+
+  let get_uses (x : var) (graph : t) =
+    get_use_def x graph
+    |> List.map fst
+
+  let add_use (x : var) (use : use) (graph : t) =
+    match get_def_use x graph with
+    | Some (def, uses) ->
+      Hashtbl.replace graph x (def, (use, def) :: uses);
+    | None -> ()
+
+  let set_uses (x : var) (uses : use list) (graph : t) =
+    match get_def x graph with
+    | Some def ->
+      Hashtbl.replace graph x (def, List.map (fun use -> (use, def)) uses)
+    | None -> ()
+
+  let remove_use (x : var) ((_, stmt) : use) (graph : t) =
+    let filter = List.filter (fst >> snd >> (( <> )) stmt) in
+    match get_def_use x graph with
+    | Some (def, uses) ->
+      assert (uses <> []);
+      Hashtbl.replace graph x (def, filter uses)
+    | None -> ()
+
+  let remove_uses (x : var) (graph : t) =
+    match get_def x graph with
+    | Some def ->
+      Hashtbl.replace graph x (def, [])
+    | None -> ()
+
+  let remove_def (x : var) (graph : t) =
+    match get_def x graph with
+    | Some ((_, stmt) as def) -> (
+        match !(!stmt) with
+        | Move (_, e) ->
+          List.iter (fun y -> remove_use y def graph) (all_variables_expr e)
+        | Load (_, Deref y) ->
+          remove_use y def graph
+        | Label (_, Some ys)
+        | Phi (_, ys) ->
+          List.iter (fun y -> remove_use y def graph) ys
+        | _ -> assert false
+      );
+      Hashtbl.remove graph x
+    | None -> ()
+
+  let iter = Hashtbl.iter
+
+  let find_first p (graph : t) =
+    let first = ref None in
+    begin
+      try iter (fun x def ->
+          if p def then (
+            first := Some (x, def);
+            raise_notrace Exit
+          )
+        ) graph
+      with Exit -> ()
+    end;
+    !first
+
+  let to_string ((def, uses) : def_use) =
+    let string_of_stmt' (block, stmt) =
+      Printf.sprintf "%s (%s)" (string_of_stmt !(!stmt)) !block.name
+    in
+    string_of_stmt' def,
+    String.concat ", " (List.map (fst >> string_of_stmt') uses)
+
+  let print (graph : t) =
+    iter (fun (Var x) def_use_chain ->
+        let def, uses = to_string def_use_chain in
+        Printf.printf "%s: def = %s, uses = [%s]\n" x def uses
+      ) graph
 
   let node_name_of_stmt (block, stmt) =
     let rec loop i = function
@@ -320,7 +404,7 @@ module Graph = struct
     let indent = String.make 4 ' ' in
     print "digraph SSA {";
     print ~indent "node [shape=box];";
-    Hashtbl.iter (fun (Var v) (def, uses) ->
+    iter (fun (Var v) (def, uses) ->
         let x = node_name_of_stmt def in
         print ~indent (x ^ " [label=\"" ^ node_label_of_stmt def ^ "\"];");
         List.iter (fun (use, _) ->
@@ -333,3 +417,14 @@ module Graph = struct
     print "}";
     if chan <> stdout then close_out chan
 end
+
+(* Roughly follows the simple generation of SSA form by Aycock and Horspool:
+ * (1) Insert phi-functions "everywhere" (the "really crude" approach)
+ * (2) Delete unnecessary phi-functions, optimize, and repeat
+ * The result is minimal, or close to minimal, SSA form *)
+let convert_to_ssa graph =
+  parameterize_labels graph;
+  rename_variables graph;
+  insert_phi_functions graph;
+  minimize_phi_functions graph;
+  Graph.create ()

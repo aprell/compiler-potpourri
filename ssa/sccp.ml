@@ -113,7 +113,7 @@ let reachable block =
   in_edges block
   |> List.exists executed
 
-let init ?(verbose = false) (graph : Cfg.t) =
+let init ?(verbose = false) (graph : Cfg.t) (ssa_graph : Ssa.Graph.t) =
   verbose_flag := verbose;
   let { Cfg.Node.block = entry; _ } = Cfg.get_entry_node graph in
 
@@ -122,18 +122,14 @@ let init ?(verbose = false) (graph : Cfg.t) =
       Queue.add (`CFG_edge (entry, block)) worklist
     ) entry.succ;
 
-  Ssa__Def_use_chain.iter (fun x def _ ->
-      match def with
-      | Some (_, stmt) -> (
-          match !(!stmt) with
-          | Move (_, Const _) -> x <-= Top
-          | Load _ -> x <-= Bottom
-          | Label _ -> x <-= Bottom
-          | Phi _ -> x <-= Top
-          | _ -> x <-= Top
-        )
-      | None -> x <-= Top
-    );
+  Ssa.Graph.iter (fun x ((_, stmt), _) ->
+      match !(!stmt) with
+      | Move (_, Const _) -> x <-= Top
+      | Load _ -> x <-= Bottom
+      | Label _ -> x <-= Bottom
+      | Phi _ -> x <-= Top
+      | _ -> x <-= Top
+    ) ssa_graph;
   worklist
 
 let visit_stmt stmt block worklist =
@@ -161,7 +157,7 @@ let visit_stmt stmt block worklist =
       | _ -> ()
     end;
     if value_of x <> v then
-      Queue.add (`Def_use_edges x) worklist
+      Queue.add (`SSA_edges x) worklist
   | Jump l ->
     let target = List.hd block.succ in
     assert (entry_label target = l);
@@ -211,7 +207,7 @@ let visit_stmt stmt block worklist =
       printf "%s := " (name_of_var x);
       x <-= List.fold_left meet' (List.hd vs) (List.tl vs);
       if value_of x <> v then
-        Queue.add (`Def_use_edges x) worklist
+        Queue.add (`SSA_edges x) worklist
     )
   | _ -> ()
 
@@ -222,7 +218,7 @@ let visit block worklist =
   if List.(length (filter executed (in_edges block)) = 1) then
     List.iter (fun non_phi -> visit_stmt non_phi block worklist) rest
 
-let iterate worklist =
+let iterate worklist ssa_graph =
   while not (Queue.is_empty worklist) do
     match Queue.take worklist with
     | `CFG_edge ((m, n) as edge) ->
@@ -233,9 +229,9 @@ let iterate worklist =
       ) else (
         printf "Execute %s -> %s (already executed)\n" m.name n.name
       )
-    | `Def_use_edges x ->
-      let uses = Ssa__Def_use_chain.get_uses x in
-      Ssa__Def_use_chain.Set.iter (fun (block, stmt) ->
+    | `SSA_edges x ->
+      let uses = Ssa.Graph.get_uses x ssa_graph in
+      List.iter (fun (block, stmt) ->
           if reachable !block then
             visit_stmt !stmt !block worklist
         ) uses

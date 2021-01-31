@@ -1,6 +1,7 @@
 open Control_flow
 open Graphs
 open Ssa
+open Optim
 
 let () =
   let graph =
@@ -11,10 +12,8 @@ let () =
   in
   let ssa_graph = convert_to_ssa graph in
   Cfg.print_basic_blocks graph;
-  let worklist = Sccp.init graph ssa_graph ~verbose:true in
   print_newline ();
-  Sccp.print ();
+  Ssa.Graph.print ssa_graph;
   print_newline ();
-  Sccp.iterate worklist ssa_graph;
-  print_newline ();
-  Sccp.print ()
+  let graph = optimize graph ssa_graph ~dump:true in
+  Cfg.print_basic_blocks graph

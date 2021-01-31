@@ -9,8 +9,7 @@ let () =
        | [| _; filename |] -> filename
        | _ -> "examples/pow.hir")
   in
-  convert_to_ssa graph;
-(*   Ssa__Optim.optimize (); *)
+  let _ = convert_to_ssa graph in
   Cfg.print_basic_blocks graph;
   let worklist = Reachability.init graph ~verbose:true in
   print_newline ();
