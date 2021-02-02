@@ -143,33 +143,17 @@ let constant_fold = function
   | Relop (GE, Const n, Const m) when n < m -> Const 0
   | e -> e
 
-let rec all_variables_expr = function
-  | Const _ -> []
-  | Val x -> [x]
+module Vars = Set.Make (struct
+  type t = var
+  let compare = Stdlib.compare
+end)
+
+let rec collect_variables = function
+  | Const _ -> Vars.empty
+  | Val x -> Vars.singleton x
   | Binop (_, e1, e2)
   | Relop (_, e1, e2) ->
-    all_variables_expr e1 @ all_variables_expr e2
-
-let all_variables_stmt = function
-  | Move (x, e)
-  | Store (Deref x, e) ->
-    x :: all_variables_expr e
-  | Load (x, Deref y) ->
-    [x; y]
-  | Label _ | Jump _ -> []
-  | Cond (e, _, _) ->
-    all_variables_expr e
-  | Receive x -> [x]
-  | Return (Some e) ->
-    all_variables_expr e
-  | Return None -> []
-  | _ -> assert false
-
-let all_variables stmts =
-  stmts
-  |> List.map all_variables_stmt
-  |> List.flatten
-  |> List.sort_uniq compare
+    Vars.union (collect_variables e1) (collect_variables e2)
 
 let rec replace_expr x y = function
   | Val x' when x' = x -> y

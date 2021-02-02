@@ -3,8 +3,6 @@ open Basic_block
 open Control_flow
 open Ssa__Utils
 
-module S = Liveness.Set
-
 let parameterize_labels graph =
   let open Cfg.Node in
 
@@ -12,9 +10,9 @@ let parameterize_labels graph =
    * (see semi-pruned SSA form) *)
   let variables = List.fold_left (fun non_locals { block; _ } ->
       let use, _ = Liveness.compute block in
-      S.union use non_locals
-    ) S.empty (Cfg.get_nodes graph)
-  |> S.elements
+      Vars.union use non_locals
+    ) Vars.empty (Cfg.get_nodes graph)
+  |> Vars.elements
   in
 
   let parameterize { block; _ } =
@@ -223,12 +221,12 @@ let minimize_phi_functions graph =
               loop stmts
             )
           | Phi (x, xs) -> (
-              let xs = S.of_list (List.filter has_def xs) in
-              if S.cardinal xs = 1 && not (S.mem x xs) ||
-                 S.cardinal xs = 2 && S.mem x xs then (
+              let xs = Vars.of_list (List.filter has_def xs) in
+              if Vars.cardinal xs = 1 && not (Vars.mem x xs) ||
+                 Vars.cardinal xs = 2 && Vars.mem x xs then (
                 (* Replace x := PHI(x, x') or x := PHI(x', x') with x := x' and
                  * perform copy propagation *)
-                let x' = S.find_first (( <> ) x) xs in
+                let x' = Vars.find_first (( <> ) x) xs in
                 propagate x x';
                 loop stmts
               ) else (
@@ -346,7 +344,7 @@ module Graph = struct
     | Some ((_, stmt) as def) -> (
         match !(!stmt) with
         | Move (_, e) ->
-          List.iter (fun y -> remove_use y def graph) (all_variables_expr e)
+          Vars.iter (fun y -> remove_use y def graph) (collect_variables e)
         | Load (_, Deref y) ->
           remove_use y def graph
         | Label (_, Some ys)

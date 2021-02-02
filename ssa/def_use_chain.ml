@@ -46,7 +46,7 @@ let remove_def var =
   | Some { def = Some ((_, stmt) as def); _ } -> (
       match !(!stmt) with
       | Move (_, e) ->
-        List.iter (remove_use def) (all_variables_expr e)
+        Vars.iter (remove_use def) (collect_variables e)
       | Load (_, Deref y) ->
         remove_use def y
       | Label (_, Some xs)
@@ -83,21 +83,21 @@ let build block =
     match !stmt with
     | Move (x, e) ->
       add_def block stmt x;
-      List.iter (add_use block stmt) (all_variables_expr e)
+      Vars.iter (add_use block stmt) (collect_variables e)
     | Load (x, Deref y) ->
       add_def block stmt x;
       add_use block stmt y
     | Store (Deref x, e) ->
       add_use block stmt x;
-      List.iter (add_use block stmt) (all_variables_expr e)
+      Vars.iter (add_use block stmt) (collect_variables e)
     | Label (_, Some xs) ->
       List.iter (add_def block stmt) xs
     | Cond (e, _, _) ->
-      List.iter (add_use block stmt) (all_variables_expr e)
+      Vars.iter (add_use block stmt) (collect_variables e)
     | Receive x ->
       add_def block stmt x
     | Return (Some e) ->
-      List.iter (add_use block stmt) (all_variables_expr e)
+      Vars.iter (add_use block stmt) (collect_variables e)
     | Return None -> ()
     | Phi (x, xs) ->
       add_def block stmt x;

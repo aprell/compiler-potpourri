@@ -25,7 +25,7 @@ val create_basic_blocks : stmt list -> t list
 val print_basic_blocks : t list -> unit
 
 module Liveness : sig
-  module Set : Set.S with type elt = var
+  module Set = Vars
 
   (* Block-local liveness information
    * use: the set of variables that are used before being assigned a (new) value

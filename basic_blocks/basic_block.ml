@@ -88,17 +88,14 @@ let print_basic_blocks blocks =
   |> print_endline
 
 module Liveness = struct
-  module Set = Set.Make (struct
-    type t = var
-    let compare = Stdlib.compare
-  end)
+  module Set = Vars
 
   let compute block =
     let rec loop (use, def) = function
       | stmt :: stmts ->
         let use', def' = match !stmt with
           | Move (x, e) ->
-            let vars = Set.of_list (all_variables_expr e) in
+            let vars = collect_variables e in
             (* Remove x from use, then add all variables that occur in e *)
             let use' = Set.union (Set.remove x use) vars in
             (* Add x to def, then remove all variables that occur in e *)
@@ -111,7 +108,7 @@ module Liveness = struct
             let def' = Set.remove y (Set.add x def) in
             (use', def')
           | Store (Deref x, e) ->
-            let vars = Set.of_list (all_variables_expr e) in
+            let vars = collect_variables e in
             let use' = Set.add x (Set.union use vars) in
             (use', def)
           | Label (_, Some params) ->
@@ -120,7 +117,7 @@ module Liveness = struct
             let def' = Set.union def vars in
             (use', def')
           | Cond (e, _, _) | Return (Some e) ->
-            let vars = Set.of_list (all_variables_expr e) in
+            let vars = collect_variables e in
             let use' = Set.union use vars in
             (use', def)
           | Phi (x, xs) ->

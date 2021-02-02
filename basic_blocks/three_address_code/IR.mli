@@ -42,11 +42,9 @@ val lower :
 
 val constant_fold : expr -> expr
 
-val all_variables_expr : expr -> var list
+module Vars : Set.S with type elt = var
 
-val all_variables_stmt : stmt -> var list
-
-val all_variables : stmt list -> var list
+val collect_variables : expr -> Vars.t
 
 val replace_stmt : var -> expr -> stmt -> stmt
 
