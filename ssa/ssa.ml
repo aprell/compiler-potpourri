@@ -215,6 +215,8 @@ let minimize_phi_functions graph =
     let rec loop = function
       | stmt :: stmts -> (
           match !stmt with
+          | Label _ ->
+            stmt :: loop stmts
           | Phi (x, [x']) -> (
               (* Replace x := PHI(x') with x := x' and perform copy propagation *)
               propagate x x';
@@ -234,9 +236,9 @@ let minimize_phi_functions graph =
                 stmt :: loop stmts
               )
             )
-          | _ -> stmt :: loop stmts
+          | _ -> stmt :: stmts
         )
-      | stmts -> stmts
+      | [] -> []
     in
     block.stmts <- loop block.stmts
 
