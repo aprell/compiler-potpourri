@@ -43,3 +43,5 @@ val output_dot : ?filename:string -> t -> unit
 val inspect : t -> unit
 
 val simplify : t -> t
+
+val split_critical_edges : t -> t

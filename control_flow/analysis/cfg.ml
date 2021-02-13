@@ -1,3 +1,5 @@
+open Three_address_code__IR
+
 module rec Node : sig
   type t = {
     block : Basic_block.t;
@@ -101,9 +103,9 @@ let define ~(nodes : int list) ~(edges : (int * int) list) : t =
   let open Node in
   let graph =
     Basic_block.(
-      create 0 ~name:"Entry"
-      :: List.map create nodes
-      @ [create (List.length nodes + 1) ~name:"Exit"]
+      create ~number:0 ~name:"Entry" ()
+      :: List.map (fun number -> create ~number ()) nodes
+      @ [create ~number:(List.length nodes + 1) ~name:"Exit" ()]
     )
     |> List.fold_left (fun graph block ->
         M.add block.number (Node.create block) graph
@@ -156,16 +158,38 @@ let remove_unreachable_nodes (graph : t) : t =
       )
     ) graph
 
+let remove_branch node ~label =
+  let open Node in
+  let target = NodeSet.filter (fun succ ->
+      Basic_block.entry_label succ.block = label
+    ) node.succ
+  in
+  assert (NodeSet.cardinal target = 1);
+  node =|> NodeSet.choose target
+
+let retarget_branch node ~label succ =
+  let open Node in
+  let label' = Basic_block.entry_label succ.block in
+  begin match Basic_block.last_stmt node.block with
+    | Some stmt -> (
+        match !stmt with
+        | Jump l when l = label ->
+          stmt := Jump label';
+          remove_branch node ~label
+        | Cond (e, l1, l2) when l1 = label ->
+          stmt := Cond (e, label', l2);
+          remove_branch node ~label
+        | Cond (e, l1, l2) when l2 = label ->
+          stmt := Cond (e, l1, label');
+          remove_branch node ~label
+        | _ -> assert false
+      )
+    | None -> ()
+  end;
+  node => succ
+
 let simplify (graph : t) : t =
   let open Node in
-
-  let remove_branch node ~label =
-    let target = NodeSet.find_first (fun succ ->
-        Basic_block.entry_label succ.block = label
-      ) node.succ
-    in
-    node =|> target
-  in
 
   let simplify_branch node =
     match Basic_block.last_stmt node.block with
@@ -189,27 +213,6 @@ let simplify (graph : t) : t =
     | _ -> false
   in
 
-  let retarget_branch node ~label succ =
-    let label' = Basic_block.entry_label succ.block in
-    begin match Basic_block.last_stmt node.block with
-      | Some stmt -> (
-          match !stmt with
-          | Jump l when l = label ->
-            stmt := Jump label';
-            remove_branch node ~label
-          | Cond (e, l1, l2) when l1 = label ->
-            stmt := Cond (e, label', l2);
-            remove_branch node ~label
-          | Cond (e, l1, l2) when l2 = label ->
-            stmt := Cond (e, l1, label');
-            remove_branch node ~label
-          | _ -> assert false
-        )
-      | None -> ()
-    end;
-    node => succ
-  in
-
   let skip node =
     assert (NodeSet.cardinal node.succ = 1);
     let succ = NodeSet.choose node.succ in
@@ -227,14 +230,42 @@ let simplify (graph : t) : t =
 
   remove_unreachable_nodes graph
 
+let split_edge ((n, m) : Node.t * Node.t) : Node.t =
+  let open Node in
+  let target = Basic_block.entry_label m.block in
+  let block = Basic_block.create ()
+      ~stmts:(List.map ref [Label (make_label ()); Jump target])
+  in
+  let node = Node.create block in
+  retarget_branch n node ~label:target;
+  node => m;
+  node
+
+let is_critical_edge ((n, m) : Node.t * Node.t) =
+  assert (NodeSet.(mem m n.succ && mem n m.pred));
+  NodeSet.(cardinal n.succ > 1 && cardinal m.pred > 1)
+
+let split_critical_edges (graph : t) : t =
+  let nodes = ref NodeSet.empty in
+  iter (fun node ->
+      NodeSet.iter (fun succ ->
+          if is_critical_edge (node, succ) then
+            nodes := NodeSet.add (split_edge (node, succ)) !nodes
+        ) node.succ;
+    ) graph;
+  (* Update graph with new nodes *)
+  NodeSet.fold (fun node ->
+      M.add node.block.number node
+    ) !nodes graph
+
 let construct (basic_blocks : Basic_block.t list) : t =
   let open Basic_block in
   let open Node in
   let graph =
     Basic_block.(
-      create 0 ~name:"Entry"
+      create ~number:0 ~name:"Entry" ()
       :: basic_blocks
-      @ [create (List.length basic_blocks + 1) ~name:"Exit"]
+      @ [create ~number:Int.max_int ~name:"Exit" ()]
     )
     |> List.fold_left (fun graph block ->
         M.add block.number (Node.create block) graph

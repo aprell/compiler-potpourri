@@ -30,6 +30,8 @@ and name = string
 
 val name_of_var : var -> name
 
+val make_label : ?name:name -> ?params:var list -> unit -> label
+
 val is_phi : stmt -> bool
 
 val lower :

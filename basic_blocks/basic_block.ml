@@ -10,8 +10,10 @@ type t = {
   mutable succ : t list;
 }
 
+let block_number = gen_number 1
+
 (* Constructor for basic blocks *)
-let create ?name ?(stmts = []) number =
+let create ?name ?(number = block_number ()) ?(stmts = []) () =
   { name = Option.value name ~default:("B" ^ string_of_int number);
     number; stmts; pred = []; succ = [] }
 
@@ -40,7 +42,6 @@ let entry_label block =
   | _ -> (block.name, None)
 
 let create_basic_blocks source =
-  let block_number = gen_number 1 in
   List.fold_left (fun (lines, code, blocks) stmt ->
       match stmt with
       | Label (name, _) ->
@@ -51,10 +52,9 @@ let create_basic_blocks source =
           (* End previous basic block *)
           let stmts, code = split lines code in
           let stmts = List.map ref stmts in
-          let block = create (block_number ())
-              ~stmts:
-                (* Insert explicit jump *)
-                (stmts @ [ref (Jump (name, None))])
+          let block = create () ~stmts:
+              (* Insert explicit jump *)
+              (stmts @ [ref (Jump (name, None))])
           in
           (* This line starts a new basic block *)
           (1, code, block :: blocks)
@@ -62,7 +62,7 @@ let create_basic_blocks source =
         (* End current basic block *)
         let stmts, code = split (lines + 1) code in
         let stmts = List.map ref stmts in
-        let block = create (block_number ()) ~stmts in
+        let block = create () ~stmts in
         (* Next line starts a new basic block *)
         (0, code, block :: blocks)
       | _ ->
@@ -73,10 +73,9 @@ let create_basic_blocks source =
   if code <> [] then
     (* Close open basic block *)
     let stmts = List.map ref code in
-    let block = create (block_number ())
-        ~stmts:
-          (* Insert explicit return *)
-          (stmts @ [ref (Return None)])
+    let block = create () ~stmts:
+        (* Insert explicit return *)
+        (stmts @ [ref (Return None)])
     in
     List.rev (block :: blocks)
   else

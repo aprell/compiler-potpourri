@@ -34,10 +34,10 @@ let is_phi = function
   | Phi _ -> true
   | _ -> false
 
-(* Constructor for labels *)
-let make_label ?params name : label = (name, params)
-
 let gen_label = Utils.gen_name "L" 1
+
+(* Constructor for labels *)
+let make_label ?(name = gen_label ()) ?params () : label = (name, params)
 
 (* The parser doesn't accept identifiers that start with '$', so these
  * temporaries are guaranteed to not conflict with other identifiers. *)
@@ -69,7 +69,7 @@ let translate (`Addr (base, index)) =
 
 let lower = function
   | `Proc (name, params, body) ->
-    [Label (make_label name ~params)]
+    [Label (make_label ~name ~params ())]
     @ body
   | `Load (x, addr) ->
     let stmts, addr' = translate addr in
@@ -82,16 +82,16 @@ let lower = function
     @ [Move (Var t1, e)]
     @ [Store (addr', Val (Var t1))]
   | `If (Relop _ as e, then_, []) ->
-    let l1 = make_label (gen_label ()) in
-    let l2 = make_label (gen_label ()) in
+    let l1 = make_label () in
+    let l2 = make_label () in
     [Cond (e, l1, l2)]
     @ [Label l1]
     @ then_
     @ [Label l2]
   | `If (Relop _ as e, then_, else_) ->
-    let l1 = make_label (gen_label ()) in
-    let l2 = make_label (gen_label ()) in
-    let l3 = make_label (gen_label ()) in
+    let l1 = make_label () in
+    let l2 = make_label () in
+    let l3 = make_label () in
     [Cond (e, l1, l2)]
     @ [Label l1]
     @ then_
@@ -102,9 +102,9 @@ let lower = function
   | `If (Const 0, _, else_) -> else_
   | `If (Const _, then_, _) -> then_
   | `While (Relop _ as e, body) ->
-    let l1 = make_label (gen_label ()) in
-    let l2 = make_label (gen_label ()) in
-    let l3 = make_label (gen_label ()) in
+    let l1 = make_label () in
+    let l2 = make_label () in
+    let l3 = make_label () in
     [Label l1]
     @ [Cond (e, l2, l3)]
     @ [Label l2]

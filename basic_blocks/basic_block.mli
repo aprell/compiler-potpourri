@@ -8,7 +8,7 @@ type t = {
   mutable succ : t list;
 }
 
-val create : ?name:string -> ?stmts:stmt ref list -> int -> t
+val create : ?name:string -> ?number:int -> ?stmts:stmt ref list -> unit -> t
 
 val compare : t -> t -> int
 
