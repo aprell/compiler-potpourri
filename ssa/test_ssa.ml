@@ -1,6 +1,5 @@
 open Control_flow
 open Graphs
-open Ssa
 
 let () =
   let graph =
@@ -9,7 +8,7 @@ let () =
        | [| _; filename |] -> filename
        | _ -> "examples/pow.hir")
   in
-  let ssa_graph = convert_to_ssa graph in
+  let ssa_graph = Ssa.construct graph in
   Cfg.print_basic_blocks graph;
   print_newline ();
   Ssa.Graph.output_dot ssa_graph

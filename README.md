@@ -30,6 +30,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [SSA is Functional Programming](https://www.cs.princeton.edu/~appel/papers/ssafun.pdf)
 - [Simple Generation of Static Single-Assignment Form](https://link.springer.com/content/pdf/10.1007/3-540-46423-9_8.pdf)
 - [Practical Improvements to the Construction and Destruction of Static Single Assignment Form](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.49.9683)
+- [Translating Out of Static Single Assignment Form](https://link.springer.com/chapter/10.1007/3-540-48294-6_13)
 - [Combining Analysis, Combining Optimizations](https://scholarship.rice.edu/handle/1911/16807)
 - [From Quads to Graphs: An Intermediate Representation's Journey](https://www.researchgate.net/publication/2746343_From_Quads_to_Graphs_An_Intermediate_Representation's_Journey)
 - [Intermediate Representations in Imperative Compilers: A Survey](https://dl.acm.org/doi/abs/10.1145/2480741.2480743)

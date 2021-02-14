@@ -16,6 +16,10 @@ val define : nodes:int list -> edges:(int * int) list -> t
 
 val construct : Basic_block.t list -> t
 
+val add_node : Node.t -> t -> t
+
+val add_nodes : NodeSet.t -> t -> t
+
 val get_node : int -> t -> Node.t
 
 val get_node_opt : int -> t -> Node.t option
@@ -43,5 +47,9 @@ val output_dot : ?filename:string -> t -> unit
 val inspect : t -> unit
 
 val simplify : t -> t
+
+val split_edge : Node.t * Node.t -> Node.t
+
+val is_critical_edge : Node.t * Node.t -> bool
 
 val split_critical_edges : t -> t

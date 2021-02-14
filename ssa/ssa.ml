@@ -420,10 +420,65 @@ end
 (* Roughly follows the simple generation of SSA form by Aycock and Horspool:
  * (1) Insert phi-functions "everywhere" (the "really crude" approach)
  * (2) Delete unnecessary phi-functions, optimize, and repeat
- * The result is minimal, or close to minimal, SSA form *)
-let convert_to_ssa graph =
+ * The result is minimal, or close to minimal, SSA form. *)
+let construct graph =
   parameterize_labels graph;
   rename_variables graph;
   insert_phi_functions graph;
   minimize_phi_functions graph;
   Graph.create ()
+
+(* Implements a simplified version of Sreedhar and others' algorithm:
+ * (1) Convert TSSA form to CSSA form by inserting copies in all predecessors
+ *     (splitting critical edges as needed)
+ * (2) Rename non-interfering variables and delete phi-functions
+ * There's no coalescing that eliminates redundant copies. In the interest of
+ * efficiency, we combine (1) and (2) and leave SSA form directly. *)
+let destruct graph =
+  let open Cfg in
+
+  let rename (Var x) =
+      Var (String.sub x 0 (String.rindex x '_'))
+  in
+
+  let insert copy (node : Node.t) =
+    let rec loop = function
+      | [{ contents = Jump _ } as jump] -> [ref copy; jump]
+      | stmt :: stmts -> stmt :: loop stmts
+      | _ -> assert false
+    in
+    node.block.stmts <- loop node.block.stmts
+  in
+
+  let nodes = ref NodeSet.empty in
+
+  let visit (node : Node.t) =
+    let rec loop = function
+      | stmt :: stmts -> (
+          match !stmt with
+          | Label _ ->
+            stmt :: loop stmts
+          | Phi (x, xs) ->
+            List.iter2 (fun x pred ->
+                if is_critical_edge (pred, node) then (
+                  let pred' = split_edge (pred, node) in
+                  nodes := NodeSet.add pred' !nodes;
+                  insert (Move (rename x, Val x)) pred'
+                ) else (
+                  insert (Move (rename x, Val x)) pred
+                )
+              ) xs (NodeSet.elements node.pred);
+            ref (Move (x, Val (rename x))) :: loop stmts
+          | _ -> stmt :: stmts
+        )
+      | [] -> []
+    in
+    node.block.stmts <- loop node.block.stmts
+  in
+
+  iter (fun ({ block; _ } as node) ->
+      if block.name <> "Entry" && block.name <> "Exit" then
+        visit node
+    ) graph;
+
+  add_nodes !nodes graph

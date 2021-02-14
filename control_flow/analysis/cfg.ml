@@ -56,6 +56,12 @@ module M = Utils.M
 
 type t = Node.t M.t
 
+let add_node (node : Node.t) (graph : t) : t =
+  M.add node.block.number node graph
+
+let add_nodes (nodes : NodeSet.t) (graph : t) : t =
+  NodeSet.fold add_node nodes graph
+
 let get_node (number : int) (graph : t) : Node.t =
   M.find number graph
 
@@ -254,9 +260,7 @@ let split_critical_edges (graph : t) : t =
         ) node.succ;
     ) graph;
   (* Update graph with new nodes *)
-  NodeSet.fold (fun node ->
-      M.add node.block.number node
-    ) !nodes graph
+  add_nodes !nodes graph
 
 let construct (basic_blocks : Basic_block.t list) : t =
   let open Basic_block in

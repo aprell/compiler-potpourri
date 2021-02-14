@@ -33,4 +33,6 @@ module Graph : sig
   val output_dot : ?filename:string -> t -> unit
 end
 
-val convert_to_ssa : Cfg.t -> Graph.t
+val construct : Cfg.t -> Graph.t
+
+val destruct : Cfg.t -> Cfg.t

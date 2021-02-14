@@ -1,6 +1,5 @@
 open Control_flow
 open Graphs
-open Ssa
 
 (* Sparse simple constant propagation *)
 let sscp ssa_graph =
@@ -23,7 +22,7 @@ let () =
        | [| _; filename |] -> filename
        | _ -> failwith "Input file required")
   in
-  let ssa_graph = convert_to_ssa graph in
+  let ssa_graph = Ssa.construct graph in
   Cfg.print_basic_blocks graph;
   print_newline ();
   sscp ssa_graph;
