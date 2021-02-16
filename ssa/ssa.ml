@@ -429,8 +429,8 @@ let construct graph =
   Graph.create ()
 
 (* Implements a simplified version of Sreedhar and others' algorithm:
- * (1) Convert TSSA form to CSSA form by inserting copies in all predecessors
- *     (splitting critical edges as needed)
+ * (1) Convert TSSA form to CSSA form by inserting copies for _all_ variables
+ *     referenced in a phi-function (splitting critical edges as needed)
  * (2) Rename non-interfering variables and delete phi-functions
  * There's no coalescing that eliminates redundant copies. In the interest of
  * efficiency, we combine (1) and (2) and leave SSA form directly. *)
