@@ -1,8 +1,9 @@
 open Control_flow
 open Graphs
 
+let hline = "\n" ^ String.make 80 '-' ^ "\n"
+
 let translate_to_ssa graph =
-  let hline = "\n" ^ String.make 80 '-' ^ "\n" in
   Cfg.print_basic_blocks graph;
   print_endline hline;
 
@@ -22,7 +23,9 @@ let translate_to_ssa graph =
   Cfg.print_basic_blocks graph;
   print_endline hline;
 
-  let ssa_graph = Ssa.Graph.create () in
+  graph, Ssa.Graph.create ()
+
+let optimize (graph, ssa_graph) =
   let graph = Optim.optimize graph ssa_graph in
   Cfg.print_basic_blocks graph;
   print_endline hline;
@@ -38,4 +41,5 @@ let () =
      | [| _; filename |] -> filename
      | _ -> failwith "Input file required")
   |> translate_to_ssa
+  |> optimize
   |> translate_out_of_ssa
