@@ -86,6 +86,16 @@ let print_basic_blocks blocks =
   |> String.concat "\n"
   |> print_endline
 
+let combine b1 b2 =
+  let rec append xs ys =
+    match xs, ys with
+    | [{ contents = Jump _ }], _ -> append [] ys
+    | [], { contents = Label _ } :: ys -> ys
+    | x :: xs, ys -> x :: append xs ys
+    | _ -> assert false
+  in
+  create ~stmts:(append b1.stmts b2.stmts) ()
+
 module Liveness = struct
   module Set = Vars
 

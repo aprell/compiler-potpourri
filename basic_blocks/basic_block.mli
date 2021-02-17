@@ -24,6 +24,8 @@ val create_basic_blocks : stmt list -> t list
 
 val print_basic_blocks : t list -> unit
 
+val combine : t -> t -> t
+
 module Liveness : sig
   module Set = Vars
 

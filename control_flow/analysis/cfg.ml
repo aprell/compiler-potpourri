@@ -9,6 +9,7 @@ module rec Node : sig
     mutable idom : Node.t option;
   }
   val create : Basic_block.t -> t
+  val combine : t -> t -> t
   val equal : t -> t -> bool
   val ( => ) : t -> t -> unit
   val ( =|> ) : t -> t -> unit
@@ -45,6 +46,19 @@ end = struct
     b.block.pred <- List.filter (fun pred -> Basic_block.compare pred a.block <> 0) b.block.pred;
     a.succ <- NodeSet.remove b a.succ;
     b.pred <- NodeSet.remove a b.pred
+
+  let combine (n : t) (m : t) : t =
+    let block = Basic_block.combine n.block m.block in
+    let node = create block in
+    NodeSet.iter (fun pred ->
+        pred =|> n;
+        pred => node
+      ) n.pred;
+    NodeSet.iter (fun succ ->
+        m =|> succ;
+        node => succ
+      ) m.succ;
+    node
 end
 
 and NodeSet : Set.S with type elt = Node.t = Set.Make (struct
@@ -195,9 +209,7 @@ let retarget_branch node ~label succ =
   node => succ
 
 let simplify (graph : t) : t =
-  let open Node in
-
-  let simplify_branch node =
+  let simplify_branch (node : Node.t) =
     match Basic_block.last_stmt node.block with
     | Some stmt -> (
         match !stmt with
@@ -219,7 +231,18 @@ let simplify (graph : t) : t =
     | _ -> false
   in
 
-  let skip node =
+  let is_simple { Basic_block.stmts; _ } =
+    List.length stmts = 2 &&
+    match !(List.hd stmts), !(List.(hd (tl stmts))) with
+    | Label (_, Some []), Jump (_, None)
+    | Label (_, None), Jump (_, None)
+    | Label (_, None), Return (Some (Const _))
+    | Label (_, None), Return None -> true
+    | _ -> false
+  in
+
+  let skip (node : Node.t) =
+    let open Node in
     assert (NodeSet.cardinal node.succ = 1);
     let succ = NodeSet.choose node.succ in
     node =|> succ;
@@ -229,12 +252,35 @@ let simplify (graph : t) : t =
       ) node.pred;
   in
 
+  (* Guard against invalidating def-use information *)
+  let can_combine (node : Node.t) =
+    is_simple node.block && (
+      assert (NodeSet.cardinal node.succ = 1);
+      let succ = NodeSet.choose node.succ in
+      is_simple succ.block
+    )
+  in
+
+  let rec combine_nodes (graph : t) =
+    match List.find_opt can_combine (get_nodes graph) with
+    | Some node ->
+      assert (NodeSet.cardinal node.succ = 1);
+      let succ = NodeSet.choose node.succ in
+      M.remove node.block.number graph
+      |> M.remove succ.block.number
+      |> add_node (Node.combine node succ)
+      |> combine_nodes
+    | None ->
+      graph
+  in
+
   iter (fun node ->
       simplify_branch node;
       if is_empty node.block then skip node
     ) graph;
 
   remove_unreachable_nodes graph
+  |> combine_nodes
 
 let split_edge ((n, m) : Node.t * Node.t) : Node.t =
   let open Node in
