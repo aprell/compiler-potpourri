@@ -5,3 +5,5 @@ val read_file : string -> string list
 val gen_number : int -> unit -> int
 
 val gen_name : string -> int -> ?pref:string -> unit -> string
+
+val ( >> ) : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c

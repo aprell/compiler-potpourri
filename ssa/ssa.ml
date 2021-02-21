@@ -1,7 +1,7 @@
 open Three_address_code__IR
+open Three_address_code__Utils
 open Basic_block
 open Control_flow
-open Ssa__Utils
 
 let parameterize_labels graph =
   let open Cfg.Node in

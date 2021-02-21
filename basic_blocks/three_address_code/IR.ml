@@ -1,3 +1,5 @@
+open Utils
+
 type stmt =
   | Move of var * expr                          (* x := e                     *)
   | Load of var * mem                           (* x := M[i]                  *)
@@ -164,11 +166,7 @@ let rec replace_expr f = function
   | e -> e
 
 let replace_list f =
-  List.map (fun x ->
-      match f x with
-      | Val x -> x
-      | _ -> assert false
-    )
+  List.map (f >> function | Val x -> x | _ -> assert false)
 
 let replace_stmt f = function
   | Move (x, e) ->

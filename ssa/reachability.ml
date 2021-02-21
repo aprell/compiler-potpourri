@@ -1,9 +1,9 @@
 (* Reachability analysis *)
 
 open Three_address_code__IR
+open Three_address_code__Utils
 open Basic_block__Utils
 open Control_flow
-open Ssa__Utils
 
 let verbose_flag = ref false
 

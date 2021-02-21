@@ -23,3 +23,5 @@ let gen_name pref init =
   fun ?(pref = pref) () ->
     let c = next_number () in
     pref ^ string_of_int c
+
+let ( >> ) f g x = g (f x)

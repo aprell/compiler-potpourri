@@ -1,7 +1,7 @@
 (library
   (name ssa)
   (public_name ssa)
-  (modules def_use_chain value_numbering ssa utils)
+  (modules def_use_chain value_numbering ssa)
   (libraries control_flow))
 
 (library
