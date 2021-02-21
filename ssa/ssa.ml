@@ -253,7 +253,7 @@ let minimize_phi_functions graph =
   and propagate_phi x y =
     let uses = Def_use_chain.get_uses x in
     Def_use_chain.Set.iter (fun (block, stmt) ->
-        !stmt := replace_stmt x (Val y) !(!stmt);
+        replace ~stmt x (Val y);
         Def_use_chain.add_use !block !stmt y
       ) uses;
     Def_use_chain.remove_uses x;

@@ -13,7 +13,7 @@ let propagate_const x n ssa_graph =
     ) uses
   in
   List.iter (fun (_, stmt) ->
-      !stmt := replace_stmt x (Const n) !(!stmt)
+      replace ~stmt x (Const n)
     ) rest;
   if phis = [] then remove_def x ssa_graph
   else Ssa.Graph.set_uses x phis ssa_graph
@@ -25,7 +25,7 @@ let propagate_copy x y ssa_graph =
     ) uses
   in
   List.iter (fun ((_, stmt) as use) ->
-      !stmt := replace_stmt x (Val y) !(!stmt);
+      replace ~stmt x (Val y);
       Ssa.Graph.add_use y use ssa_graph
     ) rest;
   if phis = [] then remove_def x ssa_graph

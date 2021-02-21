@@ -48,7 +48,7 @@ module Vars : Set.S with type elt = var
 
 val collect_variables : expr -> Vars.t
 
-val replace_stmt : var -> expr -> stmt -> stmt
+val replace : var -> expr -> stmt:stmt ref ref -> unit
 
 val string_of_expr : expr -> string
 

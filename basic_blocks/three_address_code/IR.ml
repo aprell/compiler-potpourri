@@ -155,43 +155,49 @@ let rec collect_variables = function
   | Relop (_, e1, e2) ->
     Vars.union (collect_variables e1) (collect_variables e2)
 
-let rec replace_expr x y = function
-  | Val x' when x' = x -> y
+let rec replace_expr f = function
+  | Val x -> f x
   | Binop (op, e1, e2) ->
-    constant_fold (Binop (op, replace_expr x y e1, replace_expr x y e2))
+    constant_fold (Binop (op, replace_expr f e1, replace_expr f e2))
   | Relop (op, e1, e2) ->
-    constant_fold (Relop (op, replace_expr x y e1, replace_expr x y e2))
+    constant_fold (Relop (op, replace_expr f e1, replace_expr f e2))
   | e -> e
 
-let replace_list x = function
-  | Val y -> List.map (fun z -> if z = x then y else z)
-  | _ -> invalid_arg "replace_list"
-
-let replace_stmt x y = function
-  | Move (x', e) ->
-    Move (x', replace_expr x y e)
-  | Load (x', Deref x'') as load -> (
-      match y with
-      | Val y when x = x'' -> Load (x', Deref y)
-      | _ -> load
+let replace_list f =
+  List.map (fun x ->
+      match f x with
+      | Val x -> x
+      | _ -> assert false
     )
-  | Store (Deref x', e) -> (
-      let e' = replace_expr x y e in
-      match y with
-      | Val y when x = x' -> Store (Deref y, e')
-      | _ -> Store (Deref x', e')
+
+let replace_stmt f = function
+  | Move (x, e) ->
+    Move (x, replace_expr f e)
+  | Load (x, Deref y) -> (
+      match f y with
+      | Val y -> Load (x, Deref y)
+      | _ -> assert false
+    )
+  | Store (Deref x, e) -> (
+      match f x with
+      | Val x -> Store (Deref x, replace_expr f e)
+      | _ -> assert false
     )
   | Jump (l, Some xs) ->
-    Jump (l, Some (replace_list x y xs))
+    Jump (l, Some (replace_list f xs))
   | Cond (e, (l1, None), (l2, None)) ->
-    Cond (replace_expr x y e, (l1, None), (l2, None))
+    Cond (replace_expr f e, (l1, None), (l2, None))
   | Cond (e, (l1, Some xs), (l2, Some ys)) ->
-    Cond (replace_expr x y e, (l1, Some (replace_list x y xs)), (l2, Some (replace_list x y ys)))
+    Cond (replace_expr f e, (l1, Some (replace_list f xs)), (l2, Some (replace_list f ys)))
   | Return (Some e) ->
-    Return (Some (replace_expr x y e))
-  | Phi (x', xs) ->
-    Phi (x', replace_list x y xs)
+    Return (Some (replace_expr f e))
+  | Phi (x, xs) ->
+    Phi (x, replace_list f xs)
   | s -> s
+
+let replace (x : var) (e : expr) =
+  let f y = if x = y then e else Val y in
+  fun ~stmt -> !stmt := replace_stmt f !(!stmt)
 
 let string_of_binop = function
   | Plus -> "+"
