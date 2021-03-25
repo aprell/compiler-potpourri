@@ -40,7 +40,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 ### Articles
 - [Directed Graph Traversal, Orderings, and Applications to Data-Flow Analysis](https://eli.thegreenplace.net/2015/directed-graph-traversal-orderings-and-applications-to-data-flow-analysis/)
 - [Understanding Static Single Assignment Forms](https://blog.yossarian.net/2020/10/23/Understanding-static-single-assignment-forms)
-- A New Backend for Cranelift: [Part 1](https://cfallin.org/blog/2020/09/18/cranelift-isel-1), [Part 2](https://cfallin.org/blog/2021/01/22/cranelift-isel-2)
+- A New Backend for Cranelift: [Part 1](https://cfallin.org/blog/2020/09/18/cranelift-isel-1), [Part 2](https://cfallin.org/blog/2021/01/22/cranelift-isel-2), [Part 3](https://cfallin.org/blog/2021/03/15/cranelift-isel-3)
 
 ### Courses
 - Compiler Design (CMU): [Fall 2014](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html), [Fall 2018](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html)
