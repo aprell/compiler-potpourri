@@ -37,7 +37,7 @@ let find ((tail, head) : back_edge) : t =
 let node_name { Node.block; _ } = block.name
 
 let print (loop : t) =
-  Printf.printf "%s => %s: {%s}\n"
+  Printf.printf "%s -> %s: {%s}\n"
     (node_name loop.tail)
     (node_name loop.head)
     (String.concat ", " (List.map node_name (NodeSet.elements loop.nodes)))

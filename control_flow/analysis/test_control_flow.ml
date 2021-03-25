@@ -2,11 +2,12 @@ open Control_flow
 open Graphs
 
 let print_loops graph =
+  let indent = String.make 4 ' ' in
   match Loop.back_edges graph with
   | _ :: _ as edges ->
     print_endline "\nLoops:";
     List.iter (fun edge ->
-        print_string "\t";
+        print_string indent;
         Loop.(print (find edge))
       ) edges
   | [] -> ()

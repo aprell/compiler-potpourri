@@ -1,3 +1,27 @@
 open Three_address_code
 open Basic_block
 open Control_flow
+
+let print_loops graph =
+  let indent = String.make 4 ' ' in
+  match Loop.back_edges graph with
+  | _ :: _ as edges ->
+    print_endline "\nLoops:";
+    List.iter (fun edge ->
+        print_string indent;
+        Loop.(print (find edge))
+      ) edges
+  | [] -> ()
+
+let inspect graph =
+  let open Dom in
+  let _ = dominators graph in
+  let _ = immediate_dominators graph in
+  Cfg.output_dot graph;
+  print_loops graph;
+  print_newline ();
+  Loop.NestingForest.(output_dot (create graph));
+  print_newline ()
+
+let () =
+  List.iter inspect Graphs.loops
