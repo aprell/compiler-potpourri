@@ -1,0 +1,10 @@
+(library
+  (name llvm)
+  (public_name llvm)
+  (modules llvm)
+  (libraries control_flow))
+
+(executable
+  (name test_llvm)
+  (modules test_llvm)
+  (libraries llvm))
