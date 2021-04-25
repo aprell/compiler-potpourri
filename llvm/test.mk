@@ -1,5 +1,5 @@
 CC := clang
-CFLAGS := -Wall -Wextra -Wno-override-module
+CFLAGS := -Wall -Wextra -Wno-override-module -fsanitize=undefined
 
 test: a.out
 	@./$<
