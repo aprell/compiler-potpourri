@@ -331,7 +331,9 @@ let construct (basic_blocks : Basic_block.t list) : t =
   let exit = get_exit_node graph in
   let node = Fun.flip get_node graph in
   (* Add an edge from entry to the first basic block *)
-  entry => node 1;
+  let _, _, graph' = M.split 0 graph in
+  let _, node1 = M.min_binding graph' in
+  entry => node1;
   (* Connect basic blocks *)
   iter (fun { block = { name; number; _ } as block; _ } ->
       match Basic_block.last_stmt block with
