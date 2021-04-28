@@ -6,20 +6,19 @@ let print decl =
   |> print_endline
 
 let () =
-  let fib =
-    Llvm.declare "fib"
+  let graph = graph_of_input "examples/fib.hir" in
+  let ssa_graph = Ssa.construct graph in
+
+  Llvm.declare "fib"
     ~return:Llvm.Int32
     ~params:[Llvm.Int32]
-  in
-  let sort =
-    Llvm.declare "sort"
-    ~params:[Llvm.Ptr Int32; Llvm.Int32]
-  in
-  print fib;
-  print sort;
+  |> Llvm.emit_function graph ssa_graph;
 
-  let graph = graph_of_input "examples/fib.hir" in
-  Llvm.print graph fib;
+  print_newline ();
 
-  let graph = graph_of_input "examples/sort.hir" in
-  Llvm.print graph sort
+  let graph = Optim.optimize graph ssa_graph in
+
+  Llvm.declare "fib_optim"
+    ~return:Llvm.Int32
+    ~params:[Llvm.Int32]
+  |> Llvm.emit_function graph ssa_graph

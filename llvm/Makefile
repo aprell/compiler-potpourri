@@ -4,6 +4,9 @@ PROGS := test_llvm
 
 all: $(LIB) $(PROGS)
 
-.PHONY: all
+test: all
+	@$(MAKE) --no-print-directory -f test.mk
+
+.PHONY: all test
 
 include ../utils/common.mk

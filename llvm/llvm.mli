@@ -8,4 +8,4 @@ val declare : ?return:ty -> string -> params:ty list -> fun_decl
 
 val string_of_fun_decl : fun_decl -> string
 
-val print : Cfg.t -> fun_decl -> unit
+val emit_function : Cfg.t -> Ssa.Graph.t -> fun_decl -> unit

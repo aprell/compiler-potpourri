@@ -2,9 +2,9 @@
   (name llvm)
   (public_name llvm)
   (modules llvm)
-  (libraries control_flow))
+  (libraries ssa))
 
 (executable
   (name test_llvm)
   (modules test_llvm)
-  (libraries llvm))
+  (libraries llvm ssa optim))
