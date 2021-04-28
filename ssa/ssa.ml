@@ -163,7 +163,6 @@ let insert_phi_functions graph =
         |> List.rev
       in
       if args = [] then (
-        assert (block.name = "B1");
         assert (List.length block.pred = 1);
         assert ((List.hd block.pred).name = "Entry")
       ) else (
