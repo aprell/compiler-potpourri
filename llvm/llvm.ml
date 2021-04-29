@@ -21,12 +21,6 @@ let global name = "@" ^ name
 
 let local name = "%" ^ name
 
-let string_of_fun_decl { name; type_sig = (return, params); } =
-  let return = string_of_ty return in
-  let params = List.map string_of_ty params in
-    Printf.sprintf "declare %s %s(%s)"
-      return (global name) (String.concat ", " params)
-
 let get_first_basic_block (graph : Cfg.t) =
   let open Cfg in
   let entry = get_entry_node graph in
@@ -36,6 +30,12 @@ let get_first_basic_block (graph : Cfg.t) =
 let print ~indent =
   print_string (String.make indent ' ');
   fun args -> Printf.printf args
+
+let emit_function_declaration { name; type_sig = (return, params) } =
+  let return = string_of_ty return in
+  let params = List.map string_of_ty params in
+    print ~indent:0 "declare %s %s(%s)"
+      return (global name) (String.concat ", " params)
 
 let emit_function_header (block : Basic_block.t) (decl : fun_decl) =
   match Basic_block.entry_label block with
