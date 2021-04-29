@@ -12,7 +12,7 @@ let () =
   Llvm.declare "fib"
     ~return:Llvm.Int32
     ~params:[Llvm.Int32]
-  |> Llvm.emit_function graph ssa_graph;
+  |> Llvm.emit_function graph;
 
   print_newline ();
 
@@ -21,4 +21,4 @@ let () =
   Llvm.declare "fib_optim"
     ~return:Llvm.Int32
     ~params:[Llvm.Int32]
-  |> Llvm.emit_function graph ssa_graph
+  |> Llvm.emit_function graph

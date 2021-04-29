@@ -24,8 +24,7 @@ let local name = "%" ^ name
 let string_of_fun_decl { name; type_sig = (return, params); } =
   let return = string_of_ty return in
   let params = List.map string_of_ty params in
-    Printf.sprintf
-      "declare %s %s(%s)"
+    Printf.sprintf "declare %s %s(%s)"
       return (global name) (String.concat ", " params)
 
 let get_first_basic_block (graph : Cfg.t) =
@@ -34,19 +33,21 @@ let get_first_basic_block (graph : Cfg.t) =
   assert (NodeSet.cardinal entry.succ = 1);
   (NodeSet.choose entry.succ).block
 
+let print ~indent =
+  print_string (String.make indent ' ');
+  fun args -> Printf.printf args
+
 let emit_function_header (block : Basic_block.t) (decl : fun_decl) =
   match Basic_block.entry_label block with
   | _, Some params ->
     let ty, tys = decl.type_sig in
     if List.length params = List.length tys then (
       let params = List.map2 (fun param ty ->
-          Printf.sprintf
-            "%s %s"
+          Printf.sprintf "%s %s"
             (string_of_ty ty) (local (name_of_var param))
         ) params tys
       in
-      Printf.printf
-        "define %s %s(%s)"
+      print ~indent:0 "define %s %s(%s)"
         (string_of_ty ty) (global decl.name) (String.concat ", " params)
     ) else (
       failwith "Function signature mismatch"
@@ -78,61 +79,71 @@ let rec string_of_expr = function
 
 let gen_temp = ref (Three_address_code__Utils.gen_name "%" 1)
 
-let emit_stmt ssa_graph stmt =
-  match !stmt with
-  | Move (Var x, Const n) ->
-    Printf.printf "  %s = %s\n" (local x) (string_of_expr (Binop (Plus, Const n, Const 0)))
-  | Move (Var x, Val y) ->
-    Printf.printf "  %s = %s\n" (local x) (string_of_expr (Binop (Plus, Val y, Const 0)))
-  | Move (Var x, e) ->
-    Printf.printf "  %s = %s\n" (local x) (string_of_expr e)
-  | Load (Var x, Deref (Var y)) ->
-    Printf.printf "  %s = load i32, i32* %s\n" (local x) (local y)
-  | Store (Deref (Var x), e) ->
-    Printf.printf "  store i32 %s, i32* %s\n" (string_of_expr e) (local x)
-  | Label (name, None) ->
-    Printf.printf "%s:\n" name
-  | Jump (label, _) ->
-    Printf.printf "  br label %s\n" (local label)
-  | Cond (Binop _ as e, (iftrue, _), (iffalse, _))
-  | Cond (Relop _ as e, (iftrue, _), (iffalse, _)) ->
-    let t = !gen_temp () in
-    Printf.printf "  %s = %s\n" t (string_of_expr e);
-    Printf.printf "  br i1 %s, label %s, label %s\n" t (local iftrue) (local iffalse)
-  | Cond (e, (iftrue, _), (iffalse, _)) ->
-    Printf.printf "  br i1 %s, label %s, label %s\n" (string_of_expr e) (local iftrue) (local iffalse)
-  | Return (Some e) ->
-    Printf.printf "  ret i32 %s\n" (string_of_expr e)
-  | Return None ->
-    Printf.printf "  ret void\n"
-  | Phi (x, xs) ->
-    let preds = match Ssa.Graph.get_def x ssa_graph with
-      | Some (block, _) -> !block.pred
-      | None -> assert false
-    in
-    let preds = List.map (fun block ->
-        let name, _ = Basic_block.entry_label block in
+let emit_basic_block (block : Basic_block.t) =
+  let indent = 2 in
+  let emit stmt =
+    match !stmt with
+    | Move (Var x, Const n) ->
+      (* x := n -> x := n + 0 *)
+      let e = Binop (Plus, Const n, Const 0) in
+      print ~indent "%s = %s\n"
+        (local x) (string_of_expr e)
+    | Move (Var x, Val y) ->
+      (* x := y -> x := y + 0 *)
+      let e = Binop (Plus, Val y, Const 0) in
+      print ~indent "%s = %s\n"
+        (local x) (string_of_expr e)
+    | Move (Var x, e) ->
+      print ~indent "%s = %s\n"
+        (local x) (string_of_expr e)
+    | Load (Var x, Deref (Var y)) ->
+      print ~indent "%s = load i32, i32* %s\n"
+        (local x) (local y)
+    | Store (Deref (Var x), e) ->
+      print ~indent "store i32 %s, i32* %s\n"
+        (string_of_expr e) (local x)
+    | Label (name, None) ->
+      print ~indent:0 "%s:\n"
         name
-      ) preds
-    in
-    let args = List.map2 (fun (Var x) p ->
-        Printf.sprintf "[ %s, %s ]" (local x) (local p)
-      ) xs preds
-    in
-    Printf.printf "  %s = phi i32 %s\n"
-      (local (name_of_var x))
-      (String.concat ", " args)
-  | _ -> ()
+    | Jump (label, _) ->
+      print ~indent "br label %s\n"
+        (local label)
+    | Cond (Binop _ as e, (iftrue, _), (iffalse, _))
+    | Cond (Relop _ as e, (iftrue, _), (iffalse, _)) ->
+      let tmp = !gen_temp () in
+      print ~indent "%s = %s\n"
+        tmp (string_of_expr e);
+      print ~indent "br i1 %s, label %s, label %s\n"
+        tmp (local iftrue) (local iffalse)
+    | Cond (e, (iftrue, _), (iffalse, _)) ->
+      print ~indent "br i1 %s, label %s, label %s\n"
+        (string_of_expr e) (local iftrue) (local iffalse)
+    | Return (Some e) ->
+      print ~indent "ret i32 %s\n"
+        (string_of_expr e)
+    | Return None ->
+      print ~indent "ret void\n"
+    | Phi (x, xs) ->
+      let args = List.map2 (fun (Var x) pred ->
+          let label, _ = Basic_block.entry_label pred in
+          Printf.sprintf "[ %s, %s ]" (local x) (local label)
+        ) xs block.pred
+      in
+      print ~indent "%s = phi i32 %s\n"
+        (local (name_of_var x)) (String.concat ", " args)
+    | _ -> ()
+  in
+  List.iter emit block.stmts
 
-let emit_function_body (graph : Cfg.t) (ssa_graph : Ssa.Graph.t) =
+let emit_function_body (graph : Cfg.t) =
   Cfg.iter (fun { block; _ } ->
-      List.iter (emit_stmt ssa_graph) block.stmts
+      emit_basic_block block
     ) graph
 
-let emit_function (graph : Cfg.t) (ssa_graph : Ssa.Graph.t) (decl : fun_decl) =
+let emit_function (graph : Cfg.t) (decl : fun_decl) =
   (* Temporaries are expected to be numbered %1, %2, etc. *)
   gen_temp := Three_address_code__Utils.gen_name "%" 1;
   emit_function_header (get_first_basic_block graph) decl;
   print_endline " {";
-  emit_function_body graph ssa_graph;
+  emit_function_body graph;
   print_endline "}"
