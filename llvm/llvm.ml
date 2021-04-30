@@ -77,7 +77,7 @@ let rec string_of_expr = function
   | Relop (op, e1, e2) ->
     string_of_relop op ^ " " ^ string_of_expr e1 ^ ", " ^ string_of_expr e2
 
-let gen_temp = ref (Three_address_code__Utils.gen_name "%" 1)
+let gen_temp = ref (Three_address_code__Utils.gen_name "%" 0)
 
 let emit_basic_block (block : Basic_block.t) =
   let indent = 2 in
@@ -102,7 +102,7 @@ let emit_basic_block (block : Basic_block.t) =
     | Store (Deref (Var x), e) ->
       print ~indent "store i32 %s, i32* %s\n"
         (string_of_expr e) (local x)
-    | Label (name, None) ->
+    | Label (name, _) ->
       print ~indent:0 "%s:\n"
         name
     | Jump (label, _) ->
@@ -141,8 +141,9 @@ let emit_function_body (graph : Cfg.t) =
     ) graph
 
 let emit_function (graph : Cfg.t) (decl : fun_decl) =
-  (* Temporaries are expected to be numbered %1, %2, etc. *)
-  gen_temp := Three_address_code__Utils.gen_name "%" 1;
+  (* Unnamed temporaries are numbered %0, %1, etc., assuming that all function
+   * parameters are named and all basic blocks are labeled. *)
+  gen_temp := Three_address_code__Utils.gen_name "%" 0;
   emit_function_header (get_first_basic_block graph) decl;
   print_endline " {";
   emit_function_body graph;
