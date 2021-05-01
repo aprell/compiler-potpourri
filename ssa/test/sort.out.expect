@@ -4,7 +4,8 @@ sort(A, n):
     goto L6
 [B2]
 L6:
-    if i < n - 1 goto L7 else goto L8
+    $15 := n - 1
+    if i < $15 goto L7 else goto L8
 [B3]
 L7:
     min := i
@@ -66,7 +67,8 @@ sort(A, n):
     goto L6(A, i, j, min, n)
 [B2]
 L6(A, i, j, min, n):
-    if i < n - 1 goto L7(A, i, j, min, n) else goto L8(A, i, j, min, n)
+    $15 := n - 1
+    if i < $15 goto L7(A, i, j, min, n) else goto L8(A, i, j, min, n)
 [B3]
 L7(A, i, j, min, n):
     min := i
@@ -128,7 +130,8 @@ sort(A_0, n_0):
     goto L6(A_0, i_0, j_-1, min_-1, n_0)
 [B2]
 L6(A_1, i_1, j_0, min_0, n_1):
-    if i_1 < n_1 - 1 goto L7(A_1, i_1, j_0, min_0, n_1) else goto L8(A_1, i_1, j_0, min_0, n_1)
+    $15_0 := n_1 - 1
+    if i_1 < $15_0 goto L7(A_1, i_1, j_0, min_0, n_1) else goto L8(A_1, i_1, j_0, min_0, n_1)
 [B3]
 L7(A_2, i_2, j_1, min_1, n_2):
     min_2 := i_2
@@ -195,7 +198,8 @@ L6:
     j_0 := PHI(j_-1, j_8)
     min_0 := PHI(min_-1, min_8)
     n_1 := PHI(n_0, n_7)
-    if i_1 < n_1 - 1 goto L7 else goto L8
+    $15_0 := n_1 - 1
+    if i_1 < $15_0 goto L7 else goto L8
 [B3]
 L7:
     A_2 := PHI(A_1)
@@ -293,7 +297,8 @@ sort(A_0, n_0):
 [B2]
 L6:
     i_1 := PHI(i_0, i_8)
-    if i_1 < n_0 - 1 goto L7 else goto L8
+    $15_0 := n_0 - 1
+    if i_1 < $15_0 goto L7 else goto L8
 [B3]
 L7:
     min_2 := i_1
@@ -359,7 +364,8 @@ sort(A_0, n_0):
 [B2]
 L6:
     i_1 := PHI(i_0, i_8)
-    if i_1 < n_0 - 1 goto L7 else goto L8
+    $15_0 := n_0 - 1
+    if i_1 < $15_0 goto L7 else goto L8
 [B3]
 L7:
     min_2 := i_1
@@ -414,7 +420,8 @@ sort(A_0, n_0):
 [B2]
 L6:
     i_1 := i
-    if i_1 < n_0 - 1 goto L7 else goto L8
+    $15_0 := n_0 - 1
+    if i_1 < $15_0 goto L7 else goto L8
 [B3]
 L7:
     min_2 := i_1

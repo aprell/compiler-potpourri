@@ -1,7 +1,8 @@
 sort(A, n):
     i := 0
 L6:
-    if i < n - 1 goto L7 else goto L8
+    $15 := n - 1
+    if i < $15 goto L7 else goto L8
 L7:
     min := i
     j := i + 1

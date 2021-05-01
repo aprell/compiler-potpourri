@@ -34,6 +34,8 @@ val make_label : ?name:name -> ?params:var list -> unit -> label
 
 val is_phi : stmt -> bool
 
+val normalize : stmt -> stmt list
+
 val lower :
   [> `If of expr * stmt list * stmt list
   | `Load of var * [< `Addr of var * expr ]

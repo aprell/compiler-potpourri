@@ -101,7 +101,7 @@ hir_stmt:
   | IF expr block                        { `If ($2, $3, [])   |> lower }
   | IF expr block ELSE block             { `If ($2, $3, $5)   |> lower }
   | WHILE expr block                     { `While ($2, $3)    |> lower }
-  | stmt                                 { peephole $1 }
+  | stmt                                 { normalize $1       |> List.concat_map peephole }
   ;
 
 stmt:

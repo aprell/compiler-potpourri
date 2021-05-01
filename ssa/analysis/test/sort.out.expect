@@ -5,7 +5,8 @@ sort(A_0, n_0):
 [B2]
 L6:
     i_1 := PHI(i_0, i_8)
-    if i_1 < n_0 - 1 goto L7 else goto L8
+    $15_0 := n_0 - 1
+    if i_1 < $15_0 goto L7 else goto L8
 [B3]
 L7:
     min_2 := i_1
@@ -73,6 +74,7 @@ Result of SSCP:
 | $13_0    | Bottom |
 | $13_1    | Bottom |
 | $14_0    | Bottom |
+| $15_0    | Bottom |
 | $1_0     | Bottom |
 | $2_0     | Bottom |
 | $2_1     | Bottom |
@@ -115,6 +117,7 @@ Result of SCCP:
 | $13_0    | Bottom |
 | $13_1    | Bottom |
 | $14_0    | Bottom |
+| $15_0    | Bottom |
 | $1_0     | Bottom |
 | $2_0     | Bottom |
 | $2_1     | Bottom |

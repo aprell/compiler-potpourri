@@ -7,7 +7,8 @@ L3:
     if e > 0 goto L4 else goto L5
 [B3]
 L4:
-    if e % 2 != 0 goto L1 else goto L2
+    $1 := e % 2
+    if $1 != 0 goto L1 else goto L2
 [B4]
 L1:
     r := r * b
@@ -26,7 +27,7 @@ L5:
 +----+------+---------+
 | B1 |      | b, e, r |
 | B2 | e    |         |
-| B3 | e    |         |
+| B3 | e    | $1      |
 | B4 | b, r |         |
 | B5 | b, e |         |
 | B6 | r    |         |

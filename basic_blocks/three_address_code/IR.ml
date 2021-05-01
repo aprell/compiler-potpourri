@@ -45,6 +45,26 @@ let make_label ?(name = gen_label ()) ?params () : label = (name, params)
  * temporaries are guaranteed to not conflict with other identifiers. *)
 let gen_temp = Utils.gen_name "$" 1
 
+(* Rewrite nontrivial expressions *)
+let rec normalize = function
+  | Move (x, Binop (op, (Binop _ as e1), e2)) ->
+    let tmp = gen_temp () in
+    normalize (Move (Var tmp, e1))
+    @ normalize @@ Move (x, Binop (op, Val (Var tmp), e2))
+  | Move (x, Binop (op, e1, (Binop _ as e2))) ->
+    let tmp = gen_temp () in
+    normalize (Move (Var tmp, e2))
+    @ normalize @@ Move (x, Binop (op, e1, Val (Var tmp)))
+  | Cond (Relop (op, (Binop _ as e1), e2), l1, l2) ->
+    let tmp = gen_temp () in
+    normalize (Move (Var tmp, e1))
+    @ normalize @@ (Cond (Relop (op, Val (Var tmp), e2), l1, l2))
+  | Cond (Relop (op, e1, (Binop _ as e2)), l1, l2) ->
+    let tmp = gen_temp () in
+    normalize (Move (Var tmp, e2))
+    @ normalize @@ (Cond (Relop (op, e1, Val (Var tmp)), l1, l2))
+  | s -> [s]
+
 let translate (`Addr (base, index)) =
   (* base + index * 4 *)
   match index with
@@ -58,15 +78,15 @@ let translate (`Addr (base, index)) =
     let t2 = gen_temp () in
     [ Move (Var t1, Val base);
       Move (Var t2, Binop (Mul, index, Const 4));
-      Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))); ]
+      Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))) ]
     , Deref (Var t2)
   | _ ->
     let t1 = gen_temp () in
     let t2 = gen_temp () in
-    [ Move (Var t1, Val base);
-      Move (Var t2, index);
-      Move (Var t2, Binop (Mul, Val (Var t2), Const 4));
-      Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))); ]
+    [ Move (Var t1, Val base) ]
+    @ normalize (Move (Var t2, index))
+    @ [ Move (Var t2, Binop (Mul, Val (Var t2), Const 4));
+        Move (Var t2, Binop (Plus, Val (Var t1), Val (Var t2))) ]
     , Deref (Var t2)
 
 let lower = function
@@ -81,12 +101,12 @@ let lower = function
     let stmts, addr' = translate addr in
     let t1 = gen_temp () in
     stmts
-    @ [Move (Var t1, e)]
+    @ normalize (Move (Var t1, e))
     @ [Store (addr', Val (Var t1))]
   | `If (Relop _ as e, then_, []) ->
     let l1 = make_label () in
     let l2 = make_label () in
-    [Cond (e, l1, l2)]
+    normalize (Cond (e, l1, l2))
     @ [Label l1]
     @ then_
     @ [Label l2]
@@ -94,7 +114,7 @@ let lower = function
     let l1 = make_label () in
     let l2 = make_label () in
     let l3 = make_label () in
-    [Cond (e, l1, l2)]
+    normalize (Cond (e, l1, l2))
     @ [Label l1]
     @ then_
     @ [Jump l3]
@@ -108,7 +128,7 @@ let lower = function
     let l2 = make_label () in
     let l3 = make_label () in
     [Label l1]
-    @ [Cond (e, l2, l3)]
+    @ normalize (Cond (e, l2, l3))
     @ [Label l2]
     @ body
     @ [Jump l1]

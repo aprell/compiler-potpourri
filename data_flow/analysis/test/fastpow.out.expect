@@ -7,7 +7,7 @@ Local sets:
 | Entry |      |         |
 | B1    |      | b, e, r |
 | B2    | e    |         |
-| B3    | e    |         |
+| B3    | e    | $1      |
 | B4    | b, r |         |
 | B5    | b, e |         |
 | B6    | r    |         |
