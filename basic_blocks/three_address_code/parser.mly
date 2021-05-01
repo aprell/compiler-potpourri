@@ -3,34 +3,53 @@
 
   let prev = ref []
 
-  let peephole stmt =
-    match !prev, stmt with
+  let peephole stmts =
+    let rec loop acc = function
+      | stmt :: stmts -> (
+          match !prev, stmt with
 
-    (* Propagate constant to next statement *)
-    | [Move (x, Const n)], Move (y, Val z) when x = z ->
-      prev := [Move (y, Const n)]; !prev
-    | [Move (x, Const n)], Move (y, Binop (op, Val z, e)) when x = z ->
-      prev := [Move (y, constant_fold (Binop (op, Const n, e)))]; !prev
-    | [Move (x, Const n)], Move (y, Binop (op, e, Val z)) when x = z ->
-      prev := [Move (y, constant_fold (Binop (op, e, Const n)))]; !prev
+          (* Propagate constant to next statement *)
+          | [Move (x, Const n)], Move (y, Val z) when x = z ->
+            prev := [Move (y, Const n)];
+            loop (!prev @ acc) stmts
+          | [Move (x, Const n)], Move (y, Binop (op, Val z, e)) when x = z ->
+            prev := [Move (y, constant_fold (Binop (op, Const n, e)))];
+            loop (!prev @ acc) stmts
+          | [Move (x, Const n)], Move (y, Binop (op, e, Val z)) when x = z ->
+            prev := [Move (y, constant_fold (Binop (op, e, Const n)))];
+            loop (!prev @ acc) stmts
 
-    (* Propagate copy to next statement *)
-    | [Move (x, Val x')], Move (y, Val z) when x = z ->
-      if x' <> y then (prev := [Move (y, Val x')]; !prev) else []
-    | [Move (x, Val x')], Move (y, Binop (op, Val z, e)) when x = z ->
-      prev := [Move (y, constant_fold (Binop (op, Val x', e)))]; !prev
-    | [Move (x, Val x')], Move (y, Binop (op, e, Val z)) when x = z ->
-      prev := [Move (y, constant_fold (Binop (op, e, Val x')))]; !prev
+          (* Propagate copy to next statement *)
+          | [Move (x, Val x')], Move (y, Val z) when x = z ->
+            if x' <> y then (
+              prev := [Move (y, Val x')];
+              loop (!prev @ acc) stmts
+            ) else (
+              loop acc stmts
+            )
+          | [Move (x, Val x')], Move (y, Binop (op, Val z, e)) when x = z ->
+            prev := [Move (y, constant_fold (Binop (op, Val x', e)))];
+            loop (!prev @ acc) stmts
+          | [Move (x, Val x')], Move (y, Binop (op, e, Val z)) when x = z ->
+            prev := [Move (y, constant_fold (Binop (op, e, Val x')))];
+            loop (!prev @ acc) stmts
 
-    (* Subtract equal inputs *)
-    | _, Move (x, Binop (Minus, Val y, Val z)) when y = z ->
-      prev := [Move (x, Const 0)]; !prev
+          (* Subtract equal inputs *)
+          | _, Move (x, Binop (Minus, Val y, Val z)) when y = z ->
+            prev := [Move (x, Const 0)];
+            loop (!prev @ acc) stmts
 
-    (* Drop copy of self *)
-    | _, Move (x, Val y) when x = y ->
-      []
+          (* Drop copy of self *)
+          | _, Move (x, Val y) when x = y ->
+            loop acc stmts
 
-    | _ -> prev := [stmt]; !prev
+          | _ ->
+            prev := [stmt];
+            loop (!prev @ acc) stmts
+        )
+      | [] -> List.rev acc
+    in
+    loop [] stmts
 %}
 
 %token <int> INT
@@ -101,7 +120,7 @@ hir_stmt:
   | IF expr block                        { `If ($2, $3, [])   |> lower }
   | IF expr block ELSE block             { `If ($2, $3, $5)   |> lower }
   | WHILE expr block                     { `While ($2, $3)    |> lower }
-  | stmt                                 { normalize $1       |> List.concat_map peephole }
+  | stmt                                 { normalize $1       |> peephole }
   ;
 
 stmt:
