@@ -1,24 +1,124 @@
 open Control_flow
 open Graphs
 
-let print decl =
-  Llvm.string_of_fun_decl decl
-  |> print_endline
-
-let () =
+let emit_fib () =
   let graph = graph_of_input "examples/fib.hir" in
-  let ssa_graph = Ssa.construct graph in
-
+  let _ = Ssa.construct graph in
   Llvm.declare "fib"
     ~return:Llvm.Int32
     ~params:[Llvm.Int32]
-  |> Llvm.emit_function graph;
+  |> Llvm.emit_function graph
 
-  print_newline ();
+let emit_pow () =
+  let graph = graph_of_input "examples/pow.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "pow"
+    ~return:Llvm.Int32
+    ~params:[Llvm.Int32; Llvm.Int32]
+  |> Llvm.emit_function graph
 
-  let graph = Optim.optimize graph ssa_graph in
+let emit_fastpow () =
+  let graph = graph_of_input "examples/fastpow.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "fastpow"
+    ~return:Llvm.Int32
+    ~params:[Llvm.Int32; Llvm.Int32]
+  |> Llvm.emit_function graph
 
-  Llvm.declare "fib_optim"
+let emit_sort () =
+  let graph = graph_of_input "examples/sort.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "sort"
+    ~params:[Llvm.(Ptr Int32); Llvm.Int32]
+  |> Llvm.emit_function graph
+
+let emit_test01 () =
+  let graph = graph_of_input "examples/test01.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test01"
+    ~return:Llvm.Int32
+    ~params:[Llvm.Int32; Llvm.Int32]
+  |> Llvm.emit_function graph
+
+let emit_test02 () =
+  let graph = graph_of_input "examples/test02.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test02"
+    ~return:Llvm.Int32
+    ~params:[]
+  |> Llvm.emit_function graph
+
+let emit_test03 () =
+  let graph = graph_of_input "examples/test03.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test03"
+    ~params:[Llvm.Int32]
+  |> Llvm.emit_function graph
+
+let emit_test04 () =
+  let graph = graph_of_input "examples/test04.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test04"
+    ~params:[Llvm.(Ptr Int32); Llvm.Int32]
+  |> Llvm.emit_function graph
+
+let emit_test05 () =
+  let graph = graph_of_input "examples/test05.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test05"
+    ~return:Llvm.Int32
+    ~params:[]
+  |> Llvm.emit_function graph
+
+let emit_test06 () =
+  let graph = graph_of_input "examples/test06.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test06"
     ~return:Llvm.Int32
     ~params:[Llvm.Int32]
   |> Llvm.emit_function graph
+
+let emit_test07 () =
+  let graph = graph_of_input "examples/test07.hir" in
+  let _ = Ssa.construct graph in
+  Llvm.declare "test07"
+    ~return:Llvm.Int32
+    ~params:[Llvm.Int32]
+  |> Llvm.emit_function graph
+
+let () =
+  emit_fib ();
+  print_newline ();
+
+  emit_pow ();
+  print_newline ();
+
+  emit_fastpow ();
+  print_newline ();
+
+(*
+  emit_sort ();
+  print_newline ();
+*)
+
+  emit_test01 ();
+  print_newline ();
+
+  emit_test02 ();
+  print_newline ();
+
+  emit_test03 ();
+  print_newline ();
+
+(*
+  emit_test04 ();
+  print_newline ();
+*)
+
+  emit_test05 ();
+  print_newline ();
+
+  emit_test06 ();
+  print_newline ();
+
+  emit_test07 ()
