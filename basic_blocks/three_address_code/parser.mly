@@ -25,6 +25,7 @@
               prev := [Move (y, Val x')];
               loop (!prev @ acc) stmts
             ) else (
+              (* Drop copy of self *)
               loop acc stmts
             )
           | [Move (x, Val x')], Move (y, Binop (op, Val z, e)) when x = z ->
