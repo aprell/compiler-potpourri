@@ -7,4 +7,4 @@
 (executable
   (name test_llvm)
   (modules test_llvm)
-  (libraries llvm ssa optim))
+  (libraries llvm))
