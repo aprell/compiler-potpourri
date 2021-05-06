@@ -152,86 +152,64 @@ let emit_function (graph : Cfg.t) (decl : fun_decl) =
 module Test = struct
   open Graphs
 
-  let fib () =
-    let graph = graph_of_input "examples/fib.hir" in
-    let _ = Ssa.construct graph in
+  let fib graph =
     declare "fib"
       ~return:Int32
       ~params:[Int32]
     |> emit_function graph
 
-  let pow () =
-    let graph = graph_of_input "examples/pow.hir" in
-    let _ = Ssa.construct graph in
+  let pow graph =
     declare "pow"
       ~return:Int32
       ~params:[Int32; Int32]
     |> emit_function graph
 
-  let fastpow () =
-    let graph = graph_of_input "examples/fastpow.hir" in
-    let _ = Ssa.construct graph in
+  let fastpow graph =
     declare "fastpow"
       ~return:Int32
       ~params:[Int32; Int32]
     |> emit_function graph
 
-  let sort () =
-    let graph = graph_of_input "examples/sort.hir" in
-    let _ = Ssa.construct graph in
+  let sort graph =
     declare "sort"
       ~params:[Ptr Int32; Int32]
     |> emit_function graph
 
-  let test01 () =
-    let graph = graph_of_input "examples/test01.hir" in
-    let _ = Ssa.construct graph in
+  let test01 graph =
     declare "test01"
       ~return:Int32
       ~params:[Int32; Int32]
     |> emit_function graph
 
-  let test02 () =
-    let graph = graph_of_input "examples/test02.hir" in
-    let _ = Ssa.construct graph in
+  let test02 graph =
     declare "test02"
       ~return:Int32
       ~params:[]
     |> emit_function graph
 
-  let test03 () =
-    let graph = graph_of_input "examples/test03.hir" in
-    let _ = Ssa.construct graph in
+  let test03 graph =
     declare "test03"
       ~params:[Int32]
     |> emit_function graph
 
-  let test04 () =
-    let graph = graph_of_input "examples/test04.hir" in
-    let _ = Ssa.construct graph in
+  let test04 graph =
     declare "test04"
       ~params:[Ptr Int32; Int32]
     |> emit_function graph
 
-  let test05 () =
-    let graph = graph_of_input "examples/test05.hir" in
-    let _ = Ssa.construct graph in
+  let test05 graph =
     declare "test05"
       ~return:Int32
       ~params:[]
     |> emit_function graph
 
-  let test06 () =
-    let graph = graph_of_input "examples/test06.hir" in
-    let _ = Ssa.construct graph in
+  let test06 graph =
     declare "test06"
       ~return:Int32
       ~params:[Int32]
     |> emit_function graph
 
-  let test07 () =
-    let graph = graph_of_input "examples/test07.hir" in
-    let _ = Ssa.construct graph in
+  let test07 graph =
     declare "test07"
       ~return:Int32
       ~params:[Int32]
@@ -253,8 +231,11 @@ module Test = struct
     |> M.add "test06"  test06
     |> M.add "test07"  test07
 
-  let emit name =
+  let emit ?(optimize = false) name =
     match M.find_opt name tests with
-    | Some test -> test ()
+    | Some test ->
+      let graph = graph_of_input ("examples/" ^ name ^ ".hir") in
+      let ssa = Ssa.construct graph in
+      test (if optimize then Optim.optimize graph ssa else graph)
     | None -> failwith (name ^ " unknown")
 end

@@ -2,7 +2,7 @@
   (name llvm)
   (public_name llvm)
   (modules llvm)
-  (libraries ssa))
+  (libraries ssa optim))
 
 (executable
   (name test_llvm)
