@@ -150,8 +150,6 @@ let emit_function (graph : Cfg.t) (decl : fun_decl) =
   print_endline "}"
 
 module Test = struct
-  open Graphs
-
   let fib graph =
     declare "fib"
       ~return:Int32
@@ -232,6 +230,7 @@ module Test = struct
     |> M.add "test07"  test07
 
   let emit ?(optimize = false) name =
+    let open Graphs in
     match M.find_opt name tests with
     | Some test ->
       let graph = graph_of_input ("examples/" ^ name ^ ".hir") in
