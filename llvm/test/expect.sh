@@ -11,7 +11,7 @@ if [ -z "$(command -v alive-tv)" ]; then
 fi
 
 for test in \
-    fib pow fastpow test01 test02 test05 test06 test07
+    fib pow fastpow test01 test02 test03 test05 test06 test07
 do
     OUTPUT="test/$test.out"
     dune exec test/expect.exe --      "$test" > test/src.ll

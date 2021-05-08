@@ -1,0 +1,46 @@
+
+----------------------------------------
+define void @test03(i32 %x_0) {
+%test03:
+  %i_0 = add i32 0, 0
+  br label %L1
+
+%L1:
+  %i_1 = phi i32 [ %i_0, %test03 ], [ %i_3, %L2 ]
+  %0 = icmp slt i32 %i_1, 10
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %x_1 = mul i32 2, %i_1
+  %i_3 = add i32 %i_1, 1
+  br label %L1
+
+%L3:
+  ret void
+}
+=>
+define void @test03(i32 %x_0) {
+%test03:
+  %i_0 = add i32 0, 0
+  br label %L1
+
+%L1:
+  %i_1 = phi i32 [ %i_0, %test03 ], [ %i_3, %L2 ]
+  %0 = icmp slt i32 %i_1, 10
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %i_3 = add i32 %i_1, 1
+  br label %L1
+
+%L3:
+  ret void
+}
+ERROR: The source program doesn't reach a return instruction.
+Consider increasing the unroll factor if it has loops
+
+Summary:
+  0 correct transformations
+  0 incorrect transformations
+  1 failed-to-prove transformations
+  0 Alive2 errors

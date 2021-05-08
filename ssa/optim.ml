@@ -67,11 +67,13 @@ let propagate ?(dump = false) ssa_graph =
 let eliminate_dead_code ?(dump = false) ssa_graph =
   match (
     (* Find a dead variable *)
-    Ssa.Graph.find_first (fun (_, uses) ->
-        uses = []
+    Ssa.Graph.find_first (fun ((_, def), uses) ->
+        match !(!def) with
+        | Label _ -> false
+        | _ -> uses = []
       ) ssa_graph
   ) with
-  | Some (x, ((_, stmt), _)) -> (
+  | Some (_, ((_, stmt), _)) -> (
       match !(!stmt) with
       | Move (x, _)
       | Load (x, _)
@@ -84,12 +86,6 @@ let eliminate_dead_code ?(dump = false) ssa_graph =
           print_newline ()
         );
         true
-      | Label (l, Some xs) -> (
-          assert (List.mem x xs);
-          !stmt := Label (l, Some (List.filter (( <> ) x) xs));
-          Ssa.Graph.remove_def x ssa_graph;
-          true
-        )
       | _ -> assert false
     )
   | None -> false
