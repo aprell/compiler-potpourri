@@ -1,13 +1,16 @@
 CC := clang
-CFLAGS := -Wall -Wextra -Wno-override-module -fsanitize=undefined
+CFLAGS := -Wall -Wextra -Wno-override-module
+# Ignore incompatible redeclaration of pow
+CFLAGS += -Wno-incompatible-library-redeclaration
+CFLAGS += -fsanitize=address,undefined
 
 test: a.out
 	./$<
 
-a.out: main.ll fib.ll
+a.out: main.c func.ll
 	$(CC) $(CFLAGS) $^
 
-fib.ll: _build/default/test_llvm.exe
+func.ll: _build/default/test_llvm.exe
 	dune exec ./$(<F) > $@
 
 clean:
