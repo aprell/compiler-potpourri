@@ -132,7 +132,9 @@ let rename_variables graph =
     List.iter rename_variables_stmt block.stmts
   in
 
-  Cfg.iter rename graph
+  Cfg.iter rename graph;
+  Hashtbl.reset Value_numbering.value_numbers;
+  Hashtbl.reset Value_numbering.available_exprs
 
 let insert_phi_functions graph =
   let rec create_phi_functions res args =
