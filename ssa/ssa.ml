@@ -82,14 +82,16 @@ let rename_variables graph =
           Hashtbl.add available_exprs vn x'
       in
       Hashtbl.add value_numbers (name_of_var x') vn
-    | Load (x, Deref y) ->
+    | Load (x, Deref (y, o)) ->
+      let o' = rename_variables_expr o in
       let y' = rename_variable y ~bump:false in
       let x' = rename_variable x ~bump:true in
-      stmt := Load (x', Deref y')
-    | Store (Deref x, e) ->
+      stmt := Load (x', Deref (y', o'))
+    | Store (Deref (x, o), e) ->
+      let o' = rename_variables_expr o in
       let e' = rename_variables_expr e in
       let x' = rename_variable x ~bump:false in
-      stmt := Store (Deref x', e')
+      stmt := Store (Deref (x', o'), e')
     | Label (l, Some xs) ->
       let xs' = List.map (rename_variable ~bump:true) xs in
       stmt := Label (l, Some xs')
@@ -348,7 +350,10 @@ module Graph = struct
         match !(!stmt) with
         | Move (_, e) ->
           Vars.iter (fun y -> remove_use y def graph) (collect_variables e)
-        | Load (_, Deref y) ->
+        | Load (_, Deref (y, Val o)) ->
+          remove_use y def graph;
+          remove_use o def graph
+        | Load (_, Deref (y, Const _)) ->
           remove_use y def graph
         | Label (_, Some ys)
         | Phi (_, ys) ->

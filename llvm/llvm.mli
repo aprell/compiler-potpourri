@@ -2,7 +2,7 @@ open Control_flow
 
 type fun_decl
 
-type ty = Int32 | Ptr of ty | Void
+type ty = Int8 | Int32 | Ptr of ty | Void
 
 val declare : ?return:ty -> string -> params:ty list -> fun_decl
 

@@ -6,13 +6,14 @@ type fun_decl = {
   type_sig : ty * ty list;
 }
 
-and ty = Int32 | Ptr of ty | Void
+and ty = Int8 | Int32 | Ptr of ty | Void
 
 (* Constructor for function declarations *)
 let declare ?(return = Void) name ~params =
   { name; type_sig = (return, params); }
 
 let rec string_of_ty = function
+  | Int8 -> "i8"
   | Int32 -> "i32"
   | Ptr x -> string_of_ty x ^ "*"
   | Void -> "void"
@@ -96,12 +97,24 @@ let emit_basic_block (block : Basic_block.t) =
     | Move (Var x, e) ->
       print ~indent "%s = %s\n"
         (local x) (string_of_expr e)
-    | Load (Var x, Deref (Var y)) ->
+    | Load (Var x, Deref (Var y, o)) ->
+      let tmp1 = !gen_temp () in
+      let tmp2 = !gen_temp () in
+      print ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
+        tmp1 (local y) (string_of_expr o);
+      print ~indent "%s = bitcast i8* %s to i32*\n"
+        tmp2 tmp1;
       print ~indent "%s = load i32, i32* %s\n"
-        (local x) (local y)
-    | Store (Deref (Var x), e) ->
+        (local x) tmp2
+    | Store (Deref (Var x, o), e) ->
+      let tmp1 = !gen_temp () in
+      let tmp2 = !gen_temp () in
+      print ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
+        tmp1 (local x) (string_of_expr o);
+      print ~indent "%s = bitcast i8* %s to i32*\n"
+        tmp2 tmp1;
       print ~indent "store i32 %s, i32* %s\n"
-        (string_of_expr e) (local x)
+        (string_of_expr e) tmp2
     | Label (name, _) ->
       print ~indent:0 "%s:\n"
         name
@@ -170,7 +183,7 @@ module Test = struct
 
   let sort graph =
     declare "sort"
-      ~params:[Ptr Int32; Int32]
+      ~params:[Ptr Int8; Int32]
     |> emit_function graph
 
   let test01 graph =
@@ -192,7 +205,7 @@ module Test = struct
 
   let test04 graph =
     declare "test04"
-      ~params:[Ptr Int32; Int32]
+      ~params:[Ptr Int8; Int32]
     |> emit_function graph
 
   let test05 graph =

@@ -1,0 +1,142 @@
+
+----------------------------------------
+define void @sort(* %A_0, i32 %n_0) {
+%sort:
+  %i_0 = add i32 0, 0
+  br label %L6
+
+%L6:
+  %i_1 = phi i32 [ %i_0, %sort ], [ %i_8, %L5 ]
+  %$9_0 = sub i32 %n_0, 1
+  %0 = icmp slt i32 %i_1, %$9_0
+  br i1 %0, label %L7, label %L8
+
+%L7:
+  %min_2 = add i32 %i_1, 0
+  %j_2 = add i32 %i_1, 1
+  br label %L3
+
+%L3:
+  %j_3 = phi i32 [ %j_2, %L7 ], [ %j_7, %L2 ]
+  %min_3 = phi i32 [ %min_2, %L7 ], [ %min_7, %L2 ]
+  %1 = icmp slt i32 %j_3, %n_0
+  br i1 %1, label %L4, label %L5
+
+%L4:
+  %$1_0 = mul i32 %j_3, 4
+  %2 = gep * %A_0, 1 x i32 %$1_0
+  %3 = bitcast * %2 to *
+  %t0_0 = load i32, * %3, align 4
+  %$2_0 = mul i32 %min_3, 4
+  %4 = gep * %A_0, 1 x i32 %$2_0
+  %5 = bitcast * %4 to *
+  %t1_0 = load i32, * %5, align 4
+  %6 = icmp slt i32 %t0_0, %t1_0
+  br i1 %6, label %L1, label %L2
+
+%L1:
+  %min_6 = add i32 %j_3, 0
+  br label %L2
+
+%L2:
+  %min_7 = phi i32 [ %min_3, %L4 ], [ %min_6, %L1 ]
+  %j_7 = add i32 %j_3, 1
+  br label %L3
+
+%L5:
+  %$3_0 = mul i32 %i_1, 4
+  %7 = gep * %A_0, 1 x i32 %$3_0
+  %8 = bitcast * %7 to *
+  %t0_1 = load i32, * %8, align 4
+  %$4_0 = mul i32 %min_3, 4
+  %9 = gep * %A_0, 1 x i32 %$4_0
+  %10 = bitcast * %9 to *
+  %t1_1 = load i32, * %10, align 4
+  %$5_0 = add i32 %$3_0, 0
+  %$6_0 = add i32 %t1_1, 0
+  %11 = gep * %A_0, 1 x i32 %$5_0
+  %12 = bitcast * %11 to *
+  store i32 %$6_0, * %12, align 4
+  %$7_0 = add i32 %$4_0, 0
+  %$8_0 = add i32 %t0_1, 0
+  %13 = gep * %A_0, 1 x i32 %$7_0
+  %14 = bitcast * %13 to *
+  store i32 %$8_0, * %14, align 4
+  %i_8 = add i32 %i_1, 1
+  br label %L6
+
+%L8:
+  ret void
+}
+=>
+define void @sort(* %A_0, i32 %n_0) {
+%sort:
+  %i_0 = add i32 0, 0
+  br label %L6
+
+%L6:
+  %i_1 = phi i32 [ %i_0, %sort ], [ %i_8, %L5 ]
+  %$9_0 = sub i32 %n_0, 1
+  %0 = icmp slt i32 %i_1, %$9_0
+  br i1 %0, label %L7, label %L8
+
+%L7:
+  %min_2 = add i32 %i_1, 0
+  %j_2 = add i32 %i_1, 1
+  br label %L3
+
+%L3:
+  %j_3 = phi i32 [ %j_2, %L7 ], [ %j_7, %L2 ]
+  %min_3 = phi i32 [ %min_2, %L7 ], [ %min_7, %L2 ]
+  %1 = icmp slt i32 %j_3, %n_0
+  br i1 %1, label %L4, label %L5
+
+%L4:
+  %$1_0 = mul i32 %j_3, 4
+  %2 = gep * %A_0, 1 x i32 %$1_0
+  %3 = bitcast * %2 to *
+  %t0_0 = load i32, * %3, align 4
+  %$2_0 = mul i32 %min_3, 4
+  %4 = gep * %A_0, 1 x i32 %$2_0
+  %5 = bitcast * %4 to *
+  %t1_0 = load i32, * %5, align 4
+  %6 = icmp slt i32 %t0_0, %t1_0
+  br i1 %6, label %L1, label %L2
+
+%L1:
+  %min_6 = add i32 %j_3, 0
+  br label %L2
+
+%L2:
+  %min_7 = phi i32 [ %min_3, %L4 ], [ %min_6, %L1 ]
+  %j_7 = add i32 %j_3, 1
+  br label %L3
+
+%L5:
+  %$3_0 = mul i32 %i_1, 4
+  %7 = gep * %A_0, 1 x i32 %$3_0
+  %8 = bitcast * %7 to *
+  %t0_1 = load i32, * %8, align 4
+  %$4_0 = mul i32 %min_3, 4
+  %9 = gep * %A_0, 1 x i32 %$4_0
+  %10 = bitcast * %9 to *
+  %t1_1 = load i32, * %10, align 4
+  %11 = gep * %A_0, 1 x i32 %$3_0
+  %12 = bitcast * %11 to *
+  store i32 %t1_1, * %12, align 4
+  %13 = gep * %A_0, 1 x i32 %$4_0
+  %14 = bitcast * %13 to *
+  store i32 %t0_1, * %14, align 4
+  %i_8 = add i32 %i_1, 1
+  br label %L6
+
+%L8:
+  ret void
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

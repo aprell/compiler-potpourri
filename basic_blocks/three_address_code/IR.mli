@@ -18,7 +18,11 @@ and expr =
 
 and var = Var of name
 
-and mem = Deref of var
+and mem = Deref of base * offset
+
+and base = var
+
+and offset = expr
 
 and binop = Plus | Minus | Mul | Div | Mod
 

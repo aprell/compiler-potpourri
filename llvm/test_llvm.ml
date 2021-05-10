@@ -10,10 +10,8 @@ let () =
   emit "fastpow";
   print_newline ();
 
-(*
   emit "sort";
   print_newline ();
-*)
 
   emit "test01";
   print_newline ();
@@ -24,10 +22,8 @@ let () =
   emit "test03";
   print_newline ();
 
-(*
   emit "test04";
   print_newline ();
-*)
 
   emit "test05";
   print_newline ();

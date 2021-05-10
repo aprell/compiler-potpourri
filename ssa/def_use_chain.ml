@@ -47,7 +47,10 @@ let remove_def var =
       match !(!stmt) with
       | Move (_, e) ->
         Vars.iter (remove_use def) (collect_variables e)
-      | Load (_, Deref y) ->
+      | Load (_, Deref (y, Val o)) ->
+        remove_use def y;
+        remove_use def o
+      | Load (_, Deref (y, Const _)) ->
         remove_use def y
       | Label (_, Some xs)
       | Phi (_, xs) ->
@@ -84,10 +87,18 @@ let build block =
     | Move (x, e) ->
       add_def block stmt x;
       Vars.iter (add_use block stmt) (collect_variables e)
-    | Load (x, Deref y) ->
+    | Load (x, Deref (y, Val o)) ->
+      add_def block stmt x;
+      add_use block stmt y;
+      add_use block stmt o
+    | Load (x, Deref (y, Const _)) ->
       add_def block stmt x;
       add_use block stmt y
-    | Store (Deref x, e) ->
+    | Store (Deref (x, Val o), e) ->
+      add_use block stmt x;
+      add_use block stmt o;
+      Vars.iter (add_use block stmt) (collect_variables e)
+    | Store (Deref (x, Const _), e) ->
       add_use block stmt x;
       Vars.iter (add_use block stmt) (collect_variables e)
     | Label (_, Some xs) ->
