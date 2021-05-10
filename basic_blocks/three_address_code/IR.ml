@@ -19,7 +19,7 @@ and expr =
 
 and var = Var of name
 
-and mem = Deref of base * offset
+and mem = Mem of base * offset
 
 and base = var
 
@@ -72,19 +72,19 @@ let translate (`Addr (base, index)) =
   (* base + index * 4 *)
   match index with
   | Const i when i = 0 ->
-    [], Deref (base, Const 0)
+    [], Mem (base, Const 0)
   | Const i ->
-    [], Deref (base, Const (i * 4))
+    [], Mem (base, Const (i * 4))
   | Val _ ->
     let t1 = gen_temp () in
     [Move (Var t1, Binop (Mul, index, Const 4))]
-    , Deref (base, Val (Var t1))
+    , Mem (base, Val (Var t1))
   | _ ->
     let t1 = gen_temp () in
     let t2 = gen_temp () in
     normalize (Move (Var t1, index))
     @ [Move (Var t2, Binop (Mul, Val (Var t1), Const 4))]
-    , Deref (base, Val (Var t2))
+    , Mem (base, Val (Var t2))
 
 let lower = function
   | `Proc (name, params, body) ->
@@ -188,14 +188,14 @@ let replace_list f =
 let replace_stmt f = function
   | Move (x, e) ->
     Move (x, replace_expr f e)
-  | Load (x, Deref (y, o)) -> (
-      match f y with
-      | Val y -> Load (x, Deref (y, replace_expr f o))
+  | Load (x, Mem (b, o)) -> (
+      match f b with
+      | Val b -> Load (x, Mem (b, replace_expr f o))
       | _ -> assert false
     )
-  | Store (Deref (x, o), e) -> (
-      match f x with
-      | Val x -> Store (Deref (x, replace_expr f o), replace_expr f e)
+  | Store (Mem (b, o), e) -> (
+      match f b with
+      | Val b -> Store (Mem (b, replace_expr f o), replace_expr f e)
       | _ -> assert false
     )
   | Jump (l, Some xs) ->
@@ -248,14 +248,14 @@ let string_of_stmt ?(indent = 0) stmt =
   match stmt with
   | Move (Var x, e) ->
     indent ^ x ^ " := " ^ string_of_expr e
-  | Load (Var x, Deref (Var y, Const 0)) ->
-    indent ^ x ^ " := " ^ "*" ^ y
-  | Load (Var x, Deref (Var y, o)) ->
-    indent ^ x ^ " := " ^ "*(" ^ y ^ " + " ^ string_of_expr o ^ ")"
-  | Store (Deref (Var x, Const 0), e) ->
-    indent ^ "*" ^ x ^ " := " ^ string_of_expr e
-  | Store (Deref (Var x, o), e) ->
-    indent ^ "*(" ^ x ^ " + " ^ string_of_expr o ^ ") := " ^ string_of_expr e
+  | Load (Var x, Mem (Var b, Const 0)) ->
+    indent ^ x ^ " := " ^ "*" ^ b
+  | Load (Var x, Mem (Var b, o)) ->
+    indent ^ x ^ " := " ^ "*(" ^ b ^ " + " ^ string_of_expr o ^ ")"
+  | Store (Mem (Var b, Const 0), e) ->
+    indent ^ "*" ^ b ^ " := " ^ string_of_expr e
+  | Store (Mem (Var b, o), e) ->
+    indent ^ "*(" ^ b ^ " + " ^ string_of_expr o ^ ") := " ^ string_of_expr e
   | Label l ->
     string_of_label l ^ ":"
   | Jump l ->

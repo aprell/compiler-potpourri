@@ -110,15 +110,15 @@ module Liveness = struct
             (* Add x to def, then remove all variables that occur in e *)
             let def' = Set.diff (Set.add x def) vars in
             (use', def')
-          | Load (x, Deref (y, _)) ->
-            (* Remove x from use, then add y *)
-            let use' = Set.add y (Set.remove x use) in
-            (* Add x to def, then remove y *)
-            let def' = Set.remove y (Set.add x def) in
+          | Load (x, Mem (b, _)) ->
+            (* Remove x from use, then add b *)
+            let use' = Set.add b (Set.remove x use) in
+            (* Add x to def, then remove b *)
+            let def' = Set.remove b (Set.add x def) in
             (use', def')
-          | Store (Deref (x, _), e) ->
+          | Store (Mem (b, _), e) ->
             let vars = collect_variables e in
-            let use' = Set.add x (Set.union use vars) in
+            let use' = Set.add b (Set.union use vars) in
             (use', def)
           | Label (_, Some params) ->
             let vars = Set.of_list params in

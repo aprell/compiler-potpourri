@@ -17,7 +17,7 @@ and expr =
 
 and var = Var of name
 
-and mem = Deref of base * offset
+and mem = Mem of base * offset
 
 and base = var
 

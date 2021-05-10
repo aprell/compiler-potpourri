@@ -97,20 +97,20 @@ let emit_basic_block (block : Basic_block.t) =
     | Move (Var x, e) ->
       print ~indent "%s = %s\n"
         (local x) (string_of_expr e)
-    | Load (Var x, Deref (Var y, o)) ->
+    | Load (Var x, Mem (Var b, o)) ->
       let tmp1 = !gen_temp () in
       let tmp2 = !gen_temp () in
       print ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
-        tmp1 (local y) (string_of_expr o);
+        tmp1 (local b) (string_of_expr o);
       print ~indent "%s = bitcast i8* %s to i32*\n"
         tmp2 tmp1;
       print ~indent "%s = load i32, i32* %s\n"
         (local x) tmp2
-    | Store (Deref (Var x, o), e) ->
+    | Store (Mem (Var b, o), e) ->
       let tmp1 = !gen_temp () in
       let tmp2 = !gen_temp () in
       print ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
-        tmp1 (local x) (string_of_expr o);
+        tmp1 (local b) (string_of_expr o);
       print ~indent "%s = bitcast i8* %s to i32*\n"
         tmp2 tmp1;
       print ~indent "store i32 %s, i32* %s\n"
