@@ -44,9 +44,6 @@ open Utils
   p "if a != 0 goto L0 else goto L1" = \
    Cond (Relop (NE, Val (Var "a"), Const 0), ("L0", None), ("L1", None))
 
-  p "receive n" = \
-   Receive (Var "n")
-
   p "return" = \
    Return None
 

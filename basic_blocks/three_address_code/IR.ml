@@ -7,7 +7,6 @@ type stmt =
   | Label of label                              (* L:                         *)
   | Jump of label                               (* goto L                     *)
   | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
-  | Receive of var                              (* receive x                  *)
   | Return of expr option                       (* return e                   *)
   (* Phi-functions (SSA) *)
   | Phi of var * var list                       (* x := PHI(...)              *)
@@ -265,8 +264,6 @@ let string_of_stmt ?(indent = 0) stmt =
     indent ^ "if " ^ string_of_expr e
     ^ " goto " ^ string_of_label l1
     ^ " else goto " ^ string_of_label l2
-  | Receive (Var x) ->
-    indent ^ "receive " ^ x
   | Return (Some e) ->
     indent ^ "return " ^ string_of_expr e
   | Return None ->

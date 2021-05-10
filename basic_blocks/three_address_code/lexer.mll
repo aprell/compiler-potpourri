@@ -41,7 +41,6 @@ rule read = parse
   | "else"      { ELSE }
   | "while"     { WHILE }
   | "goto"      { GOTO }
-  | "receive"   { RECV }
   | "return"    { RET }
   | "("         { LPAREN }
   | ")"         { RPAREN }

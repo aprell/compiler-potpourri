@@ -116,9 +116,6 @@ let rename_variables graph =
       | Some x -> stmt := Cond (Val x, then_, else_)
       | None -> stmt := Cond (e', then_, else_)
     )
-    | Receive x ->
-      let x' = rename_variable x ~bump:true in
-      stmt := Receive x'
     | Return (Some e) -> (
       let e' = rename_variables_expr e in
       let vn = value_number e' in

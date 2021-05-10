@@ -5,7 +5,6 @@ type stmt =
   | Label of label                              (* L:                         *)
   | Jump of label                               (* goto L                     *)
   | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
-  | Receive of var                              (* receive x                  *)
   | Return of expr option                       (* return e                   *)
   (* Phi-functions (SSA) *)
   | Phi of var * var list                       (* x := PHI(...)              *)

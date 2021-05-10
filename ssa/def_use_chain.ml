@@ -105,8 +105,6 @@ let build block =
       List.iter (add_def block stmt) xs
     | Cond (e, _, _) ->
       Vars.iter (add_use block stmt) (collect_variables e)
-    | Receive x ->
-      add_def block stmt x
     | Return (Some e) ->
       Vars.iter (add_use block stmt) (collect_variables e)
     | Return None -> ()

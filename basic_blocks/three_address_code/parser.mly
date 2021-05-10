@@ -62,7 +62,7 @@
 %token IF ELSE
 %token WHILE
 %token GOTO
-%token RECV RET
+%token RET
 %token LPAREN RPAREN
 %token LBRACE RBRACE
 %token LBRACKET RBRACKET
@@ -129,7 +129,6 @@ stmt:
   | label COL                            { Label $1 }
   | GOTO label                           { Jump $2 }
   | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
-  | RECV NAME                            { Receive (Var $2) }
   | RET option(expr)                     { Return $2 }
   | NAME GETS "PHI" params               { Phi (Var $1, $4) }
   ;

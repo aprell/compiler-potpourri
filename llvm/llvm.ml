@@ -144,7 +144,6 @@ let emit_basic_block (block : Basic_block.t) =
       in
       print ~indent "%s = phi i32 %s\n"
         (local (name_of_var x)) (String.concat ", " args)
-    | _ -> ()
   in
   List.iter emit block.stmts
 
