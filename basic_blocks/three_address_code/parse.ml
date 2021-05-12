@@ -59,8 +59,8 @@ let parse_line line =
   Parser.line Lexer.read lexbuf
 
 let parse_prog lines =
-  let lexbuf = Lexing.from_string (String.concat "\n" lines) in
+  let lexbuf = Lexing.from_string lines in
   Parser.prog Lexer.read lexbuf
 
 let parse_file name =
-  read_file name |> parse_prog
+  read_file_into_string name |> parse_prog

@@ -1,18 +1,18 @@
 open Three_address_code__IR
 open Three_address_code__Parse
 
-let src = [
-  "test() {";
-  "    a := 1 + 2 * 3 - 4";
-  "    b := a / a - 2";
-  "    c := 3 - b * 2";
-  "    d := c * 2 / 3 + 4";
-  "    a := a + d";
-  "    f := a - a + g";
-  "    g := f";
-  "    return g";
-  "}";
-]
+let src = {|
+  test() {
+      a := 1 + 2 * 3 - 4
+      b := a / a - 2
+      c := 3 - b * 2
+      d := c * 2 / 3 + 4
+      a := a + d
+      f := a - a + g
+      g := f
+      return g
+  }
+|}
 
 let () =
   parse_prog src

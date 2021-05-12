@@ -2,36 +2,36 @@ open Three_address_code__IR
 open Three_address_code__Parse
 open Control_flow
 
-let src1 = [
-  "test() {";
-  "    a := 5 + 2";
-  "    b := a - 4";
-  "    a := a + b";
-  "    c := a - 1";
-  "    return c";
-  "}";
-]
+let src1 = {|
+  test() {
+      a := 5 + 2
+      b := a - 4
+      a := a + b
+      c := a - 1
+      return c
+  }
+|}
 
-let src2 = [
-  "test() {";
-  "    a := 4";
-  "    b := 2";
-  "    s := a + b";
-  "    t := a + b";
-  "    p := s * t";
-  "    return p";
-  "}";
-]
+let src2 = {|
+  test() {
+      a := 4
+      b := 2
+      s := a + b
+      t := a + b
+      p := s * t
+      return p
+  }
+|}
 
-let src3 = [
-  "test(A) {";
-  "    x := 1";
-  "    A[0] := 2";
-  "    A[1] := x + 3";
-  "    y := A[0]";
-  "    return y";
-  "}";
-]
+let src3 = {|
+  test(A) {
+      x := 1
+      A[0] := 2
+      A[1] := x + 3
+      y := A[0]
+      return y
+  }
+|}
 
 let cfg_of src =
   Cfg.construct [

@@ -12,6 +12,13 @@ let read_file name =
   close_in file;
   lines
 
+let read_file_into_string name =
+  let file = open_in name in
+  let len = in_channel_length file in
+  let lines = really_input_string file len in
+  close_in file;
+  lines
+
 let gen_number init =
   let count = ref init in
   fun () ->
