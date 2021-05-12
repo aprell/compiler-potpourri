@@ -28,14 +28,14 @@ let get_first_basic_block (graph : Cfg.t) =
   assert (NodeSet.cardinal entry.succ = 1);
   (NodeSet.choose entry.succ).block
 
-let print ~indent =
+let printf ?(indent = 0) =
   print_string (String.make indent ' ');
-  fun args -> Printf.printf args
+  Printf.printf
 
 let emit_function_declaration { name; type_sig = (return, params) } =
   let return = string_of_ty return in
   let params = List.map string_of_ty params in
-    print ~indent:0 "declare %s %s(%s)"
+    printf "declare %s %s(%s)\n"
       return (global name) (String.concat ", " params)
 
 let emit_function_header (block : Basic_block.t) (decl : fun_decl) =
@@ -44,11 +44,10 @@ let emit_function_header (block : Basic_block.t) (decl : fun_decl) =
     let ty, tys = decl.type_sig in
     if List.length params = List.length tys then (
       let params = List.map2 (fun param ty ->
-          Printf.sprintf "%s %s"
-            (string_of_ty ty) (local (name_of_var param))
+          string_of_ty ty ^ " " ^ local (name_of_var param)
         ) params tys
       in
-      print ~indent:0 "define %s %s(%s)"
+      printf "define %s %s(%s)"
         (string_of_ty ty) (global decl.name) (String.concat ", " params)
     ) else (
       failwith "Function signature mismatch"
@@ -87,62 +86,62 @@ let emit_basic_block (block : Basic_block.t) =
     | Move (Var x, Const n) ->
       (* x := n -> x := n + 0 *)
       let e = Binop (Plus, Const n, Const 0) in
-      print ~indent "%s = %s\n"
+      printf ~indent "%s = %s"
         (local x) (string_of_expr e)
     | Move (Var x, Val y) ->
       (* x := y -> x := y + 0 *)
       let e = Binop (Plus, Val y, Const 0) in
-      print ~indent "%s = %s\n"
+      printf ~indent "%s = %s\n"
         (local x) (string_of_expr e)
     | Move (Var x, e) ->
-      print ~indent "%s = %s\n"
+      printf ~indent "%s = %s\n"
         (local x) (string_of_expr e)
     | Load (Var x, Mem (Var b, o)) ->
       let tmp1 = !gen_temp () in
       let tmp2 = !gen_temp () in
-      print ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
+      printf ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
         tmp1 (local b) (string_of_expr o);
-      print ~indent "%s = bitcast i8* %s to i32*\n"
+      printf ~indent "%s = bitcast i8* %s to i32*\n"
         tmp2 tmp1;
-      print ~indent "%s = load i32, i32* %s\n"
+      printf ~indent "%s = load i32, i32* %s\n"
         (local x) tmp2
     | Store (Mem (Var b, o), e) ->
       let tmp1 = !gen_temp () in
       let tmp2 = !gen_temp () in
-      print ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
+      printf ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
         tmp1 (local b) (string_of_expr o);
-      print ~indent "%s = bitcast i8* %s to i32*\n"
+      printf ~indent "%s = bitcast i8* %s to i32*\n"
         tmp2 tmp1;
-      print ~indent "store i32 %s, i32* %s\n"
+      printf ~indent "store i32 %s, i32* %s\n"
         (string_of_expr e) tmp2
     | Label (name, _) ->
-      print ~indent:0 "%s:\n"
+      printf "%s:\n"
         name
     | Jump (label, _) ->
-      print ~indent "br label %s\n"
+      printf ~indent "br label %s\n"
         (local label)
     | Cond (Binop _ as e, (iftrue, _), (iffalse, _))
     | Cond (Relop _ as e, (iftrue, _), (iffalse, _)) ->
       let tmp = !gen_temp () in
-      print ~indent "%s = %s\n"
+      printf ~indent "%s = %s\n"
         tmp (string_of_expr e);
-      print ~indent "br i1 %s, label %s, label %s\n"
+      printf ~indent "br i1 %s, label %s, label %s\n"
         tmp (local iftrue) (local iffalse)
     | Cond (e, (iftrue, _), (iffalse, _)) ->
-      print ~indent "br i1 %s, label %s, label %s\n"
+      printf ~indent "br i1 %s, label %s, label %s\n"
         (string_of_expr e) (local iftrue) (local iffalse)
     | Return (Some e) ->
-      print ~indent "ret i32 %s\n"
+      printf ~indent "ret i32 %s\n"
         (string_of_expr e)
     | Return None ->
-      print ~indent "ret void\n"
+      printf ~indent "ret void\n"
     | Phi (x, xs) ->
       let args = List.map2 (fun (Var x) pred ->
           let label, _ = Basic_block.entry_label pred in
           Printf.sprintf "[ %s, %s ]" (local x) (local label)
         ) xs block.pred
       in
-      print ~indent "%s = phi i32 %s\n"
+      printf ~indent "%s = phi i32 %s\n"
         (local (name_of_var x)) (String.concat ", " args)
   in
   List.iter emit block.stmts

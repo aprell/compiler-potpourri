@@ -243,34 +243,45 @@ let rec string_of_expr = function
   | Relop (op, e1, e2) ->
     string_of_expr e1 ^ " " ^ string_of_relop op ^ " " ^ string_of_expr e2
 
-let string_of_stmt ?(indent = 0) stmt =
+let sprintf ?(indent = 0) =
   let indent = String.make indent ' ' in
+  Printf.ksprintf (( ^ ) indent)
+
+let string_of_stmt ?(indent = 0) stmt =
   match stmt with
   | Move (Var x, e) ->
-    indent ^ x ^ " := " ^ string_of_expr e
+    sprintf ~indent "%s := %s"
+      x (string_of_expr e)
   | Load (Var x, Mem (Var b, Const 0)) ->
-    indent ^ x ^ " := " ^ "*" ^ b
+    sprintf ~indent "%s := *%s"
+      x b
   | Load (Var x, Mem (Var b, o)) ->
-    indent ^ x ^ " := " ^ "*(" ^ b ^ " + " ^ string_of_expr o ^ ")"
+    sprintf ~indent "%s := *(%s + %s)"
+      x b (string_of_expr o)
   | Store (Mem (Var b, Const 0), e) ->
-    indent ^ "*" ^ b ^ " := " ^ string_of_expr e
+    sprintf ~indent "*%s := %s"
+      b (string_of_expr e)
   | Store (Mem (Var b, o), e) ->
-    indent ^ "*(" ^ b ^ " + " ^ string_of_expr o ^ ") := " ^ string_of_expr e
+    sprintf ~indent "*(%s + %s) := %s"
+      b (string_of_expr o) (string_of_expr e)
   | Label l ->
-    string_of_label l ^ ":"
+    sprintf "%s:"
+      (string_of_label l)
   | Jump l ->
-    indent ^ "goto " ^ string_of_label l
+    sprintf ~indent "goto %s"
+      (string_of_label l)
   | Cond (e, l1, l2) ->
-    indent ^ "if " ^ string_of_expr e
-    ^ " goto " ^ string_of_label l1
-    ^ " else goto " ^ string_of_label l2
+    sprintf ~indent "if %s goto %s else goto %s"
+      (string_of_expr e) (string_of_label l1) (string_of_label l2)
   | Return (Some e) ->
-    indent ^ "return " ^ string_of_expr e
+    sprintf ~indent "return %s"
+      (string_of_expr e)
   | Return None ->
-    indent ^ "return"
+    sprintf ~indent "return"
   | Phi (Var x, xs) ->
     let xs = List.map name_of_var xs in
-    indent ^ x ^ " := PHI(" ^ String.concat ", " xs ^ ")"
+    sprintf ~indent "%s := PHI(%s)"
+      x (String.concat ", " xs)
 
 let dump stmts =
   List.map (string_of_stmt ~indent:4) stmts
