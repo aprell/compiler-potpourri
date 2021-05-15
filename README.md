@@ -5,7 +5,8 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - Basic blocks
 - Control flow analysis
 - Data flow analysis
-- Static single assignment (SSA) form and SSA-based optimizations
+- Static single assignment (SSA) form
+- SSA-based analysis and optimizations
 - Data dependences
 - Loop transformations
 - Parallel loops and tasks in OpenMP
