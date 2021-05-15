@@ -45,5 +45,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 
 ### Courses
 - Compiler Design (CMU): [Fall 2014](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html), [Fall 2018](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html)
+- Compiler Design (KAIST): [Spring 2020](https://github.com/kaist-cp/cs420)
 - Introduction to Compilers (Cornell): [Spring 2020](https://www.cs.cornell.edu/courses/cs4120/2020sp)
 - Advanced Compilers (Cornell): [Fall 2020](https://www.cs.cornell.edu/courses/cs6120/2020fa)
+- Static Program Analysis (UFMG): [Spring 2020](https://homepages.dcc.ufmg.br/~fernando/classes/dcc888)
