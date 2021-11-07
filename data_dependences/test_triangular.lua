@@ -1,3 +1,4 @@
+-- RUN: lua %s --normalize | FileCheck %s
 require "dependence"
 require "range"
 
@@ -23,9 +24,6 @@ end
 
 print(B.deps)
 
---[[
-> lua test_triangular.lua --normalize
-S1 flow S1, d = (0, 1)
-S1 flow S1, d = (1, 0)
-S1 anti S1, d = (1, -2)
---]]
+-- CHECK-DAG: S1 flow S1, d = (0, 1)
+-- CHECK-DAG: S1 flow S1, d = (1, 0)
+-- CHECK-DAG: S1 anti S1, d = (1, -2)

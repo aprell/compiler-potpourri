@@ -1,3 +1,4 @@
+-- RUN: lua %s | FileCheck %s
 require "tile"
 
 local test1 =
@@ -15,26 +16,29 @@ loop ("i", 1, 50) {
 }
 
 print(tile(test1, 10, 1))
+
+--[[
+CHECK:      for (it = 1; it <= floor((n - 1) / 10) * 10 + 1; it += 10) {
+CHECK-NEXT:     for (i = max(1, it); i <= min(n, it + 9); i++) {
+CHECK-NEXT:         for (jt = 1; jt <= floor((m - 1) / 10) * 10 + 1; jt += 10) {
+CHECK-NEXT:             for (j = max(1, jt); j <= min(m, jt + 9); j++) {
+CHECK-NEXT:                 ...
+CHECK-NEXT:             }
+CHECK-NEXT:         }
+CHECK-NEXT:     }
+CHECK-NEXT: }
+--]]
+
 print(tile(test2, 20, 5))
 
 --[[
-> lua test_tile.lua
-for (it = 1; it <= floor((n - 1) / 10) * 10 + 1; it += 10) {
-    for (i = max(1, it); i <= min(n, it + 9); i++) {
-        for (jt = 1; jt <= floor((m - 1) / 10) * 10 + 1; jt += 10) {
-            for (j = max(1, jt); j <= min(m, jt + 9); j++) {
-                ...
-            }
-        }
-    }
-}
-for (it = -15; it <= 45; it += 20) {
-    for (i = max(1, it); i <= min(50, it + 19); i++) {
-        for (jt = floor((i - 5) / 20) * 20 + 5; jt <= 45; jt += 20) {
-            for (j = max(i, jt); j <= min(60, jt + 19); j++) {
-                ...
-            }
-        }
-    }
-}
+CHECK:      for (it = -15; it <= 45; it += 20) {
+CHECK-NEXT:     for (i = max(1, it); i <= min(50, it + 19); i++) {
+CHECK-NEXT:         for (jt = floor((i - 5) / 20) * 20 + 5; jt <= 45; jt += 20) {
+CHECK-NEXT:             for (j = max(i, jt); j <= min(60, jt + 19); j++) {
+CHECK-NEXT:                 ...
+CHECK-NEXT:             }
+CHECK-NEXT:         }
+CHECK-NEXT:     }
+CHECK-NEXT: }
 --]]

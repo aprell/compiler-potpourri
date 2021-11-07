@@ -1,3 +1,4 @@
+-- RUN: lua %s | FileCheck %s
 require "loop"
 
 local test =
@@ -12,12 +13,11 @@ loop ("i", 1, "n") {
 print(test)
 
 --[[
-> lua test_loop.lua
-for (i = 1; i <= n; i++) {
-    for (j = 1; j <= n; j++) {
-        for (k = 1; k <= n; k++) {
-            ...
-        }
-    }
-}
+CHECK:      for (i = 1; i <= n; i++) {
+CHECK-NEXT:     for (j = 1; j <= n; j++) {
+CHECK-NEXT:         for (k = 1; k <= n; k++) {
+CHECK-NEXT:             ...
+CHECK-NEXT:         }
+CHECK-NEXT:     }
+CHECK-NEXT: }
 --]]

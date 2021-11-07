@@ -1,3 +1,4 @@
+-- RUN: lua %s | FileCheck %s
 require "list_schedule"
 
 local graph = {
@@ -19,3 +20,24 @@ functional_units {
 find_remaining(graph)
 
 print(list_schedule(graph))
+
+--[[
+-------------+--------------
+CHECK: Cycle | Instructions
+-------------+--------------
+CHECK: 1
+CHECK-SAME: [1, 3, 5]
+CHECK: 2
+CHECK-SAME: []
+CHECK: 3
+CHECK-SAME: [2]
+CHECK: 4
+CHECK-SAME: [4]
+CHECK: 5
+CHECK-SAME: [6]
+CHECK: 6
+CHECK-SAME: [7]
+------------------------------
+CHECK: 7 cycles
+------------------------------
+--]]

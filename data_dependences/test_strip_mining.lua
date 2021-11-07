@@ -1,3 +1,4 @@
+-- RUN: lua %s --normalize | FileCheck %s
 require "dependence"
 require "range"
 
@@ -13,10 +14,7 @@ end
 print(A.deps)
 assert(next(B.deps) == nil)
 
---[[
-> lua test_strip_mining.lua
-S1 flow S1, d = (3)
---]]
+-- CHECK: S1 flow S1, d = (3)
 
 print "--- After strip mining ----------"
 
@@ -33,12 +31,8 @@ end
 print(A.deps)
 assert(next(B.deps) == nil)
 
---[[
-> lua test_strip_mining.lua
-S1 flow S1, d = (0, 3)
-S1 flow S1, d = (5, 3)
+-- COM: CHECK-DAG: S1 flow S1, d = (0, 3)
+-- COM: CHECK-DAG: S1 flow S1, d = (5, 3)
 
-> lua test_strip_mining.lua --normalize
-S1 flow S1, d = (0, 3)
-S1 flow S1, d = (1, -2)
---]]
+-- CHECK-DAG: S1 flow S1, d = (0, 3)
+-- CHECK-DAG: S1 flow S1, d = (1, -2)

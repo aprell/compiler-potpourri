@@ -1,3 +1,4 @@
+-- RUN: lua %s | FileCheck %s
 require "dependence"
 require "range"
 
@@ -21,9 +22,6 @@ assert(next(A.deps) == nil)
 assert(next(B.deps) == nil)
 print(C.deps)
 
---[[
-> lua test_dependence.lua
-S1 anti S1, d = (0, 0, 0)
-S1 flow S1, d = (0, 0, 1)
-S1 output S1, d = (0, 0, 1)
---]]
+-- CHECK-DAG: S1 flow S1, d = (0, 0, 1)
+-- CHECK-DAG: S1 anti S1, d = (0, 0, 0)
+-- CHECK-DAG: S1 output S1, d = (0, 0, 1)
