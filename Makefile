@@ -1,4 +1,4 @@
-DIRS := \
+TEST_DIRS := \
   basic_blocks/three_address_code \
   basic_blocks \
   control_flow/analysis \
@@ -6,7 +6,18 @@ DIRS := \
   llvm \
   ssa
 
-test:
-	for dir in $(DIRS); do $(MAKE) -C $$dir $@; done
+LIT_TEST_DIRS := \
+  control_flow \
+  data_dependences \
+  loop_transformations \
+  scheduling
 
-.PHONY: test
+all: test lit_test
+
+test:
+	@for dir in $(TEST_DIRS); do $(MAKE) -C $$dir $@; done
+
+lit_test:
+	@for dir in $(LIT_TEST_DIRS); do lit $$dir; done
+
+.PHONY: all test lit_test
