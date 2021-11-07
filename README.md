@@ -7,6 +7,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - Data flow analysis
 - Static single assignment (SSA) form
 - SSA-based analysis and optimizations
+- Intro to LLVM IR
 - Data dependences
 - Loop transformations
 - Parallel loops and tasks in OpenMP
