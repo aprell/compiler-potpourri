@@ -28,3 +28,6 @@ immediate_dominators(cfg.simple)
 -- CHECK-DAG: B1 idom B4
 
 back_edges(cfg.simple)
+
+-- No back edge
+-- CHECK-NOT: =>
