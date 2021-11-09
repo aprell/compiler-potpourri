@@ -76,7 +76,8 @@ let eliminate_dead_code ?(dump = false) ssa_graph =
   | Some (_, ((_, stmt), _)) -> (
       match !(!stmt) with
       | Move (x, _)
-      | Load (x, _) ->
+      | Load (x, _)
+      | Phi (x, _) ->
         (* Assume no side effects *)
         remove_def x ssa_graph;
         if dump then (
