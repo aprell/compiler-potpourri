@@ -77,13 +77,16 @@ module NestingForest = struct
     let add_parent = Hashtbl.add parents in
     List.iter (fun loop ->
         let x = loop.head.block.number in
-        NodeSet.iter (fun node ->
-            let y = node.block.number in
-            if x <> y && not (has_parent y) then (
-              M.find x forest -- M.find y forest;
-              add_parent y x
-            )
-          ) loop.nodes
+        if NodeSet.cardinal loop.nodes = 1 then
+          M.find x forest -- M.find x forest
+        else
+          NodeSet.iter (fun node ->
+              let y = node.block.number in
+              if x <> y && not (has_parent y) then (
+                M.find x forest -- M.find y forest;
+                add_parent y x
+              )
+            ) loop.nodes
       ) loops;
     forest
 
@@ -101,7 +104,10 @@ module NestingForest = struct
         let x = block.name in
         List.iter (fun { block; _ } ->
             let y = block.name in
-            print ~indent (x ^ " -- " ^ y ^ ";")
+            if x <> y then
+              print ~indent (x ^ " -- " ^ y ^ ";")
+            else
+              print ~indent (x ^ ";")
           ) children
       ) forest;
     print "}";

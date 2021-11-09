@@ -36,7 +36,7 @@ let immediate_dominators (graph : Cfg.t) =
     if node.block.number = entry then
       NodeSet.empty
     else
-      let idom = ref (NodeSet.inter node.doms node.pred) in
+      let idom = ref (NodeSet.inter node.doms (NodeSet.remove node node.pred)) in
       if NodeSet.is_empty !idom then (
         (* The immediate dominator is not a direct predecessor *)
         try NodeSet.iter (fun p ->
