@@ -86,7 +86,7 @@ let emit_basic_block (block : Basic_block.t) =
     | Move (Var x, Const n) ->
       (* x := n -> x := n + 0 *)
       let e = Binop (Plus, Const n, Const 0) in
-      printf ~indent "%s = %s"
+      printf ~indent "%s = %s\n"
         (local x) (string_of_expr e)
     | Move (Var x, Val y) ->
       (* x := y -> x := y + 0 *)
