@@ -1,0 +1,4 @@
+(executable
+  (name expect)
+  (modules expect)
+  (libraries qbe))

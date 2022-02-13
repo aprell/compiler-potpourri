@@ -1,0 +1,21 @@
+.text
+.globl test05
+test05:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $36, %eax
+	leave
+	ret
+/* end function test05 */
+
+.text
+.globl test05
+test05:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $36, %eax
+	leave
+	ret
+/* end function test05 */
+
+.section .note.GNU-stack,"",@progbits

@@ -1,0 +1,10 @@
+(library
+  (name qbe)
+  (public_name qbe)
+  (modules qbe)
+  (libraries str ssa optim))
+
+(executable
+  (name test_qbe)
+  (modules test_qbe)
+  (libraries qbe))

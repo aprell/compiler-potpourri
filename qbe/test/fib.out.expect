@@ -1,0 +1,49 @@
+.text
+.globl fib
+fib:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %edi, %eax
+	cmpl $2, %eax
+	jl .Lbb5
+	movl %eax, %edi
+	movl $1, %eax
+	movl $0, %edx
+	movl $2, %ecx
+.Lbb2:
+	cmpl %edi, %ecx
+	jg .Lbb5
+	addl %eax, %edx
+	addl $1, %ecx
+	xchgl %edx, %eax
+	jmp .Lbb2
+.Lbb5:
+	leave
+	ret
+/* end function fib */
+
+.text
+.globl fib
+fib:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %edi, %eax
+	cmpl $2, %eax
+	jl .Lbb11
+	movl %eax, %edi
+	movl $1, %eax
+	movl $0, %edx
+	movl $2, %ecx
+.Lbb8:
+	cmpl %edi, %ecx
+	jg .Lbb11
+	addl %eax, %edx
+	addl $1, %ecx
+	xchgl %edx, %eax
+	jmp .Lbb8
+.Lbb11:
+	leave
+	ret
+/* end function fib */
+
+.section .note.GNU-stack,"",@progbits

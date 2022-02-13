@@ -1,0 +1,99 @@
+.text
+.globl sort
+sort:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $0, %eax
+.Lbb2:
+	movl %esi, %ecx
+	subl $1, %ecx
+	cmpl %ecx, %eax
+	jge .Lbb11
+	movl %eax, %ecx
+	addl $1, %ecx
+	movl %eax, %edx
+.Lbb5:
+	cmpl %esi, %ecx
+	jge .Lbb9
+	imull $4, %ecx, %r8d
+	movslq %r8d, %r8
+	movl (%rdi, %r8, 1), %r9d
+	imull $4, %eax, %r8d
+	movslq %r8d, %r8
+	movl (%rdi, %r8, 1), %r8d
+	cmpl %r8d, %r9d
+	jge .Lbb8
+	movl %ecx, %eax
+.Lbb8:
+	addl $1, %ecx
+	jmp .Lbb5
+.Lbb9:
+	xchgl %eax, %edx
+	imull $4, %eax, %r9d
+	movslq %r9d, %rcx
+	movl (%rdi, %rcx, 1), %ecx
+	imull $4, %edx, %edx
+	movslq %edx, %r8
+	movl (%rdi, %r8, 1), %r8d
+	movslq %r9d, %r9
+	movl %r8d, (%rdi, %r9, 1)
+	movslq %edx, %rdx
+	movl %ecx, (%rdi, %rdx, 1)
+	movl %eax, %edx
+	addl $1, %eax
+	jmp .Lbb2
+.Lbb11:
+	leave
+	ret
+/* end function sort */
+
+.text
+.globl sort
+sort:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $0, %eax
+.Lbb14:
+	movl %esi, %ecx
+	subl $1, %ecx
+	cmpl %ecx, %eax
+	jge .Lbb23
+	movl %eax, %ecx
+	addl $1, %ecx
+	movl %eax, %edx
+.Lbb17:
+	cmpl %esi, %ecx
+	jge .Lbb21
+	imull $4, %ecx, %r8d
+	movslq %r8d, %r8
+	movl (%rdi, %r8, 1), %r9d
+	imull $4, %eax, %r8d
+	movslq %r8d, %r8
+	movl (%rdi, %r8, 1), %r8d
+	cmpl %r8d, %r9d
+	jge .Lbb20
+	movl %ecx, %eax
+.Lbb20:
+	addl $1, %ecx
+	jmp .Lbb17
+.Lbb21:
+	xchgl %eax, %edx
+	imull $4, %eax, %r9d
+	movslq %r9d, %rcx
+	movl (%rdi, %rcx, 1), %ecx
+	imull $4, %edx, %edx
+	movslq %edx, %r8
+	movl (%rdi, %r8, 1), %r8d
+	movslq %r9d, %r9
+	movl %r8d, (%rdi, %r9, 1)
+	movslq %edx, %rdx
+	movl %ecx, (%rdi, %rdx, 1)
+	movl %eax, %edx
+	addl $1, %eax
+	jmp .Lbb14
+.Lbb23:
+	leave
+	ret
+/* end function sort */
+
+.section .note.GNU-stack,"",@progbits

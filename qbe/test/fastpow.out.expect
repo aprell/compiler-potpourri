@@ -1,0 +1,65 @@
+.text
+.globl fastpow
+fastpow:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $1, %ecx
+.Lbb2:
+	cmpl $0, %esi
+	jle .Lbb6
+	movl $2, %r8d
+	movl %esi, %eax
+	cltd
+	idivl %r8d
+	movl %edx, %eax
+	cmpl $0, %eax
+	jz .Lbb5
+	imull %edi, %ecx
+.Lbb5:
+	imull %edi, %edi
+	movl %esi, %r8d
+	movl $2, %esi
+	movl %r8d, %eax
+	cltd
+	idivl %esi
+	movl %eax, %esi
+	jmp .Lbb2
+.Lbb6:
+	movl %ecx, %eax
+	leave
+	ret
+/* end function fastpow */
+
+.text
+.globl fastpow
+fastpow:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $1, %ecx
+.Lbb10:
+	cmpl $0, %esi
+	jle .Lbb14
+	movl $2, %r8d
+	movl %esi, %eax
+	cltd
+	idivl %r8d
+	movl %edx, %eax
+	cmpl $0, %eax
+	jz .Lbb13
+	imull %edi, %ecx
+.Lbb13:
+	imull %edi, %edi
+	movl %esi, %r8d
+	movl $2, %esi
+	movl %r8d, %eax
+	cltd
+	idivl %esi
+	movl %eax, %esi
+	jmp .Lbb10
+.Lbb14:
+	movl %ecx, %eax
+	leave
+	ret
+/* end function fastpow */
+
+.section .note.GNU-stack,"",@progbits
