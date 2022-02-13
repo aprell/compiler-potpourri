@@ -120,7 +120,7 @@ let emit_basic_block (block : Basic_block.t) =
         tmp ("@" ^ iftrue) ("@" ^ iffalse)
     | Cond (e, (iftrue, _), (iffalse, _)) ->
       printf ~indent "jnz %s, %s, %s\n"
-        (string_of_expr e) (local iftrue) (local iffalse)
+        (string_of_expr e) ("@" ^ iftrue) ("@" ^ iffalse)
     | Return (Some e) ->
       printf ~indent "ret %s\n"
         (string_of_expr e)
