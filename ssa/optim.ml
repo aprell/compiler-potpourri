@@ -6,36 +6,36 @@ let remove_def x ssa_graph =
   !block.stmts <- List.filter (( <> ) !stmt) !block.stmts;
   Ssa.Graph.remove_def x ssa_graph
 
-let propagate_const x n ssa_graph =
-  let uses = Ssa.Graph.get_uses x ssa_graph in
-  let phis, rest = List.partition (fun (_, stmt) ->
-      is_phi !(!stmt)
-    ) uses
-  in
-  List.iter (fun (_, stmt) ->
-      replace ~stmt x (Const n)
-    ) rest;
-  if phis = [] then remove_def x ssa_graph
-  else Ssa.Graph.set_uses x phis ssa_graph
-
-let propagate_copy x y ssa_graph =
-  let uses = Ssa.Graph.get_uses x ssa_graph in
-  let phis, rest = List.partition (fun (_, stmt) ->
-      is_phi !(!stmt)
-    ) uses
-  in
-  List.iter (fun ((_, stmt) as use) ->
-      replace ~stmt x (Val y);
-      Ssa.Graph.add_use y use ssa_graph
-    ) rest;
-  if phis = [] then remove_def x ssa_graph
-  else Ssa.Graph.set_uses x phis ssa_graph
-
-let propagate' stmt ssa_graph =
+let propagate_constant stmt ssa_graph =
   match stmt with
-  | Move (x, Const n) -> propagate_const x n ssa_graph
-  | Move (x, Val y) -> propagate_copy x y ssa_graph
-  | _ -> invalid_arg "propagate'"
+  | Move (x, Const n) ->
+    let uses = Ssa.Graph.get_uses x ssa_graph in
+    let phis, rest = List.partition (fun (_, stmt) ->
+        is_phi !(!stmt)
+      ) uses
+    in
+    List.iter (fun (_, stmt) ->
+        replace ~stmt x (Const n)
+      ) rest;
+    if phis = [] then remove_def x ssa_graph
+    else Ssa.Graph.set_uses x phis ssa_graph
+  | _ -> invalid_arg "propagate_constant"
+
+let propagate_copy stmt ssa_graph =
+  match stmt with
+  | Move (x, Val y) ->
+    let uses = Ssa.Graph.get_uses x ssa_graph in
+    let phis, rest = List.partition (fun (_, stmt) ->
+        is_phi !(!stmt)
+      ) uses
+    in
+    List.iter (fun ((_, stmt) as use) ->
+        replace ~stmt x (Val y);
+        Ssa.Graph.add_use y use ssa_graph
+      ) rest;
+    if phis = [] then remove_def x ssa_graph
+    else Ssa.Graph.set_uses x phis ssa_graph
+  | _ -> invalid_arg "propagate_copy"
 
 let can_optimize =
   List.exists (
@@ -43,21 +43,40 @@ let can_optimize =
       not (is_phi !(!use))
   )
 
-let propagate ?(dump = false) ssa_graph =
+let propagate_constants ?(dump = false) ssa_graph =
   match (
-    (* Find a constant or copy to propagate *)
+    (* Find a constant to propagate *)
     Ssa.Graph.find_first (fun ((_, stmt), uses) ->
         match !(!stmt) with
         | Move (_, Const _)
+          when can_optimize uses -> true
+        | _ -> false
+      ) ssa_graph
+  ) with
+  | Some (_, ((_, stmt), _)) ->
+    propagate_constant !(!stmt) ssa_graph;
+    if dump then (
+      print_endline ("After propagating " ^ string_of_stmt !(!stmt) ^ ":");
+      Ssa.Graph.print ssa_graph;
+      print_newline ()
+    );
+    true
+  | _ -> false
+
+let propagate_copies ?(dump = false) ssa_graph =
+  match (
+    (* Find a copy to propagate *)
+    Ssa.Graph.find_first (fun ((_, stmt), uses) ->
+        match !(!stmt) with
         | Move (_, Val _)
           when can_optimize uses -> true
         | _ -> false
       ) ssa_graph
   ) with
   | Some (_, ((_, stmt), _)) ->
-    propagate' !(!stmt) ssa_graph;
+    propagate_copy !(!stmt) ssa_graph;
     if dump then (
-      print_endline ("After propagating " ^ (string_of_stmt !(!stmt)) ^ ":");
+      print_endline ("After propagating " ^ string_of_stmt !(!stmt) ^ ":");
       Ssa.Graph.print ssa_graph;
       print_newline ()
     );
@@ -81,7 +100,7 @@ let eliminate_dead_code ?(dump = false) ssa_graph =
         (* Assume no side effects *)
         remove_def x ssa_graph;
         if dump then (
-          print_endline ("After removing " ^ (string_of_stmt !(!stmt)) ^ ":");
+          print_endline ("After removing " ^ string_of_stmt !(!stmt) ^ ":");
           Ssa.Graph.print ssa_graph;
           print_newline ()
         );
@@ -116,7 +135,7 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
       ) uses;
     Ssa.Graph.remove_def x ssa_graph;
     if dump then (
-      print_endline ("After removing " ^ (string_of_stmt !(!stmt)) ^ ":");
+      print_endline ("After removing " ^ string_of_stmt !(!stmt) ^ ":");
       Ssa.Graph.print ssa_graph;
       print_newline ()
     );
@@ -130,7 +149,8 @@ let optimize ?(dump = false) graph ssa_graph =
     changed := List.exists (( = ) true) [
         eliminate_unreachable_code graph ssa_graph ~dump;
         eliminate_dead_code ssa_graph ~dump;
-        propagate ssa_graph ~dump;
+        propagate_constants ssa_graph ~dump;
+        propagate_copies ssa_graph ~dump;
       ]
   done;
   !graph
