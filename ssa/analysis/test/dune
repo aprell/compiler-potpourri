@@ -1,7 +1,4 @@
-(copy_files# ../../sscp.ml)
-(copy_files# ../../sccp.ml)
-
 (executable
   (name expect)
-  (modules expect sscp sccp)
-  (libraries ssa))
+  (modules expect)
+  (libraries ssa analysis))

@@ -72,6 +72,7 @@ let ( <-= ) var = Hashtbl.replace values var
 
 let init ?(value = Top) ?(verbose = false) ssa_graph =
   verbose_flag := verbose;
+  Hashtbl.reset values;
   let worklist = Queue.create () in
   Ssa.Graph.iter (fun x ((_, stmt), _) ->
       begin match !(!stmt) with
@@ -132,3 +133,14 @@ let print () =
     ) values []
   in
   print_table ~rows:(["Variable"; "Value"] :: List.sort compare rows)
+
+let run ssa_graph =
+  let worklist = init ssa_graph ~value:Top in
+  iterate worklist ssa_graph
+
+let get_constants () =
+  Hashtbl.fold (fun x v cs ->
+      match v with
+      | Const n -> (x, n) :: cs
+      | _ -> cs
+    ) values []

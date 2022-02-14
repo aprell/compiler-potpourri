@@ -1,4 +1,4 @@
-LIB := ssa optim
+LIB := ssa analysis optim
 
 PROGS := test_ssa test_optim test_sscp test_sccp test_reachability
 PROGS += test/expect analysis/test/expect

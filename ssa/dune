@@ -1,3 +1,5 @@
+;; --- Libraries ---
+
 (library
   (name ssa)
   (public_name ssa)
@@ -5,15 +7,23 @@
   (libraries control_flow))
 
 (library
+  (name analysis)
+  (public_name analysis)
+  (modules reachability sscp sccp)
+  (libraries ssa))
+
+(library
   (name optim)
   (public_name optim)
   (modules optim)
-  (libraries ssa))
+  (libraries ssa analysis))
+
+;; --- Executables ---
 
 (executable
   (name test_ssa)
   (modules test_ssa)
-  (libraries ssa optim))
+  (libraries ssa))
 
 (executable
   (name test_optim)
@@ -21,16 +31,16 @@
   (libraries ssa optim))
 
 (executable
+  (name test_reachability)
+  (modules test_reachability)
+  (libraries ssa analysis))
+
+(executable
   (name test_sscp)
-  (modules test_sscp sscp)
-  (libraries ssa))
+  (modules test_sscp)
+  (libraries ssa analysis))
 
 (executable
   (name test_sccp)
-  (modules test_sccp sccp)
-  (libraries ssa))
-
-(executable
-  (name test_reachability)
-  (modules test_reachability reachability)
-  (libraries ssa))
+  (modules test_sccp)
+  (libraries ssa analysis))

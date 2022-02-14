@@ -117,17 +117,14 @@ L3:
 [B1]
 test07(p_0):
     x_0 := 0
-    i_0 := 1
     goto L1
 [B2]
 L1:
-    i_1 := PHI(i_0, i_4)
     x_1 := PHI(x_0, x_3)
     if p_0 > 10 goto L2 else goto L3
 [B3]
 L2:
-    i_4 := i_1
-    x_3 := x_1 + i_1
+    x_3 := x_1 + 1
     goto L1
 [B4]
 L3:
@@ -138,20 +135,15 @@ L3:
 [B1]
 test07(p_0):
     x_0 := 0
-    i_0 := 1
-    i := i_0
     x := x_0
     goto L1
 [B2]
 L1:
-    i_1 := i
     x_1 := x
     if p_0 > 10 goto L2 else goto L3
 [B3]
 L2:
-    i_4 := i_1
-    x_3 := x_1 + i_1
-    i := i_4
+    x_3 := x_1 + 1
     x := x_3
     goto L1
 [B4]

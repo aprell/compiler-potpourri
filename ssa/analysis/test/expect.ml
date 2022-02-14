@@ -1,5 +1,6 @@
 open Control_flow
 open Graphs
+open Analysis
 
 (* Sparse simple constant propagation *)
 let sscp ssa_graph =

@@ -44,24 +44,19 @@ let can_optimize =
   )
 
 let propagate_constants ?(dump = false) ssa_graph =
-  match (
-    (* Find a constant to propagate *)
-    Ssa.Graph.find_first (fun ((_, stmt), uses) ->
-        match !(!stmt) with
-        | Move (_, Const _)
-          when can_optimize uses -> true
-        | _ -> false
-      ) ssa_graph
-  ) with
-  | Some (_, ((_, stmt), _)) ->
-    propagate_constant !(!stmt) ssa_graph;
-    if dump then (
-      print_endline ("After propagating " ^ string_of_stmt !(!stmt) ^ ":");
-      Ssa.Graph.print ssa_graph;
-      print_newline ()
+  Analysis.Sscp.(run ssa_graph |> get_constants)
+  |> List.iter (fun (x, n) ->
+      if can_optimize (Ssa.Graph.get_use_def x ssa_graph) then (
+        let stmt = Move (x, Const n) in
+        propagate_constant stmt ssa_graph;
+        if dump then (
+          print_endline ("After propagating " ^ string_of_stmt stmt ^ ":");
+          Ssa.Graph.print ssa_graph;
+          print_newline ()
+        )
+      )
     );
-    true
-  | _ -> false
+  false
 
 let propagate_copies ?(dump = false) ssa_graph =
   match (
