@@ -109,11 +109,9 @@ L5:
 
 [B1]
 test06(p_0):
-    x_0 := 1
     goto L3
 [B2]
 L3:
-    x_1 := PHI(x_0, x_1)
     if p_0 > 10 goto L3 else goto L5
 [B6]
 L5:
@@ -123,17 +121,10 @@ L5:
 
 [B1]
 test06(p_0):
-    x_0 := 1
-    x := x_0
     goto L3
 [B2]
 L3:
-    x_1 := x
-    if p_0 > 10 goto L6 else goto L5
+    if p_0 > 10 goto L3 else goto L5
 [B6]
 L5:
     return 1
-[B7]
-L6:
-    x := x_1
-    goto L3

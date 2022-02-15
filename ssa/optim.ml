@@ -123,7 +123,14 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
               assert (List.mem x xs);
               match List.filter (( <> ) x) xs with
               | [x1] -> !stmt := Move (xn, Val x1)
-              | xs -> !stmt := Phi (xn, xs)
+              | xs ->
+                let xs' = Vars.of_list xs in
+                if Vars.cardinal xs' = 2 && Vars.mem xn xs' then
+                  (* Replace x := PHI(x, x') with x := x' *)
+                  let xn' = Vars.find_first (( <> ) xn) xs' in
+                  !stmt := Move (xn, Val xn')
+                else
+                  !stmt := Phi (xn, xs)
             )
           | _ -> assert false
         )
