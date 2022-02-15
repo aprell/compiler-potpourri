@@ -43,8 +43,8 @@ let can_optimize =
       not (is_phi !(!use))
   )
 
-let propagate_constants ?(dump = false) ssa_graph =
-  Analysis.Sscp.(run ssa_graph |> get_constants)
+let propagate_constants ?(dump = false) graph ssa_graph =
+  Analysis.Sccp.(run !graph ssa_graph |> get_constants)
   |> List.iter (fun (x, n) ->
       if can_optimize (Ssa.Graph.get_use_def x ssa_graph) then (
         let stmt = Move (x, Const n) in
@@ -144,7 +144,7 @@ let optimize ?(dump = false) graph ssa_graph =
     changed := List.exists (( = ) true) [
         eliminate_unreachable_code graph ssa_graph ~dump;
         eliminate_dead_code ssa_graph ~dump;
-        propagate_constants ssa_graph ~dump;
+        propagate_constants graph ssa_graph ~dump;
         propagate_copies ssa_graph ~dump;
       ]
   done;

@@ -115,6 +115,7 @@ let reachable block =
 
 let init ?(verbose = false) (graph : Cfg.t) (ssa_graph : Ssa.Graph.t) =
   verbose_flag := verbose;
+  Hashtbl.reset values;
   let { Cfg.Node.block = entry; _ } = Cfg.get_entry_node graph in
 
   let worklist = Queue.create () in
@@ -236,6 +237,17 @@ let iterate worklist ssa_graph =
             visit_stmt !stmt !block worklist
         ) uses
   done
+
+let run graph ssa_graph =
+  let worklist = init graph ssa_graph in
+  iterate worklist ssa_graph
+
+let get_constants () =
+  Hashtbl.fold (fun x v cs ->
+      match v with
+      | Const n -> (x, n) :: cs
+      | _ -> cs
+    ) values []
 
 let print () =
   let rows = Hashtbl.fold (fun var value rows ->

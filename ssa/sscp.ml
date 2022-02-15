@@ -127,13 +127,6 @@ let iterate worklist ssa_graph =
       ) uses
   done
 
-let print () =
-  let rows = Hashtbl.fold (fun var value rows ->
-      [name_of_var var; string_of_value value] :: rows
-    ) values []
-  in
-  print_table ~rows:(["Variable"; "Value"] :: List.sort compare rows)
-
 let run ssa_graph =
   let worklist = init ssa_graph ~value:Top in
   iterate worklist ssa_graph
@@ -144,3 +137,10 @@ let get_constants () =
       | Const n -> (x, n) :: cs
       | _ -> cs
     ) values []
+
+let print () =
+  let rows = Hashtbl.fold (fun var value rows ->
+      [name_of_var var; string_of_value value] :: rows
+    ) values []
+  in
+  print_table ~rows:(["Variable"; "Value"] :: List.sort compare rows)
