@@ -18,21 +18,20 @@ struct omp_data {
 void main_omp_fn_0(void *omp_data)
 {
     int n = ((struct omp_data *)omp_data)->n;
-    int i;
+    int from, to;
 
-    int thread_num = omp_get_thread_num();
-    int num_threads = omp_get_num_threads();
-    int chunk_size = n / num_threads;
-    int remaining = n % num_threads;
-    int from = thread_num * chunk_size + min(thread_num, remaining);
-    int to = from + chunk_size + (thread_num < remaining);
+    omp_work_share_init(0, n, 1);
+    //omp_barrier();
 
-    for (i = from; i < to; i++) {
-        printf("%3d: T%d\n", i, omp_get_thread_num());
-        C[i] = A[i] + B[i];
+    if (omp_split_static(&from, &to)) {
+        for (int i = from; i < to; i++) {
+            printf("%3d: T%d\n", i, omp_get_thread_num());
+            C[i] = A[i] + B[i];
+        }
     }
 
     omp_barrier();
+    omp_work_share_destroy();
 }
 
 int main(int argc, char *argv[])

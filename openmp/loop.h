@@ -20,7 +20,7 @@ int loop_num_iterations(const struct loop *loop);
 
 #define loop_empty(loop) (loop_num_iterations(loop) == 0)
 
-bool loop_split_static(const struct loop *loop, int *from, int *to);
+bool loop_split_static(struct loop *loop, int *from, int *to);
 //@requires loop != NULL
 
 bool loop_split_dynamic(struct loop *loop, int *from, int *to);

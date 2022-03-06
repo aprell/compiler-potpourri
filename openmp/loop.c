@@ -45,23 +45,27 @@ int loop_num_iterations(const struct loop *loop)
     return (loop->to - loop->from) / loop->step;
 }
 
-bool loop_split_static(const struct loop *loop, int *from, int *to)
+#define LOCKED(loop) \
+    for (int i = (pthread_mutex_lock(&(loop)->lock), 0); !i; pthread_mutex_unlock(&(loop)->lock), i++)
+
+bool loop_split_static(struct loop *loop, int *from, int *to)
 {
     assert(loop != NULL);
 
     int thread_num = omp_get_thread_num();
     int num_threads = omp_get_num_threads();
-    int chunk_size = loop_num_iterations(loop) / num_threads;
-    int remaining = loop_num_iterations(loop) % num_threads;
+    int chunk_size, remaining;
+
+    LOCKED(loop) {
+        chunk_size = loop_num_iterations(loop) / num_threads;
+        remaining = loop_num_iterations(loop) % num_threads;
+    }
 
     *from = thread_num * chunk_size + min(thread_num, remaining);
     *to = *from + chunk_size + (thread_num < remaining);
 
     return true;
 }
-
-#define LOCKED(loop) \
-    for (int i = (pthread_mutex_lock(&(loop)->lock), 0); !i; pthread_mutex_unlock(&(loop)->lock), i++)
 
 bool loop_split_dynamic(struct loop *loop, int *from, int *to)
 {

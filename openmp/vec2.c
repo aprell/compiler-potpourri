@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include "omp.h"
 
+#ifndef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 static int *A;
 static int *B;
 static int *C;
@@ -16,11 +20,19 @@ void main_omp_fn_0(void *omp_data)
     int n = ((struct omp_data *)omp_data)->n;
     int i;
 
-    #pragma omp for schedule(static)
-    for (i = 0; i < n; i++) {
+    int thread_num = omp_get_thread_num();
+    int num_threads = omp_get_num_threads();
+    int chunk_size = n / num_threads;
+    int remaining = n % num_threads;
+    int from = thread_num * chunk_size + min(thread_num, remaining);
+    int to = from + chunk_size + (thread_num < remaining);
+
+    for (i = from; i < to; i++) {
         printf("%3d: T%d\n", i, omp_get_thread_num());
         C[i] = A[i] + B[i];
     }
+
+    omp_barrier();
 }
 
 int main(int argc, char *argv[])
