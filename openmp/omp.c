@@ -6,6 +6,10 @@
 #include "omp.h"
 
 struct omp_thread {
+    struct {
+        void (*fn)(void *);
+        void *data;
+    } /* implicit */ task;
     pthread_t handle;
     int ID;
 };
@@ -18,6 +22,18 @@ struct omp_team {
     pthread_barrier_t barrier;
     int num_threads;
 } team;
+
+static __thread struct omp_thread *self;
+
+static void *thread_entry_fn(void *args)
+{
+    self = (struct omp_thread *)args;
+    assert(self->handle == pthread_self());
+
+    self->task.fn(self->task.data);
+
+    return NULL;
+}
 
 void omp_parallel_start(void (*fn)(void *data), void *data, int num_threads)
 {
@@ -41,12 +57,17 @@ void omp_parallel_start(void (*fn)(void *data), void *data, int num_threads)
     pthread_barrier_init(&team.barrier, NULL, num_threads);
     team.num_threads = num_threads;
 
+    team.threads[0].task.fn = fn;
+    team.threads[0].task.data = data;
     team.threads[0].handle = pthread_self();
     team.threads[0].ID = 0;
+    self = &team.threads[0];
 
     for (i = 1; i < num_threads; i++) {
+        team.threads[i].task.fn = fn;
+        team.threads[i].task.data = data;
         team.threads[i].ID = i;
-        pthread_create(&team.threads[i].handle, NULL, (void *(*)(void *))fn, data);
+        pthread_create(&team.threads[i].handle, NULL, thread_entry_fn, &team.threads[i]);
     }
 }
 
@@ -71,19 +92,7 @@ void omp_barrier(void)
 
 int omp_get_thread_num(void)
 {
-    static __thread int ID = -1;
-    int i;
-
-    if (ID != -1) return ID;
-
-    for (i = 0; i < team.num_threads; i++) {
-        if (pthread_equal(team.threads[i].handle, pthread_self())) {
-            ID = team.threads[i].ID;
-            return ID;
-        }
-    }
-
-    assert(0 && "Runtime error: omp_get_thread_num");
+    return self->ID;
 }
 
 int omp_get_num_threads(void)

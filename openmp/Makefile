@@ -1,4 +1,3 @@
-CC := gcc
 CFLAGS += -Wall -Wextra -Werror -fsanitize=address,undefined
 LDFLAGS += -fsanitize=address,undefined
 
