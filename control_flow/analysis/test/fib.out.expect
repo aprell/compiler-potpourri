@@ -1,4 +1,10 @@
 digraph CFG {
+    B1 [shape=record label="{B1|fib(n):\lt0 := 0\lt1 := 1\lif n \< 2 goto L1 else goto L2\l}"];
+    B2 [shape=record label="{B2|L1:\lreturn n\l}"];
+    B3 [shape=record label="{B3|L2:\li := 2\lgoto L3\l}"];
+    B4 [shape=record label="{B4|L3:\lif i \<= n goto L4 else goto L5\l}"];
+    B5 [shape=record label="{B5|L4:\lt2 := t0 + t1\lt0 := t1\lt1 := t2\li := i + 1\lgoto L3\l}"];
+    B6 [shape=record label="{B6|L5:\lreturn t1\l}"];
     Entry -> B1;
     B1 -> B2;
     B1 -> B3;

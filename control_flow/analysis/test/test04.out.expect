@@ -1,4 +1,8 @@
 digraph CFG {
+    B1 [shape=record label="{B1|test04(A, N):\li := 1\lj := 0\lgoto L1\l}"];
+    B2 [shape=record label="{B2|L1:\lif i \< N goto L2 else goto L3\l}"];
+    B3 [shape=record label="{B3|L2:\l$1 := i - 1\l$2 := $1 * 4\l$3 := i + 1\l*(A + $2) := $3\l$4 := j * 4\l$5 := i - 1\l*(A + $4) := $5\li := i + 1\lgoto L1\l}"];
+    B4 [shape=record label="{B4|L3:\lreturn\l}"];
     Entry -> B1;
     B1 -> B2;
     B2 -> B3;

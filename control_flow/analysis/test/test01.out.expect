@@ -1,4 +1,9 @@
 digraph CFG {
+    B1 [shape=record label="{B1|test01(a, b):\lif a \> b goto L4 else goto L5\l}"];
+    B2 [shape=record label="{B2|L4:\lif a \< 100 goto L1 else goto L2\l}"];
+    B3 [shape=record label="{B3|L1:\lreturn a\l}"];
+    B5 [shape=record label="{B5|L2:\lc := b + 1\lreturn b\l}"];
+    B7 [shape=record label="{B7|L5:\lc := b + 1\lreturn c\l}"];
     Entry -> B1;
     B1 -> B2;
     B1 -> B7;

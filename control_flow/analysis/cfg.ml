@@ -1,4 +1,5 @@
 open Three_address_code__IR
+open Three_address_code__Utils
 
 module rec Node : sig
   type t = {
@@ -357,11 +358,28 @@ let output_dot ?filename (graph : t) =
     | Some filename -> open_out filename
     | None -> stdout
   in
+  let escape str =
+    (* Escape the following characters: '<', '>' *)
+    let regexp = Str.regexp {|\(<\|>\)|} in
+    Str.global_replace regexp {|\\\1|} str
+  in
   let print ?(indent="") str =
     output_string chan (indent ^ str ^ "\n")
   in
   let indent = String.make 4 ' ' in
   print "digraph CFG {";
+  iter (fun { block; _ } ->
+      if block.name <> "Entry" && block.name <> "Exit" then
+        let stmts = block.stmts
+                    |> List.map (( ! ) >> string_of_stmt)
+                    |> String.concat "\\l"
+        in
+        let node = Printf.sprintf
+            "%s [shape=record label=\"{%s|%s\\l}\"];"
+            block.name block.name (escape stmts)
+        in
+        print ~indent node
+    ) graph;
   iter (fun { block; succ; _ } ->
       let x = block.name in
       NodeSet.iter (fun { block; _ } ->
