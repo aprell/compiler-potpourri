@@ -1,4 +1,5 @@
 digraph CFG {
+    B1 [shape=record label="{B1|test02():\la := 1\lb := 2\lc := a * 3\ld := c - 1\lreturn c\l}"];
     Entry -> B1;
     B1 -> Exit;
 }

@@ -1,4 +1,13 @@
 digraph CFG {
+    B1 [shape=record label="{B1|sort(A, n):\li := 0\lgoto L6\l}"];
+    B2 [shape=record label="{B2|L6:\l$9 := n - 1\lif i \< $9 goto L7 else goto L8\l}"];
+    B3 [shape=record label="{B3|L7:\lmin := i\lj := i + 1\lgoto L3\l}"];
+    B4 [shape=record label="{B4|L3:\lif j \< n goto L4 else goto L5\l}"];
+    B5 [shape=record label="{B5|L4:\l$1 := j * 4\lt0 := *(A + $1)\l$2 := min * 4\lt1 := *(A + $2)\lif t0 \< t1 goto L1 else goto L2\l}"];
+    B6 [shape=record label="{B6|L1:\lmin := j\lgoto L2\l}"];
+    B7 [shape=record label="{B7|L2:\lj := j + 1\lgoto L3\l}"];
+    B8 [shape=record label="{B8|L5:\l$3 := i * 4\lt0 := *(A + $3)\l$4 := min * 4\lt1 := *(A + $4)\l$5 := i * 4\l$6 := t1\l*(A + $5) := $6\l$7 := min * 4\l$8 := t0\l*(A + $7) := $8\li := i + 1\lgoto L6\l}"];
+    B9 [shape=record label="{B9|L8:\lreturn\l}"];
     Entry -> B1;
     B1 -> B2;
     B2 -> B3;
