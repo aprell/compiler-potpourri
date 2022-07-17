@@ -56,7 +56,8 @@ open Utils
 (*$>*)
 let parse_line line =
   let lexbuf = Lexing.from_string line in
-  Parser.line Lexer.read lexbuf
+  let _, stmts = Parser.prog Lexer.read lexbuf in
+  List.hd stmts
 
 let parse_prog lines =
   let lexbuf = Lexing.from_string lines in

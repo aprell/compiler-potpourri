@@ -76,14 +76,8 @@
 %left MUL DIV MOD
 
 %start <IR.decl option * IR.stmt list> prog
-%start <IR.stmt> line
 
 %%
-
-line:
-  | stmt EOF
-    { $1 }
-  ;
 
 prog:
   | func EOF
