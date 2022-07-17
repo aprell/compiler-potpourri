@@ -2,7 +2,7 @@ open Three_address_code__Parse
 open Basic_block
 
 let print_basic_blocks filename =
-  parse_file filename
+  snd @@ parse_file filename
   |> create_basic_blocks
   |> print_basic_blocks
 

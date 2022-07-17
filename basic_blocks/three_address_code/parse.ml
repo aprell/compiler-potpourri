@@ -61,8 +61,7 @@ let parse_line line =
 
 let parse_prog lines =
   let lexbuf = Lexing.from_string lines in
-  let _, stmts = Parser.prog Lexer.read lexbuf in
-  stmts
+  Parser.prog Lexer.read lexbuf
 
 let parse_file name =
   read_file_into_string name |> parse_prog

@@ -40,6 +40,6 @@ let loops = [
 ]
 
 let graph_of_input filename =
-  parse_file filename
+  snd @@ parse_file filename
   |> create_basic_blocks
   |> Cfg.construct

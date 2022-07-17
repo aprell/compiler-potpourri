@@ -22,7 +22,7 @@ let () =
   match Sys.argv with
   | [| _; filename |] ->
     let blocks =
-      parse_file filename
+      snd @@ parse_file filename
       |> create_basic_blocks
     in
     print_basic_blocks blocks;
