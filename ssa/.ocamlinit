@@ -37,7 +37,7 @@ let cfg_of src =
   Cfg.construct [
     Basic_block.create ()
       ~number:1
-      ~stmts:(List.map ref (parse_prog src))
+      ~stmts:(List.map ref (snd @@ parse_prog src))
   ]
 
 let print ~text block =

@@ -15,5 +15,5 @@ let src = {|
 |}
 
 let () =
-  parse_prog src
+  snd @@ parse_prog src
   |> dump
