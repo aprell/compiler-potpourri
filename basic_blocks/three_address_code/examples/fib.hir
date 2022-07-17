@@ -1,3 +1,5 @@
+int fib(int)
+
 fib(n) {
     t0 := 0
     t1 := 1

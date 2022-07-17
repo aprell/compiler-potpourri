@@ -1,3 +1,5 @@
+int test02()
+
 test02() {
     a := 1
     b := 2

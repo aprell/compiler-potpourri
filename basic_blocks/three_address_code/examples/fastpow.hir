@@ -1,3 +1,5 @@
+int fastpow(int, int)
+
 fastpow(b, e) {
     r := 1
     while e > 0 {

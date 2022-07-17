@@ -1,3 +1,5 @@
+void test04(int[], int)
+
 test04(A, N) {
     i := 1
     j := i - 1

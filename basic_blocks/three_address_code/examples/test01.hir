@@ -1,3 +1,5 @@
+int test01(int, int)
+
 test01(a, b) {
     if a > b {
         if a < 100 {

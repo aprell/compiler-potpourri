@@ -1,3 +1,5 @@
+int test07(int)
+
 test07(p) {
     x := 0
     i := 1

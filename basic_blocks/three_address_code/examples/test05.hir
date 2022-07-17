@@ -1,3 +1,5 @@
+int test05()
+
 test05() {
     x := 1
     if x < 2 {

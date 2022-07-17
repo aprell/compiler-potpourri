@@ -1,3 +1,5 @@
+int pow(int, int)
+
 pow(b, e) {
     r := 1
     while e > 0 {
