@@ -33,6 +33,15 @@ and label = name * var list option
 
 and name = string
 
+module Type = struct
+  type t =
+    | Int
+    | Void
+    | Ptr of t
+end
+
+type decl = FunDecl of { name : string; typesig : Type.t * Type.t list; }
+
 let name_of_var (Var x) = x
 
 let is_phi = function
@@ -87,7 +96,7 @@ let translate (`Addr (base, index)) =
     , Mem (base, Val (Var t2))
 
 let lower = function
-  | `Proc (name, params, body) ->
+  | `Function (name, params, body) ->
     [Label (make_label ~name ~params ())]
     @ body
   | `Load (x, addr) ->

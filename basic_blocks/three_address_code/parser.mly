@@ -75,26 +75,27 @@
 %left PLUS MINUS
 %left MUL DIV MOD
 
-%start <IR.stmt list> prog
+%start <IR.decl option * IR.stmt list> prog
 %start <IR.stmt> line
 
 %%
-
-prog:
-  | proc EOF
-    { $1 }
-  | list(stmt) EOF
-    { $1 }
-  ;
 
 line:
   | stmt EOF
     { $1 }
   ;
 
-proc:
+prog:
+  | func EOF
+  | stmt* EOF
+    { (None, $1) }
+  | fundecl func EOF
+    { (Some $1, $2) }
+  ;
+
+func:
   | name = NAME; params = params; body = block
-    { `Proc (name, params, body) |> lower }
+    { `Function (name, params, body) |> lower }
   ;
 
 params:
@@ -103,15 +104,36 @@ params:
   ;
 
 block:
-  | block_entry delimited(LBRACE, flatten(list(hir_stmt)), RBRACE)
+  | block_entry delimited(LBRACE, flatten(hir_stmt*), RBRACE)
     { $2 }
+  ;
+
+fundecl:
+  | return_type = type_; name = NAME; param_types = types
+    { FunDecl { name; typesig = (return_type, param_types) } }
+  ;
+
+types:
+  | delimited(LPAREN, separated_list(COMMA, type_), RPAREN)
+    { $1 }
+  ;
+
+type_:
+  | NAME pair(LBRACKET, RBRACKET)?
+    { match $1, $2 with
+      | "int",  Some _ -> IR.Type.Ptr IR.Type.Int
+      | "int",  None   -> IR.Type.Int
+      | "void", Some _ -> IR.Type.Ptr IR.Type.Void
+      | "void", None   -> IR.Type.Void
+      | name, _ -> failwith ("Unknown type name " ^ name)
+    }
   ;
 
 (* Reset peephole to avoid optimizing across basic block boundaries *)
 block_entry: { prev := [] }
 
 label:
-  | NAME option(params)
+  | NAME params?
     { ($1, $2) }
   ;
 
@@ -129,7 +151,7 @@ stmt:
   | label COL                            { Label $1 }
   | GOTO label                           { Jump $2 }
   | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
-  | RET option(expr)                     { Return $2 }
+  | RET expr?                            { Return $2 }
   | NAME GETS "PHI" params               { Phi (Var $1, $4) }
   ;
 

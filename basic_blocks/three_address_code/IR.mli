@@ -1,13 +1,13 @@
 type stmt =
-  | Move of var * expr                          (* x := e                     *)
-  | Load of var * mem                           (* x := M[i]                  *)
-  | Store of mem * expr                         (* M[i] := e                  *)
-  | Label of label                              (* L:                         *)
-  | Jump of label                               (* goto L                     *)
-  | Cond of expr * label * label                (* if e goto L1 else goto L2  *)
-  | Return of expr option                       (* return e                   *)
+  | Move of var * expr               (* x := e                     *)
+  | Load of var * mem                (* x := M[i]                  *)
+  | Store of mem * expr              (* M[i] := e                  *)
+  | Label of label                   (* L:                         *)
+  | Jump of label                    (* goto L                     *)
+  | Cond of expr * label * label     (* if e goto L1 else goto L2  *)
+  | Return of expr option            (* return e                   *)
   (* Phi-functions (SSA) *)
-  | Phi of var * var list                       (* x := PHI(...)              *)
+  | Phi of var * var list            (* x := PHI(...)              *)
 
 and expr =
   | Const of int
@@ -31,6 +31,15 @@ and label = name * var list option
 
 and name = string
 
+module Type : sig
+  type t =
+    | Int
+    | Void
+    | Ptr of t
+end
+
+type decl = FunDecl of { name : string; typesig : Type.t * Type.t list; }
+
 val name_of_var : var -> name
 
 val make_label : ?name:name -> ?params:var list -> unit -> label
@@ -40,10 +49,10 @@ val is_phi : stmt -> bool
 val normalize : stmt -> stmt list
 
 val lower :
-  [> `If of expr * stmt list * stmt list
+  [> `Function of name * var list * stmt list
   | `Load of var * [< `Addr of var * expr ]
-  | `Proc of name * var list * stmt list
   | `Store of [< `Addr of var * expr ] * expr
+  | `If of expr * stmt list * stmt list
   | `While of expr * stmt list ]
   -> stmt list
 
