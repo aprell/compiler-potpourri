@@ -21,7 +21,7 @@ do
             rm test/01.ssa test/02.ssa
             mv "$OUTPUT.actual" "$OUTPUT.expect"
         elif [[ $REPLY =~ [Qq] ]]; then
-            break
+            exit 1
         fi
     fi
 done

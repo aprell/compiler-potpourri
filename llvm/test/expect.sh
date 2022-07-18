@@ -27,7 +27,7 @@ do
             rm test/src.ll test/tgt.ll
             mv "$OUTPUT.actual" "$OUTPUT.expect"
         elif [[ $REPLY =~ [Qq] ]]; then
-            break
+            exit 1
         fi
     fi
 done

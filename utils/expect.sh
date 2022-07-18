@@ -16,7 +16,7 @@ for test in "${1:-examples}"/*; do
         if [[ $REPLY =~ [Yy] ]]; then
             mv "$OUTPUT.actual" "$OUTPUT.expect"
         elif [[ $REPLY =~ [Qq] ]]; then
-            break
+            exit 1
         fi
     fi
 done
