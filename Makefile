@@ -4,6 +4,7 @@ TEST_DIRS := \
   control_flow/analysis \
   data_flow/analysis \
   llvm \
+  qbe \
   ssa
 
 LIT_TEST_DIRS := \
