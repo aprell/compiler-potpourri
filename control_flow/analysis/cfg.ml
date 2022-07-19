@@ -97,6 +97,11 @@ let get_nodes (graph : t) : Node.t list =
   M.bindings graph
   |> List.map snd
 
+let get_first_basic_block (graph : t) : Basic_block.t =
+  let entry = get_entry_node graph in
+  assert (NodeSet.cardinal entry.succ = 1);
+  (NodeSet.choose entry.succ).block
+
 let get_basic_blocks (graph : t) : Basic_block.t list =
   get_nodes graph
   |> List.filter_map (fun { Node.block; _ } ->

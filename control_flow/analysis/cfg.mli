@@ -40,6 +40,10 @@ val dfs_reverse_postorder : t -> Node.t list
 
 val dfs_postorder : t -> Node.t list
 
+val get_first_basic_block : t -> Basic_block.t
+
+val get_basic_blocks : t -> Basic_block.t list
+
 val print_basic_blocks : t -> unit
 
 val output_dot : ?filename:string -> t -> unit

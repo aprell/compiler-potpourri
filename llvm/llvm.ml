@@ -12,12 +12,6 @@ let global name = "@" ^ name
 
 let local name = "%" ^ name
 
-let get_first_basic_block (graph : Cfg.t) =
-  let open Cfg in
-  let entry = get_entry_node graph in
-  assert (NodeSet.cardinal entry.succ = 1);
-  (NodeSet.choose entry.succ).block
-
 let printf ?(indent = 0) =
   print_string (String.make indent ' ');
   Printf.printf
@@ -146,7 +140,7 @@ let emit_function (decl : IR.decl) (graph : Cfg.t) =
   (* Unnamed temporaries are numbered %0, %1, etc., assuming that all function
    * parameters are named and all basic blocks are labeled. *)
   gen_temp := Three_address_code.Utils.gen_name "%" 0;
-  emit_function_header decl (get_first_basic_block graph);
+  emit_function_header decl (Cfg.get_first_basic_block graph);
   print_endline " {";
   emit_function_body graph;
   print_endline "}"
