@@ -19,6 +19,14 @@ let read_file_into_string name =
   close_in file;
   lines
 
+let printf ?(indent = 0) =
+  print_string (String.make indent ' ');
+  Printf.printf
+
+let sprintf ?(indent = 0) =
+  let indent = String.make indent ' ' in
+  Printf.ksprintf (( ^ ) indent)
+
 let gen_number init =
   let count = ref init in
   fun () ->

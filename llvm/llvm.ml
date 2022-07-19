@@ -1,5 +1,6 @@
 open Three_address_code
 open Three_address_code__IR
+open Three_address_code__Utils
 open Control_flow
 
 let rec string_of_type = function
@@ -7,14 +8,6 @@ let rec string_of_type = function
   | Type.Void -> "void"
   | Type.Ptr Type.Int -> "i8*"
   | Type.Ptr t -> string_of_type t ^ "*"
-
-let global name = "@" ^ name
-
-let local name = "%" ^ name
-
-let printf ?(indent = 0) =
-  print_string (String.make indent ' ');
-  Printf.printf
 
 let string_of_binop = function
   | Plus -> "add i32"
@@ -30,6 +23,10 @@ let string_of_relop = function
   | GT -> "icmp sgt i32"
   | LE -> "icmp sle i32"
   | GE -> "icmp sge i32"
+
+let global name = "@" ^ name
+
+let local name = "%" ^ name
 
 let rec string_of_expr = function
   | Const n -> string_of_int n

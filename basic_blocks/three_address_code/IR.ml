@@ -252,10 +252,6 @@ let rec string_of_expr = function
   | Relop (op, e1, e2) ->
     string_of_expr e1 ^ " " ^ string_of_relop op ^ " " ^ string_of_expr e2
 
-let sprintf ?(indent = 0) =
-  let indent = String.make indent ' ' in
-  Printf.ksprintf (( ^ ) indent)
-
 let string_of_stmt ?(indent = 0) stmt =
   match stmt with
   | Move (Var x, e) ->
