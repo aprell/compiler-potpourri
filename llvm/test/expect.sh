@@ -10,10 +10,8 @@ if [ -z "$(command -v alive-tv)" ]; then
     exit 0
 fi
 
-for test in \
-    fib pow fastpow sort test01 test02 test03 test04 test05 test06 test07
-do
-    OUTPUT="test/$test.out"
+for test in "${1:-examples}"/*; do
+    OUTPUT="test/$(basename "${test%.*}").out"
     dune exec test/expect.exe --      "$test" > test/src.ll
     dune exec test/expect.exe -- -opt "$test" > test/tgt.ll
     alive-tv test/src.ll test/tgt.ll > "$OUTPUT.actual"
