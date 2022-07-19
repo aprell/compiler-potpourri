@@ -110,8 +110,7 @@ let emit_function_body (graph : Cfg.t) =
       emit_basic_block block
     ) graph
 
-let emit_function_header (decl : IR.decl) (block : Basic_block.t) =
-  match Basic_block.entry_label block with
+let emit_function_header (decl : IR.decl) = function
   | name, Some params ->
     let FunDecl { name = declname; typesig = (return_type, param_types) } = decl in
     if name = declname && List.length params = List.length param_types then (
@@ -137,7 +136,9 @@ let emit_function (decl : IR.decl) (graph : Cfg.t) =
   (* Unnamed temporaries are numbered %0, %1, etc., assuming that all function
    * parameters are named and all basic blocks are labeled. *)
   gen_temp := Three_address_code.Utils.gen_name "%" 0;
-  emit_function_header decl (Cfg.get_first_basic_block graph);
+  Cfg.get_first_basic_block graph
+  |> Basic_block.entry_label
+  |> emit_function_header decl;
   print_endline " {";
   emit_function_body graph;
   print_endline "}"
