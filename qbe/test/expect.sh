@@ -4,10 +4,14 @@
 set -eu
 set -o pipefail
 
-for test in \
-    fib pow fastpow sort test01 test02 test03 test04 test05 test06 test07
-do
-    OUTPUT="test/$test.out"
+if [ -z "$(command -v qbe)" ]; then
+    echo "To use qbe, follow the instructions at"
+    echo "https://c9x.me/compile."
+    exit 0
+fi
+
+for test in "${1:-examples}"/*; do
+    OUTPUT="test/$(basename "${test%.*}").out"
     dune exec test/expect.exe --      "$test" > test/01.ssa
     dune exec test/expect.exe -- -opt "$test" > test/02.ssa
     qbe test/01.ssa test/02.ssa > "$OUTPUT.actual"
