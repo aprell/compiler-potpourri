@@ -23,7 +23,8 @@ let translate_to_ssa graph =
   Cfg.print_basic_blocks graph;
   print_endline hline;
 
-  graph, Ssa.Graph.create ()
+  Dom.dominators graph;
+  graph, Ssa.Graph.create graph
 
 let optimize (graph, ssa_graph) =
   let graph = Optim.optimize graph ssa_graph in

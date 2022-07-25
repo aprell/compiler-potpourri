@@ -17,7 +17,7 @@ module Graph : sig
   and def = Def_use_chain.Set.elt
   and use = Def_use_chain.Set.elt
 
-  val create : unit -> t
+  val create : Cfg.t -> t
   val get_def_use : var -> t -> def_use option
   val get_def : var -> t -> def option
   val get_use_def : var -> t -> use_def list

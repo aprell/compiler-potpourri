@@ -286,16 +286,35 @@ module Graph = struct
   and def = Def_use_chain.Set.elt
   and use = Def_use_chain.Set.elt
 
-  let create () =
+  let dominates (a, def) (b, use) cfg =
+    if !a.name = !b.name then
+      try List.exists (fun stmt ->
+          (* Use before def? *)
+          if stmt = !use then raise Exit;
+          stmt = !def
+        ) !a.stmts
+      with Exit -> false
+    else
+      let node_def = Cfg.get_node !a.number cfg in
+      let node_use = Cfg.get_node !b.number cfg in
+      Cfg.NodeSet.mem node_def node_use.doms
+
+  let create cfg =
     let graph = Hashtbl.create 10 in
     Def_use_chain.iter (fun x def uses ->
         match def with
-        | Some def ->
+        | Some ((_, stmt) as def) ->
           let uses =
             Def_use_chain.Set.elements uses
             |> List.map (fun use -> (use, def))
           in
-          Hashtbl.add graph x (def, uses)
+          if List.for_all (fun ((_, stmt) as use, def) ->
+              is_phi !(!stmt) || dominates def use cfg
+            ) uses
+          then
+            Hashtbl.add graph x (def, uses)
+          else
+            failwith (string_of_stmt !(!stmt) ^ " does not dominate all uses")
         | None ->
           (* Dead SSA name (OK) or use of undefined value (not OK) *)
           if not (Def_use_chain.Set.is_empty uses) then
@@ -438,7 +457,8 @@ let construct graph =
   rename_variables graph;
   insert_phi_functions graph;
   minimize_phi_functions graph;
-  Graph.create ()
+  Dom.dominators graph;
+  Graph.create graph
 
 (* Implements a simplified version of Sreedhar and others' algorithm:
  * (1) Convert TSSA form to CSSA form by inserting copies for _all_ variables
