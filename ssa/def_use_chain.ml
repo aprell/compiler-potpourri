@@ -43,7 +43,7 @@ let remove_uses var =
 
 let remove_def var =
   match Hashtbl.find_opt def_use_chains var with
-  | Some { def = Some ((_, stmt) as def); _ } -> (
+  | Some { def = Some ((_, stmt) as def); uses } -> (
       match !(!stmt) with
       | Move (_, e) ->
         Vars.iter (remove_use def) (collect_variables e)
@@ -57,9 +57,9 @@ let remove_def var =
         List.iter (remove_use def) xs
       | _ -> assert false
     );
-    Hashtbl.remove def_use_chains var
-  | Some { def = None; _ } ->
-    Hashtbl.remove def_use_chains var
+    Hashtbl.replace def_use_chains var
+      { def = None; uses }
+  | Some { def = None; _ }
   | None -> ()
 
 let add_def block stmt var =

@@ -253,10 +253,18 @@ let minimize_phi_functions graph =
   and propagate_phi x y =
     let uses = Def_use_chain.get_uses x in
     Def_use_chain.Set.iter (fun (block, stmt) ->
+        match !(!stmt) with
+        | Move (z, _) when y = z ->
+          Printf.eprintf
+            "Trying to replace %s with %s in %s\n"
+            (name_of_var x) (name_of_var y) (string_of_stmt !(!stmt));
+          failwith "Only PHIs may reference their own value"
+        | _ -> ((* OK *));
         replace ~stmt x (Val y);
         Def_use_chain.add_use !block !stmt y
       ) uses;
-    Def_use_chain.remove_uses x;
+    if x <> y then
+      Def_use_chain.remove_uses x;
     Def_use_chain.remove_def x
   in
 
@@ -289,8 +297,9 @@ module Graph = struct
           in
           Hashtbl.add graph x (def, uses)
         | None ->
-          (* Dead SSA name *)
-          assert (Def_use_chain.Set.is_empty uses)
+          (* Dead SSA name (OK) or use of undefined value (not OK) *)
+          if not (Def_use_chain.Set.is_empty uses) then
+            failwith ("Use of undefined value " ^ name_of_var x)
       );
     Def_use_chain.clear ();
     graph
