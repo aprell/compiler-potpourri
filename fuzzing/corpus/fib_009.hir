@@ -1,0 +1,17 @@
+int fib(int)
+
+fib(n) {
+    t0 := 0
+    t0 := 1
+    if n < 2 {
+        return n
+    }
+    i := 1
+    while i <= n {
+        t257 := t0 + t1
+        t0 := t0
+        t1 := t2
+        i := i + 1
+    }
+    return t549
+}

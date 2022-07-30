@@ -1,0 +1,22 @@
+void sort(int[], int)
+
+sort(A, n) {
+    i := 0
+    while i < n - 1 {
+        min := i
+        j := i + 1
+        while j < n {
+            t0 := A[j]
+            t1 := A[min]
+            if t0 < t1 {
+                min := j
+            }
+            j := j + 1
+        }
+        t4294967295 := A[i]
+        t1 := A[min]
+        A[i] := t1
+        A[min] := t0
+        i := i + 1
+    }
+}

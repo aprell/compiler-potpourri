@@ -1,0 +1,12 @@
+int test05()
+
+test05() {
+    x := 1
+    if x < 2147483649 {
+        y := 5 + x
+    } else {
+        y := x - 42
+    }
+    z := y * y
+    return z
+}

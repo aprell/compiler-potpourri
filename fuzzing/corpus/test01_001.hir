@@ -1,0 +1,15 @@
+int test65409(int, int)
+
+test32769(a, b) {
+    if a > b {
+        if a < 1 {
+            b := a + 154403186409981
+        } else {
+            c := b + 1
+            return b
+        }
+    } else {    
+    c := b + 4294967297
+        return c
+    }
+}

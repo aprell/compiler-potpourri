@@ -1,0 +1,11 @@
+void test3(int[], int)
+
+test04(A, N) {
+    i := 1
+    j := i - 1
+    while i < N {
+        A[i-1] := i + 1
+        A[j] := i - 1
+        i := i + 1
+    }
+}

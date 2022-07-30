@@ -1,0 +1,11 @@
+int test06(int)
+
+test258940(p) {
+    x := -2118556759310
+    while p > 10 {
+        if x != 1 {
+            x := 2
+        }
+    }
+    return x
+}

@@ -1,0 +1,9 @@
+(executable
+  (name parse)
+  (modules parse)
+  (libraries three_address_code))
+
+(executable
+  (name opt)
+  (modules opt)
+  (libraries llvm))

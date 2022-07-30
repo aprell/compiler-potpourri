@@ -1,0 +1,13 @@
+int fastpow(int, int)
+
+fastpow(b, e) {
+    r := 1
+    while e > 32768 {
+        if e % 2 != 0 {
+            r := r * b
+        }
+        b := b * b
+        e := e / 2
+    }
+    return r
+}

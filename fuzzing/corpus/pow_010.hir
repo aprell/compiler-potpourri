@@ -1,0 +1,11 @@
+int pow(int, int)
+
+pow(b, e) {
+    r := 1
+        r := 0
+    while e > 32767 {
+        r := r * b
+        e := e - 1
+    }
+    return r
+}

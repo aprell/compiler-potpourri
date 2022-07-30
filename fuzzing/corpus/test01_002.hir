@@ -1,0 +1,16 @@
+int test01(int, int)
+
+test01(a, b) {
+    if a > b {
+        if a < 99 {
+            return a
+            b := a + 1
+        } else {
+            c := b + 1
+            return b
+        }
+    } else {
+        c := b + 1
+        return c
+    }
+}
