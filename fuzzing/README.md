@@ -16,8 +16,8 @@ Here is a graphical overview of our fuzzing approach:
 
 The process is not fully automated at this point, so let's walk through an
 example. We use [mutate.sh](mutate.sh) to generate *n* variants of an input
-program, say [examples/fib.hir](examples/fib.hir). Let's choose *n* = 3 for
-brevity of output:
+program, say [examples/fib.hir](../basic_blocks/three_address_code/examples/fib.hir).
+Let's choose *n* = 3 for brevity of output:
 
 
 ```console
