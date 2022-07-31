@@ -1,0 +1,48 @@
+
+----------------------------------------
+define i32 @test01(i32 %a_0, i32 %b_0) {
+%test01:
+  %0 = icmp sgt i32 %a_0, %b_0
+  br i1 %0, label %L3, label %L4
+
+%L4:
+  %c_0 = add i32 %b_0, 1
+  ret i32 %c_0
+
+%L3:
+  %1 = icmp slt i32 %a_0, 100
+  br i1 %1, label %L1, label %L5
+
+%L1:
+  ret i32 %b_0
+
+%L5:
+  ret i32 undef
+}
+=>
+define i32 @test01(i32 %a_0, i32 %b_0) {
+%test01:
+  %0 = icmp sgt i32 %a_0, %b_0
+  br i1 %0, label %L3, label %L4
+
+%L4:
+  %c_0 = add i32 %b_0, 1
+  ret i32 %c_0
+
+%L3:
+  %1 = icmp slt i32 %a_0, 100
+  br i1 %1, label %L1, label %L5
+
+%L1:
+  ret i32 %b_0
+
+%L5:
+  ret i32 undef
+}
+Transformation seems to be correct! (syntactically equal)
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

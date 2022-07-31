@@ -1,0 +1,30 @@
+[B1]
+test01(a, b):
+    if a > b goto L3 else goto L4
+[B2]
+L3:
+    if a < 100 goto L1 else goto L2
+[B3]
+L1:
+    return b
+[B4]
+L2:
+    goto L5
+[B5]
+L4:
+    c := b + 1
+    return c
+[B6]
+L5:
+    return
+
++----+-----+------+
+|    | use | def  |
++----+-----+------+
+| B1 |     | a, b |
+| B2 | a   |      |
+| B3 | b   |      |
+| B4 |     |      |
+| B5 | b   | c    |
+| B6 |     |      |
++----+-----+------+

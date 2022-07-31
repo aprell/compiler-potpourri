@@ -1,0 +1,35 @@
+.text
+.globl test01
+test01:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %esi, %eax
+	cmpl %eax, %edi
+	jg .Lbb2
+	addl $1, %eax
+	jmp .Lbb3
+.Lbb2:
+	cmpl $100, %edi
+.Lbb3:
+	leave
+	ret
+/* end function test01 */
+
+.text
+.globl test01
+test01:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %esi, %eax
+	cmpl %eax, %edi
+	jg .Lbb6
+	addl $1, %eax
+	jmp .Lbb7
+.Lbb6:
+	cmpl $100, %edi
+.Lbb7:
+	leave
+	ret
+/* end function test01 */
+
+.section .note.GNU-stack,"",@progbits

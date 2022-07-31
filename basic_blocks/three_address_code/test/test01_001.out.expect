@@ -1,0 +1,12 @@
+test01(a, b):
+    if a > b goto L3 else goto L4
+L3:
+    if a < 100 goto L1 else goto L2
+L1:
+    return b
+L2:
+    goto L5
+L4:
+    c := b + 1
+    return c
+L5:

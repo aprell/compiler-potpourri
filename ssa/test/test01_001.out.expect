@@ -1,0 +1,138 @@
+[B1]
+test01(a, b):
+    if a > b goto L3 else goto L4
+[B2]
+L3:
+    if a < 100 goto L1 else goto L5
+[B3]
+L1:
+    return b
+[B5]
+L4:
+    c := b + 1
+    return c
+[B6]
+L5:
+    return
+
+--------------------------------------------------------------------------------
+
+[B1]
+test01(a, b):
+    if a > b goto L3(a, b) else goto L4(a, b)
+[B2]
+L3(a, b):
+    if a < 100 goto L1(a, b) else goto L5(a, b)
+[B3]
+L1(a, b):
+    return b
+[B5]
+L4(a, b):
+    c := b + 1
+    return c
+[B6]
+L5(a, b):
+    return
+
+--------------------------------------------------------------------------------
+
+[B1]
+test01(a_0, b_0):
+    if a_0 > b_0 goto L3(a_0, b_0) else goto L4(a_0, b_0)
+[B2]
+L3(a_1, b_1):
+    if a_1 < 100 goto L1(a_1, b_1) else goto L5(a_1, b_1)
+[B3]
+L1(a_2, b_2):
+    return b_2
+[B5]
+L4(a_3, b_3):
+    c_0 := b_3 + 1
+    return c_0
+[B6]
+L5(a_4, b_4):
+    return
+
+--------------------------------------------------------------------------------
+
+[B1]
+test01(a_0, b_0):
+    if a_0 > b_0 goto L3 else goto L4
+[B2]
+L3:
+    a_1 := PHI(a_0)
+    b_1 := PHI(b_0)
+    if a_1 < 100 goto L1 else goto L5
+[B3]
+L1:
+    a_2 := PHI(a_1)
+    b_2 := PHI(b_1)
+    return b_2
+[B5]
+L4:
+    a_3 := PHI(a_0)
+    b_3 := PHI(b_0)
+    c_0 := b_3 + 1
+    return c_0
+[B6]
+L5:
+    a_4 := PHI(a_1)
+    b_4 := PHI(b_1)
+    return
+
+--------------------------------------------------------------------------------
+
+[B1]
+test01(a_0, b_0):
+    if a_0 > b_0 goto L3 else goto L4
+[B2]
+L3:
+    if a_0 < 100 goto L1 else goto L5
+[B3]
+L1:
+    return b_0
+[B5]
+L4:
+    c_0 := b_0 + 1
+    return c_0
+[B6]
+L5:
+    return
+
+--------------------------------------------------------------------------------
+
+[B1]
+test01(a_0, b_0):
+    if a_0 > b_0 goto L3 else goto L4
+[B2]
+L3:
+    if a_0 < 100 goto L1 else goto L5
+[B3]
+L1:
+    return b_0
+[B5]
+L4:
+    c_0 := b_0 + 1
+    return c_0
+[B6]
+L5:
+    return
+
+--------------------------------------------------------------------------------
+
+[B1]
+test01(a_0, b_0):
+    if a_0 > b_0 goto L3 else goto L4
+[B2]
+L3:
+    if a_0 < 100 goto L1 else goto L5
+[B3]
+L1:
+    return b_0
+[B5]
+L4:
+    c_0 := b_0 + 1
+    return c_0
+[B6]
+L5:
+    return

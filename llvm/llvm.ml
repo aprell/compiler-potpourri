@@ -38,7 +38,7 @@ let rec string_of_expr = function
 
 let gen_temp = ref (Three_address_code.Utils.gen_name "%" 0)
 
-let emit_basic_block (block : Basic_block.t) =
+let emit_basic_block (FunDecl { typesig = (return_type, _); _ }) (block : Basic_block.t) =
   let indent = 2 in
   let emit stmt =
     match !stmt with
@@ -90,8 +90,12 @@ let emit_basic_block (block : Basic_block.t) =
       printf ~indent "br i1 %s, label %s, label %s\n"
         (string_of_expr e) (local iftrue) (local iffalse)
     | Return (Some e) ->
-      printf ~indent "ret i32 %s\n"
+      printf ~indent "ret %s %s\n"
+        (string_of_type return_type)
         (string_of_expr e)
+    | Return None when return_type <> Type.Void ->
+      printf ~indent "ret %s undef\n"
+        (string_of_type return_type)
     | Return None ->
       printf ~indent "ret void\n"
     | Phi (x, xs) ->
@@ -105,9 +109,9 @@ let emit_basic_block (block : Basic_block.t) =
   in
   List.iter emit block.stmts
 
-let emit_function_body (graph : Cfg.t) =
+let emit_function_body (decl : IR.decl) (graph : Cfg.t) =
   Cfg.iter (fun { block; _ } ->
-      emit_basic_block block
+      emit_basic_block decl block
     ) graph
 
 let emit_function_header (decl : IR.decl) = function
@@ -140,7 +144,7 @@ let emit_function (decl : IR.decl) (graph : Cfg.t) =
   |> Basic_block.entry_label
   |> emit_function_header decl;
   print_endline " {";
-  emit_function_body graph;
+  emit_function_body decl graph;
   print_endline "}"
 
 let emit ?(optimize = false) filename =
