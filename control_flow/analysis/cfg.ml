@@ -88,10 +88,11 @@ let get_entry_node (graph : t) : Node.t =
   assert (number = 0 && entry.block.name = "Entry");
   entry
 
-let get_exit_node (graph : t) : Node.t =
-  let _, exit = M.max_binding graph in
-  assert (exit.block.name = "Exit");
-  exit
+let get_exit_node (graph : t) : Node.t option =
+  let _, node = M.max_binding graph in
+  match node.block.name with
+  | "Exit" -> Some node
+  | _ -> None
 
 let get_nodes (graph : t) : Node.t list =
   M.bindings graph
@@ -148,14 +149,11 @@ let dfs_reverse_postorder (graph : t) =
   let open Node in
   let visited = Hashtbl.create 10 in
   let order = ref [] in
-  let exit = get_exit_node graph in
   let rec visit node =
     Hashtbl.add visited node true;
-    if Basic_block.compare node.block exit.block <> 0 then (
-      NodeSet.iter (fun s ->
-          if not (Hashtbl.mem visited s) then visit s
-        ) node.succ
-    );
+    NodeSet.iter (fun s ->
+        if not (Hashtbl.mem visited s) then visit s
+      ) node.succ;
     order := node :: !order;
   in
   visit (get_entry_node graph);
@@ -230,20 +228,20 @@ let simplify (graph : t) : t =
     | None -> ()
   in
 
-  let is_empty { Basic_block.stmts; _ } =
-    List.length stmts = 2 &&
-    match !(List.hd stmts), !(List.(hd (tl stmts))) with
-    | Label (_, None), Jump (_, None) -> true
-    | _ -> false
-  in
-
-  let is_simple { Basic_block.stmts; _ } =
+  let is_simple { Node.block = { stmts; _ }; _ } =
     List.length stmts = 2 &&
     match !(List.hd stmts), !(List.(hd (tl stmts))) with
     | Label (_, Some []), Jump (_, None)
     | Label (_, None), Jump (_, None)
     | Label (_, None), Return (Some (Const _))
     | Label (_, None), Return None -> true
+    | _ -> false
+  in
+
+  let can_skip { Node.block = { stmts; _ }; _ } =
+    List.length stmts = 2 &&
+    match !(List.hd stmts), !(List.(hd (tl stmts))) with
+    | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
     | _ -> false
   in
 
@@ -260,10 +258,10 @@ let simplify (graph : t) : t =
 
   (* Guard against invalidating def-use information *)
   let can_combine (node : Node.t) =
-    is_simple node.block && (
+    is_simple node && (
       assert (NodeSet.cardinal node.succ = 1);
       let succ = NodeSet.choose node.succ in
-      is_simple succ.block
+      succ != node && is_simple succ
     )
   in
 
@@ -282,7 +280,7 @@ let simplify (graph : t) : t =
 
   iter (fun node ->
       simplify_branch node;
-      if is_empty node.block then skip node
+      if can_skip node then skip node
     ) graph;
 
   remove_unreachable_nodes graph
@@ -350,8 +348,11 @@ let construct (basic_blocks : Basic_block.t list) : t =
         let targets = List.(assoc l1 labels, assoc l2 labels) in
         node number => node (fst targets);
         node number => node (snd targets)
-      | Some { contents = Return _ } ->
-        node number => exit
+      | Some { contents = Return _ } -> (
+          match exit with
+          | Some exit -> node number => exit
+          | _ -> assert false
+        )
       | _ ->
         assert (name = "Entry" || name = "Exit")
     ) graph;

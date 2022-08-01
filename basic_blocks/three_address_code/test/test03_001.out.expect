@@ -1,0 +1,8 @@
+test03(x):
+    i := 1
+L1:
+    if i < 10 goto L2 else goto L3
+L2:
+    x := 2 * i
+    goto L1
+L3:

@@ -1,0 +1,19 @@
+.text
+.globl test03
+test03:
+	pushq %rbp
+	movq %rsp, %rbp
+.Lbb1:
+	jmp .Lbb1
+/* end function test03 */
+
+.text
+.globl test03
+test03:
+	pushq %rbp
+	movq %rsp, %rbp
+.Lbb3:
+	jmp .Lbb3
+/* end function test03 */
+
+.section .note.GNU-stack,"",@progbits

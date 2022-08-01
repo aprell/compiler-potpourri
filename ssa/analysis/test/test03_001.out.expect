@@ -1,0 +1,32 @@
+[B1]
+test03(x_0):
+    i_0 := 1
+    goto L1
+[B2]
+L1:
+    if i_0 < 10 goto L2 else goto L3
+[B3]
+L2:
+    x_1 := 2 * i_0
+    goto L1
+[B4]
+L3:
+    return
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_0      | 1      |
+| x_0      | Bottom |
+| x_1      | 2      |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_0      | 1      |
+| x_0      | Bottom |
+| x_1      | 2      |
++----------+--------+

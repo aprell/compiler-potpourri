@@ -1,0 +1,34 @@
+
+----------------------------------------
+define void @test03(i32 %x_0) {
+%test03:
+  %i_0 = add i32 1, 0
+  br label %L1
+
+%L1:
+  %0 = icmp slt i32 %i_0, 10
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %x_1 = mul i32 2, %i_0
+  br label %L1
+
+%L3:
+  ret void
+}
+=>
+define void @test03(i32 %x_0) {
+%test03:
+  br label %L2
+
+%L2:
+  br label %L2
+}
+ERROR: The source program doesn't reach a return instruction.
+Consider increasing the unroll factor if it has loops
+
+Summary:
+  0 correct transformations
+  0 incorrect transformations
+  1 failed-to-prove transformations
+  0 Alive2 errors

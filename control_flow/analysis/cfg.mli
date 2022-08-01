@@ -26,7 +26,7 @@ val get_node_opt : int -> t -> Node.t option
 
 val get_entry_node : t -> Node.t
 
-val get_exit_node : t -> Node.t
+val get_exit_node : t -> Node.t option
 
 val get_nodes : t -> Node.t list
 

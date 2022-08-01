@@ -1,0 +1,9 @@
+void test03(int)
+
+test03(x) {
+    i := 1
+    while i < 10 {
+        x := 2 * i
+        i := i + 0
+    }
+}

@@ -1,0 +1,12 @@
+digraph CFG {
+    B1 [shape=record label="{B1|test03(x):\li := 1\lgoto L1\l}"];
+    B2 [shape=record label="{B2|L1:\lif i \< 10 goto L2 else goto L3\l}"];
+    B3 [shape=record label="{B3|L2:\lx := 2 * i\lgoto L1\l}"];
+    B4 [shape=record label="{B4|L3:\lreturn\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B2 -> B3;
+    B2 -> B4;
+    B3 -> B2;
+    B4 -> Exit;
+}
