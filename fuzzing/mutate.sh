@@ -20,13 +20,12 @@ i="${r%-*}"
 n="${r#*-}"
 mutations=()
 
-#src="$(basename "$1")"
 src="$1"
-name=${src%.*}
-ext=${src##*.}
+ext="${src##*.}"
+name="corpus/$(basename -s ".$ext" "$src")"
 
-while [ $i -le "$n" ]; do
-    tgt="corpus/$(basename "$name")_$(printf "%03d" $i).${ext}"
+while [ "$i" -le "$n" ]; do
+    tgt="${name}_$(printf "%03d" "$i").${ext}"
     radamsa "$src" -o "$tgt"
     if dune exec ./parse.exe "$tgt" 2> /dev/null; then
         mutations+=("$tgt")
