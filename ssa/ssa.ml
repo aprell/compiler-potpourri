@@ -231,6 +231,11 @@ let minimize_phi_functions graph =
                 let x' = Vars.find_first (( <> ) x) xs in
                 propagate x x';
                 loop stmts
+              ) else if Vars.cardinal xs = 1 then (
+                (* Drop x := PHI(x, x) *)
+                assert (Vars.mem x xs);
+                Def_use_chain.remove_def x;
+                loop stmts
               ) else (
                 (* Keep this phi-function *)
                 stmt :: loop stmts
