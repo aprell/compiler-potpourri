@@ -27,6 +27,8 @@ end = struct
     { block; pred = NodeSet.empty; succ = NodeSet.empty;
       doms = NodeSet.empty; idom = None; }
 
+  let destruct { block; _ } = block
+
   let equal (n : t) (m : t) : bool =
     Basic_block.compare n.block m.block = 0 &&
     NodeSet.equal n.pred m.pred &&
@@ -36,17 +38,17 @@ end = struct
 
   (* Add an edge from node a to node b *)
   let ( => ) (a : t) (b : t) =
-    a.block.succ <- List.sort Basic_block.compare (b.block :: a.block.succ);
-    b.block.pred <- List.sort Basic_block.compare (a.block :: b.block.pred);
     a.succ <- NodeSet.add b a.succ;
-    b.pred <- NodeSet.add a b.pred
+    b.pred <- NodeSet.add a b.pred;
+    a.block.succ <- NodeSet.elements a.succ |> List.map destruct;
+    b.block.pred <- NodeSet.elements b.pred |> List.map destruct
 
   (* Remove the edge between node a and node b *)
   let ( =|> ) (a : t) (b : t) =
-    a.block.succ <- List.filter (fun succ -> Basic_block.compare succ b.block <> 0) a.block.succ;
-    b.block.pred <- List.filter (fun pred -> Basic_block.compare pred a.block <> 0) b.block.pred;
     a.succ <- NodeSet.remove b a.succ;
-    b.pred <- NodeSet.remove a b.pred
+    b.pred <- NodeSet.remove a b.pred;
+    a.block.succ <- NodeSet.elements a.succ |> List.map destruct;
+    b.block.pred <- NodeSet.elements b.pred |> List.map destruct
 
   let combine (n : t) (m : t) : t =
     let block = Basic_block.combine n.block m.block in

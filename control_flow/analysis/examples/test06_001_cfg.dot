@@ -1,0 +1,14 @@
+digraph CFG {
+    B1 [shape=record label="{B1|test06(p):\lx := 1\lx := 1\lx := 1\lgoto L3\l}"];
+    B2 [shape=record label="{B2|L3:\lif p \> 10 goto L4 else goto L5\l}"];
+    B3 [shape=record label="{B3|L4:\lif x != 1 goto L2 else goto L2\l}"];
+    B5 [shape=record label="{B5|L2:\lx := 2\lgoto L3\l}"];
+    B6 [shape=record label="{B6|L5:\lreturn x\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B2 -> B3;
+    B2 -> B6;
+    B3 -> B5;
+    B5 -> B2;
+    B6 -> Exit;
+}

@@ -168,6 +168,7 @@ let visit_stmt stmt block worklist =
       let then_, else_ = match block.succ with
         | [b1; b2] when entry_label b1 = l1 && entry_label b2 = l2 -> b1, b2
         | [b1; b2] when entry_label b1 = l2 && entry_label b2 = l1 -> b2, b1
+        | [b] when l1 = l2 -> b, b
         | _ -> assert false
       in
       let v = match e with
