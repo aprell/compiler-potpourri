@@ -1,9 +1,0 @@
-void test2(int)
-
-test03(x) {
-    i := 0
-    while i < 10 {
-        x := 2 * i
-        i := i + 1
-    }
-}

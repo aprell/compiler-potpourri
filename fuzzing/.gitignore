@@ -23,4 +23,5 @@ setup.log
 # dune auto-generates .merlin file
 .merlin
 
+corpus
 *.fuzz.out
