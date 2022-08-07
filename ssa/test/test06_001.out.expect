@@ -1,8 +1,6 @@
 [B1]
 test06(p):
     x := 1
-    x := 1
-    x := 1
     goto L3
 [B2]
 L3:
@@ -22,8 +20,6 @@ L5:
 
 [B1]
 test06(p):
-    x := 1
-    x := 1
     x := 1
     goto L3(p, x)
 [B2]
@@ -45,116 +41,111 @@ L5(p, x):
 [B1]
 test06(p_0):
     x_0 := 1
-    x_1 := 1
-    x_2 := 1
-    goto L3(p_0, x_2)
+    goto L3(p_0, x_0)
 [B2]
-L3(p_1, x_3):
-    if p_1 > 10 goto L4(p_1, x_3) else goto L5(p_1, x_3)
+L3(p_1, x_1):
+    if p_1 > 10 goto L4(p_1, x_1) else goto L5(p_1, x_1)
 [B3]
-L4(p_2, x_4):
-    if x_4 != 1 goto L2(p_2, x_4) else goto L2(p_2, x_4)
+L4(p_2, x_2):
+    if x_2 != 1 goto L2(p_2, x_2) else goto L2(p_2, x_2)
 [B5]
-L2(p_3, x_5):
-    x_6 := 2
-    goto L3(p_3, x_6)
+L2(p_3, x_3):
+    x_4 := 2
+    goto L3(p_3, x_4)
 [B6]
-L5(p_4, x_7):
-    return x_7
+L5(p_4, x_5):
+    return x_5
 
 --------------------------------------------------------------------------------
 
 [B1]
 test06(p_0):
     x_0 := 1
-    x_1 := 1
-    x_2 := 1
     goto L3
 [B2]
 L3:
     p_1 := PHI(p_0, p_3)
-    x_3 := PHI(x_2, x_6)
+    x_1 := PHI(x_0, x_4)
     if p_1 > 10 goto L4 else goto L5
 [B3]
 L4:
     p_2 := PHI(p_1)
-    x_4 := PHI(x_3)
-    if x_4 != 1 goto L2 else goto L2
+    x_2 := PHI(x_1)
+    if x_2 != 1 goto L2 else goto L2
 [B5]
 L2:
     p_3 := PHI(p_2)
-    x_5 := PHI(x_4)
-    x_6 := 2
+    x_3 := PHI(x_2)
+    x_4 := 2
     goto L3
 [B6]
 L5:
     p_4 := PHI(p_1)
-    x_7 := PHI(x_3)
-    return x_7
+    x_5 := PHI(x_1)
+    return x_5
 
 --------------------------------------------------------------------------------
 
 [B1]
 test06(p_0):
     x_0 := 1
-    x_1 := 1
-    x_2 := 1
     goto L3
 [B2]
 L3:
-    x_3 := PHI(x_2, x_6)
+    x_1 := PHI(x_0, x_4)
     if p_0 > 10 goto L4 else goto L5
 [B3]
 L4:
-    if x_3 != 1 goto L2 else goto L2
+    if x_1 != 1 goto L2 else goto L2
 [B5]
 L2:
-    x_6 := 2
+    x_4 := 2
     goto L3
 [B6]
 L5:
-    return x_3
+    return x_1
+
+--------------------------------------------------------------------------------
+
+TODO: List.concat_map
+[B1]
+test06(p_0):
+    x_0 := 1
+    goto L3
+[B2]
+L3:
+    x_1 := PHI(x_0, x_4)
+    if p_0 > 10 goto L4 else goto L5
+[B3]
+L4:
+    if x_1 != 1 goto L2 else goto L2
+[B5]
+L2:
+    x_4 := 2
+    goto L3
+[B6]
+L5:
+    return x_1
 
 --------------------------------------------------------------------------------
 
 [B1]
 test06(p_0):
-    x_2 := 1
+    x_0 := 1
+    x := x_0
     goto L3
 [B2]
 L3:
-    x_3 := PHI(x_2, x_6)
+    x_1 := x
     if p_0 > 10 goto L4 else goto L5
 [B3]
 L4:
-    if x_3 != 1 goto L2 else goto L2
+    if x_1 != 1 goto L2 else goto L2
 [B5]
 L2:
-    x_6 := 2
+    x_4 := 2
+    x := x_4
     goto L3
 [B6]
 L5:
-    return x_3
-
---------------------------------------------------------------------------------
-
-[B1]
-test06(p_0):
-    x_2 := 1
-    x := x_2
-    goto L3
-[B2]
-L3:
-    x_3 := x
-    if p_0 > 10 goto L4 else goto L5
-[B3]
-L4:
-    if x_3 != 1 goto L2 else goto L2
-[B5]
-L2:
-    x_6 := 2
-    x := x_6
-    goto L3
-[B6]
-L5:
-    return x_3
+    return x_1

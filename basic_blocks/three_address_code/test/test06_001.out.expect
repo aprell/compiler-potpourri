@@ -1,7 +1,5 @@
 test06(p):
     x := 1
-    x := 1
-    x := 1
 L3:
     if p > 10 goto L4 else goto L5
 L4:
