@@ -1,0 +1,10 @@
+int test06(int)
+
+test06(p) {
+    x := 2
+    while p > 10 {
+        if x != 1 {}
+        x := 2
+    }
+    return x
+}

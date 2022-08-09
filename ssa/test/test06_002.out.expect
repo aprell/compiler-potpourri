@@ -1,0 +1,130 @@
+[B1]
+test06(p):
+    x := 2
+    goto L3
+[B2]
+L3:
+    if p > 10 goto L4 else goto L5
+[B3]
+L4:
+    if x != 1 goto L2 else goto L2
+[B5]
+L2:
+    x := 2
+    goto L3
+[B6]
+L5:
+    return x
+
+--------------------------------------------------------------------------------
+
+[B1]
+test06(p):
+    x := 2
+    goto L3(p, x)
+[B2]
+L3(p, x):
+    if p > 10 goto L4(p, x) else goto L5(p, x)
+[B3]
+L4(p, x):
+    if x != 1 goto L2(p, x) else goto L2(p, x)
+[B5]
+L2(p, x):
+    x := 2
+    goto L3(p, x)
+[B6]
+L5(p, x):
+    return x
+
+--------------------------------------------------------------------------------
+
+[B1]
+test06(p_0):
+    x_0 := 2
+    goto L3(p_0, x_0)
+[B2]
+L3(p_1, x_1):
+    if p_1 > 10 goto L4(p_1, x_1) else goto L5(p_1, x_1)
+[B3]
+L4(p_2, x_2):
+    if x_2 != 1 goto L2(p_2, x_2) else goto L2(p_2, x_2)
+[B5]
+L2(p_3, x_3):
+    x_4 := 2
+    goto L3(p_3, x_4)
+[B6]
+L5(p_4, x_5):
+    return x_5
+
+--------------------------------------------------------------------------------
+
+[B1]
+test06(p_0):
+    x_0 := 2
+    goto L3
+[B2]
+L3:
+    p_1 := PHI(p_0, p_3)
+    x_1 := PHI(x_0, x_4)
+    if p_1 > 10 goto L4 else goto L5
+[B3]
+L4:
+    p_2 := PHI(p_1)
+    x_2 := PHI(x_1)
+    if x_2 != 1 goto L2 else goto L2
+[B5]
+L2:
+    p_3 := PHI(p_2)
+    x_3 := PHI(x_2)
+    x_4 := 2
+    goto L3
+[B6]
+L5:
+    p_4 := PHI(p_1)
+    x_5 := PHI(x_1)
+    return x_5
+
+--------------------------------------------------------------------------------
+
+[B1]
+test06(p_0):
+    x_0 := 2
+    goto L3
+[B2]
+L3:
+    x_1 := PHI(x_0, x_4)
+    if p_0 > 10 goto L4 else goto L5
+[B3]
+L4:
+    if x_1 != 1 goto L2 else goto L2
+[B5]
+L2:
+    x_4 := 2
+    goto L3
+[B6]
+L5:
+    return x_1
+
+--------------------------------------------------------------------------------
+
+[B1]
+test06(p_0):
+    goto L3
+[B2]
+L3:
+    if p_0 > 10 goto L3 else goto L5
+[B6]
+L5:
+    return 2
+
+--------------------------------------------------------------------------------
+
+[B1]
+test06(p_0):
+    goto L3
+[B2]
+L3:
+    if p_0 > 10 goto L3 else goto L5
+[B6]
+L5:
+    return 2

@@ -221,10 +221,12 @@ let simplify (graph : t) : t =
         match !stmt with
         | Cond (Const 0, then_, else_) ->
           stmt := Jump else_;
-          remove_branch node ~label:then_
+          if then_ <> else_ then
+            remove_branch node ~label:then_
         | Cond (Const 1, then_, else_) ->
           stmt := Jump then_;
-          remove_branch node ~label:else_
+          if else_ <> then_ then
+            remove_branch node ~label:else_
         | _ -> ()
       )
     | None -> ()
