@@ -1,0 +1,29 @@
+digraph CFG {
+    B1 [shape=record label="{B1|test06(p):\lx := 2\lgoto L3\l}"];
+    B2 [shape=record label="{B2|L3:\lif p \> 10 goto L4 else goto L5\l}"];
+    B3 [shape=record label="{B3|L4:\lif x != 1 goto L1 else goto L3\l}"];
+    B4 [shape=record label="{B4|L1:\lx := 2\lgoto L3\l}"];
+    B6 [shape=record label="{B6|L5:\lreturn x\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B2 -> B3;
+    B2 -> B6;
+    B3 -> B2;
+    B3 -> B4;
+    B4 -> B2;
+    B6 -> Exit;
+}
+
+graph DominatorTree {
+    Entry -- B1;
+    B1 -- B2;
+    B2 -- B3;
+    B2 -- B6;
+    B3 -- B4;
+    B6 -- Exit;
+}
+
+graph LoopNestingForest {
+    B2 -- B3;
+    B2 -- B4;
+}

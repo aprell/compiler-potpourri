@@ -1,4 +1,5 @@
 open Three_address_code__IR
+open Three_address_code__Utils
 open Control_flow
 
 let remove_def x ssa_graph =
@@ -84,6 +85,7 @@ let eliminate_dead_code ?(dump = false) ssa_graph =
     Ssa.Graph.find_first (fun ((_, def), uses) ->
         match !(!def) with
         | Label _ -> false
+        | Phi _ -> List.map (fst >> snd) uses = [def]
         | _ -> uses = []
       ) ssa_graph
   ) with
