@@ -19,9 +19,9 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [Engineering a Compiler](https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-088478-0)
 - [Modern Compiler Implementation in ML](https://www.cs.princeton.edu/~appel/modern/ml)
 - [Compilers: Principles, Techniques, and Tools](https://www.pearson.com/us/higher-education/program/Aho-Compilers-Principles-Techniques-and-Tools-2nd-Edition/PGM167067.html)
-- [High-Performance Compilers for Parallel Computing](https://www.pearson.com/us/higher-education/program/Wolfe-High-Performance-Compilers-for-Parallel-Computing/PGM186908.html)
+- [High-Performance Compilers for Parallel Computing](https://dl.acm.org/doi/10.5555/572937)
 - [Optimizing Compilers for Modern Architectures](https://www.elsevier.com/books/optimizing-compilers-for-modern-architectures/allen/978-0-08-051324-9)
-- [SSA-based Compiler Design](http://ssabook.gforge.inria.fr/latest/book.pdf)
+- [SSA-based Compiler Design](https://link.springer.com/book/9783030805142)
 
 ### Papers
 - [Compiler Transformations for High-Performance Computing](http://dl.acm.org/citation.cfm?id=197406)
