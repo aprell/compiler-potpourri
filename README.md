@@ -45,6 +45,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - A New Backend for Cranelift: [Part 1](https://cfallin.org/blog/2020/09/18/cranelift-isel-1), [Part 2](https://cfallin.org/blog/2021/01/22/cranelift-isel-2), [Part 3](https://cfallin.org/blog/2021/03/15/cranelift-isel-3)
 - [Implementing a Toy Optimizer](https://www.pypy.org/posts/2022/07/toy-optimizer.html)
 - [Search-based Compiler Code Generation](https://jamey.thesharps.us/2017/06/19/search-based-compiler-code-generation)
+- [E-Graphs and Equality Saturation](https://docs.rs/egg/0.9.0/egg/tutorials/_01_background/index.html)
 - [Snapshot Testing for Compilers and Compiler-Like Things](https://www.cs.cornell.edu/~asampson/blog/turnt.html)
 
 ### Courses
