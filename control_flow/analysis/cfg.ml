@@ -202,6 +202,9 @@ let retarget_branch node ~label succ =
         | Jump l when l = label ->
           stmt := Jump label';
           remove_branch node ~label
+        | Cond (e, l1, l2) when l1 = label && l2 = label ->
+          stmt := Cond (e, label', label');
+          remove_branch node ~label
         | Cond (e, l1, l2) when l1 = label ->
           stmt := Cond (e, label', l2);
           remove_branch node ~label
@@ -257,7 +260,7 @@ let simplify (graph : t) : t =
     NodeSet.iter (fun pred ->
         retarget_branch pred succ
           ~label:(Basic_block.entry_label node.block)
-      ) node.pred;
+      ) node.pred
   in
 
   (* Guard against invalidating def-use information *)
