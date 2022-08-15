@@ -141,34 +141,29 @@ let lower = function
     @ [Label l3]
   | _ -> failwith "lower: unsupported statement"
 
-(* TODO: Add missing cases *)
 let constant_fold = function
+  | (* x + 0 = x *) Binop (Plus, Val x, Const 0)
+  | (* 0 + x = x *) Binop (Plus, Const 0, Val x)
+  | (* x - 0 = x *) Binop (Minus, Val x, Const 0)
+  | (* x * 1 = x *) Binop (Mul, Val x, Const 1)
+  | (* 1 * x = x *) Binop (Mul, Const 1, Val x)
+  | (* x / 1 = x *) Binop (Div, Val x, Const 1) -> Val x
+  | (* x * 0 = 0 *) Binop (Mul, Val _, Const 0)
+  | (* 0 * x = 0 *) Binop (Mul, Const 0, Val _) -> Const 0
+  | (* x / x = 1 *) Binop (Div, Val x, Val y) when x = y -> Const 1
+
   | Binop (Plus, Const n, Const m) -> Const (n + m)
   | Binop (Minus, Const n, Const m) -> Const (n - m)
   | Binop (Mul, Const n, Const m) -> Const (n * m)
-  | Binop (Div, Const n, Const m) ->
-    if m <> 0 then Const (n / m) else failwith "Division by zero"
-  | Binop (Plus, Val x, Const 0)
-  | Binop (Plus, Const 0, Val x)
-  | Binop (Minus, Val x, Const 0)
-  | Binop (Mul, Val x, Const 1)
-  | Binop (Mul, Const 1, Val x)
-  | Binop (Div, Val x, Const 1) -> Val x
-  | Binop (Div, Val x, Val y) when x = y -> Const 1
-  | Binop (Mul, Val _, Const 0)
-  | Binop (Mul, Const 0, Val _) -> Const 0
-  | Relop (EQ, Const n, Const m) when n = m -> Const 1
-  | Relop (EQ, Const n, Const m) when n <> m -> Const 0
-  | Relop (NE, Const n, Const m) when n = m -> Const 0
-  | Relop (NE, Const n, Const m) when n <> m -> Const 1
-  | Relop (LT, Const n, Const m) when n < m -> Const 1
-  | Relop (LT, Const n, Const m) when n >= m -> Const 0
-  | Relop (GT, Const n, Const m) when n > m -> Const 1
-  | Relop (GT, Const n, Const m) when n <= m -> Const 0
-  | Relop (LE, Const n, Const m) when n <= m -> Const 1
-  | Relop (LE, Const n, Const m) when n > m -> Const 0
-  | Relop (GE, Const n, Const m) when n >= m -> Const 1
-  | Relop (GE, Const n, Const m) when n < m -> Const 0
+  | Binop (Div, Const n, Const m) when m <> 0 -> Const (n / m)
+  | Binop (Div, _, Const 0) -> failwith "Division by zero"
+
+  | Relop (EQ, Const n, Const m) -> Const (if n = m then 1 else 0)
+  | Relop (NE, Const n, Const m) -> Const (if n = m then 0 else 1)
+  | Relop (LT, Const n, Const m) -> Const (if n < m then 1 else 0)
+  | Relop (GT, Const n, Const m) -> Const (if n > m then 1 else 0)
+  | Relop (LE, Const n, Const m) -> Const (if n > m then 0 else 1)
+  | Relop (GE, Const n, Const m) -> Const (if n < m then 0 else 1)
   | e -> e
 
 module Vars = Set.Make (struct
