@@ -103,7 +103,9 @@ $ for x in examples/*.hir; do ./fuzz.sh $x; done
 [FAIL] corpus/test01_010.hir
 ```
 
-Oh well, here we go. Time to fix some bugs...
+Oh well, here we go. Time to fix some bugs... Check the [list of
+issues](https://github.com/aprell/compiler-potpourri/issues?q=label%3Afuzzing)
+discovered so far.
 
 <!-- References -->
 
