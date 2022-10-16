@@ -1,6 +1,6 @@
 # Prerequisites
 *.d
-depend
+depend.mk
 
 # Object files
 *.o

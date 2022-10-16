@@ -7,6 +7,7 @@ TEST_DIRS := \
   data_flow/analysis \
   llvm \
   loop_transformations \
+  openmp \
   qbe \
   scheduling \
   ssa
