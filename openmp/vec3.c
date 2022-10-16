@@ -25,7 +25,7 @@ void main_omp_fn_0(void *omp_data)
 
     if (omp_split_static(&from, &to)) {
         for (int i = from; i < to; i++) {
-            printf("%3d: T%d\n", i, omp_get_thread_num());
+            printf("Thread %d: %3d\n", omp_get_thread_num(), i);
             C[i] = A[i] + B[i];
         }
     }
@@ -68,3 +68,16 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+// RUN: ./vec3 10 | FileCheck %s
+//
+// CHECK-DAG: Thread 0:   0
+// CHECK-DAG: Thread 0:   1
+// CHECK-DAG: Thread 0:   2
+// CHECK-DAG: Thread 1:   3
+// CHECK-DAG: Thread 1:   4
+// CHECK-DAG: Thread 1:   5
+// CHECK-DAG: Thread 2:   6
+// CHECK-DAG: Thread 2:   7
+// CHECK-DAG: Thread 3:   8
+// CHECK-DAG: Thread 3:   9

@@ -25,7 +25,7 @@ void main_omp_fn_0(void *omp_data)
 
     while (omp_split_guided(&from, &to)) {
         for (int i = from; i < to; i++) {
-            printf("%3d: T%d\n", i, omp_get_thread_num());
+            printf("Thread %d: %3d\n", omp_get_thread_num(), i);
             C[i] = A[i] + B[i];
         }
     }

@@ -78,3 +78,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+// RUN: ./fib3 20 | FileCheck %s
+//
+// CHECK: fib(20) = 6765
