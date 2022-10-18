@@ -21,7 +21,6 @@ void main_omp_fn_0(void *omp_data)
     int from, to;
 
     omp_work_share_init(0, n, 1, 0);
-    //omp_barrier();
 
     while (omp_split_guided(&from, &to)) {
         for (int i = from; i < to; i++) {
