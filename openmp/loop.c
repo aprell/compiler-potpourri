@@ -12,8 +12,9 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-struct loop *loop_init(int from, int to, int step)
+struct loop *loop_init(int from, int to, int step, int chunk_size)
 {
+    // We assume a canonical form
     assert(from < to && step == 1);
 
     struct loop *loop = malloc(sizeof(struct loop));
@@ -26,6 +27,7 @@ struct loop *loop_init(int from, int to, int step)
     loop->from = from;
     loop->to = to;
     loop->step = step;
+    loop->chunk_size = chunk_size;
 
     return loop;
 }
@@ -52,19 +54,41 @@ bool loop_split_static(struct loop *loop, int *from, int *to)
 {
     assert(loop != NULL);
 
+    static __thread int n = 0;
     int thread_num = omp_get_thread_num();
     int num_threads = omp_get_num_threads();
     int chunk_size, remaining;
 
-    LOCKED(loop) {
-        chunk_size = loop_num_iterations(loop) / num_threads;
-        remaining = loop_num_iterations(loop) % num_threads;
+    if (loop->chunk_size > 0) {
+        // Block-cyclic distribution of iterations
+        chunk_size = loop->chunk_size;
+        *from = (thread_num + n * num_threads) * chunk_size;
+        *to = min(*from + chunk_size, loop->to);
+
+        if (*from < loop->to) {
+            n++;
+            return true;
+        } else {
+            // Done
+            n = 0;
+            return false;
+        }
+    } else {
+        // Block distribution of iterations
+        if (n == 0) {
+            // First (and only) trip
+            chunk_size = loop_num_iterations(loop) / num_threads;
+            remaining = loop_num_iterations(loop) % num_threads;
+            *from = thread_num * chunk_size + min(thread_num, remaining);
+            *to = *from + chunk_size + (thread_num < remaining);
+            n = 1;
+            return true;
+        } else {
+            // Done
+            n = 0;
+            return false;
+        }
     }
-
-    *from = thread_num * chunk_size + min(thread_num, remaining);
-    *to = *from + chunk_size + (thread_num < remaining);
-
-    return true;
 }
 
 bool loop_split_dynamic(struct loop *loop, int *from, int *to)

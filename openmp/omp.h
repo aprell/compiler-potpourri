@@ -9,7 +9,7 @@ void omp_barrier(void);
 int omp_get_thread_num(void);
 int omp_get_num_threads(void);
 
-bool omp_work_share_init(int from, int to, int step);
+bool omp_work_share_init(int from, int to, int step, int chunk_size);
 bool omp_work_share_destroy(void);
 
 bool omp_split_static(int *from, int *to);

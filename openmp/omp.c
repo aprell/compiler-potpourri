@@ -103,13 +103,13 @@ int omp_get_num_threads(void)
 #define LOCKED(team) \
     for (int i = (pthread_mutex_lock(&(team)->lock), 0); !i; pthread_mutex_unlock(&(team)->lock), i++)
 
-bool omp_work_share_init(int from, int to, int step)
+bool omp_work_share_init(int from, int to, int step, int chunk_size)
 {
     bool ret;
 
     LOCKED(&team) {
         if (!team.work_share) {
-            team.work_share = loop_init(from, to, step);
+            team.work_share = loop_init(from, to, step, chunk_size);
             ret = true;
         } else {
             ret = false;

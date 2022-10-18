@@ -8,9 +8,10 @@ struct loop {
     pthread_mutex_t lock;
     // [from, to) by step
     int from, to, step;
+    int chunk_size;
 };
 
-struct loop *loop_init(int from, int to, int step);
+struct loop *loop_init(int from, int to, int step, int chunk_size);
 //@requires from < to && step == 1
 
 void loop_destroy(struct loop *loop);

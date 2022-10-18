@@ -20,7 +20,7 @@ void main_omp_fn_0(void *omp_data)
     int n = ((struct omp_data *)omp_data)->n;
     int from, to;
 
-    omp_work_share_init(0, n, 1);
+    omp_work_share_init(0, n, 1, 0);
     //omp_barrier();
 
     while (omp_split_guided(&from, &to)) {

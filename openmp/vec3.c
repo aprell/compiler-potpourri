@@ -20,10 +20,10 @@ void main_omp_fn_0(void *omp_data)
     int n = ((struct omp_data *)omp_data)->n;
     int from, to;
 
-    omp_work_share_init(0, n, 1);
+    omp_work_share_init(0, n, 1, 2);
     //omp_barrier();
 
-    if (omp_split_static(&from, &to)) {
+    while (omp_split_static(&from, &to)) {
         for (int i = from; i < to; i++) {
             printf("Thread %d: %3d\n", omp_get_thread_num(), i);
             C[i] = A[i] + B[i];
@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
 //
 // CHECK-DAG: Thread 0:   0
 // CHECK-DAG: Thread 0:   1
-// CHECK-DAG: Thread 0:   2
+// CHECK-DAG: Thread 1:   2
 // CHECK-DAG: Thread 1:   3
-// CHECK-DAG: Thread 1:   4
-// CHECK-DAG: Thread 1:   5
-// CHECK-DAG: Thread 2:   6
-// CHECK-DAG: Thread 2:   7
-// CHECK-DAG: Thread 3:   8
-// CHECK-DAG: Thread 3:   9
+// CHECK-DAG: Thread 2:   4
+// CHECK-DAG: Thread 2:   5
+// CHECK-DAG: Thread 3:   6
+// CHECK-DAG: Thread 3:   7
+// CHECK-DAG: Thread 0:   8
+// CHECK-DAG: Thread 0:   9
