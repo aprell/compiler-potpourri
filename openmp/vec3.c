@@ -21,7 +21,7 @@ void main_omp_fn_0(void *omp_data)
     int from, to;
 
     // #pragma omp for schedule(static, 2)
-    //                           v------´
+    //                           v-----´
     omp_work_share_init(0, n, 1, 2);
 
     while (omp_split_static(&from, &to)) {

@@ -99,8 +99,10 @@ bool loop_split_dynamic(struct loop *loop, int *from, int *to)
 
     LOCKED(loop) {
         if (!loop_empty(loop)) {
-            // Fetch the next iteration
-            *from = loop->from++;
+            // Fetch the next chunk_size iterations
+            int chunk_size = min(max(loop->chunk_size, 1), loop_num_iterations(loop));
+            *from = loop->from;
+            loop->from += chunk_size;
             *to = loop->from;
             ret = true;
         } else {
@@ -121,6 +123,7 @@ bool loop_split_guided(struct loop *loop, int *from, int *to)
         if (!loop_empty(loop)) {
             // Fetch the next chunk of iterations
             int chunk_size = max(loop_num_iterations(loop) / omp_get_num_threads(), 1);
+            chunk_size = min(max(loop->chunk_size, chunk_size), loop_num_iterations(loop));
             *from = loop->from;
             loop->from += chunk_size;
             *to = loop->from;

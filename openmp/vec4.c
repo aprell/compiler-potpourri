@@ -20,7 +20,9 @@ void main_omp_fn_0(void *omp_data)
     int n = ((struct omp_data *)omp_data)->n;
     int from, to;
 
-    omp_work_share_init(0, n, 1, 0);
+    // #pragma omp for schedule(guided, 1)
+    //                           v-----´
+    omp_work_share_init(0, n, 1, 1);
 
     while (omp_split_guided(&from, &to)) {
         for (int i = from; i < to; i++) {
