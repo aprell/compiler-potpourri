@@ -2,34 +2,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int fib_(int n)
-{
+extern int fib(int n);
+extern int pow(int b, int e);
+extern int fastpow(int b, int e);
+extern int search(int *numbers, int lo, int hi, int x);
+extern void sort(int *numbers, int n);
+
+int fib_(int n) {
     return n > 1 ? fib_(n - 1) + fib_(n - 2) : n;
 }
 
-extern int fib(int);
-
-void test_fib(void)
-{
+void test_fib(void) {
     for (int i = 0; i <= 30; i++) {
         assert(fib(i) == fib_(i));
     }
 }
 
-extern int pow(int b, int e);
-extern int fastpow(int b, int e);
-
-void test_pow(void)
-{
+void test_pow(void) {
     for (int i = 0; i <= 10; i++) {
         assert(pow(2, i) == fastpow(2, i));
     }
 }
 
-extern void sort(int *, int);
+void test_search(void) {
+    int numbers[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int len = sizeof(numbers) / sizeof(numbers[0]);
 
-void test_sort(void)
-{
+    for (int i = 1; i <= 10; i++) {
+        assert(search(numbers, 0, len, i) == i - 1);
+    }
+
+    assert(search(numbers, 0, len, 0) == -1);
+    assert(search(numbers, 0, len, 11) == -1);
+    assert(search(numbers, 2, len - 2, 1) == -1);
+    assert(search(numbers, 2, len - 2, 9) == -1);
+}
+
+void test_sort(void) {
     int numbers[] = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 9};
     int len = sizeof(numbers) / sizeof(numbers[0]);
 
@@ -40,10 +49,10 @@ void test_sort(void)
     }
 }
 
-int main(void)
-{
+int main(void) {
     test_fib();
     test_pow();
+    test_search();
     test_sort();
 
     return 0;

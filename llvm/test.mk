@@ -14,6 +14,6 @@ func.ll: _build/default/test_llvm.exe
 	dune exec ./$(<F) > $@
 
 clean:
-	rm -f a.out func.ll
+	$(RM) a.out func.ll
 
 .PHONY: test clean

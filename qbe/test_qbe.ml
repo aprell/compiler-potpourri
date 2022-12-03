@@ -5,6 +5,7 @@ let () =
     "examples/fib.hir";
     "examples/pow.hir";
     "examples/fastpow.hir";
+    "examples/search.hir";
     "examples/sort.hir";
     "examples/test01.hir";
     "examples/test02.hir";

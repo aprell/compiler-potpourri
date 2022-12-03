@@ -16,6 +16,6 @@ func.ssa: _build/default/test_qbe.exe
 	dune exec ./$(<F) > $@
 
 clean:
-	rm -f a.out func.s func.ssa
+	$(RM) a.out func.s func.ssa
 
 .PHONY: test clean
