@@ -1,0 +1,22 @@
+digraph CFG {
+    B1 [shape=record label="{B1|search(A, lo, hi, x):\lgoto L6\l}"];
+    B2 [shape=record label="{B2|L6:\l$2 := hi - lo\lif $2 \>= 1 goto L7 else goto L8\l}"];
+    B3 [shape=record label="{B3|L7:\lt0 := hi - lo\lt1 := t0 / 2\lt2 := lo + t1\l$1 := t2 * 4\lt3 := *(A + $1)\lif t3 == x goto L1 else goto L2\l}"];
+    B4 [shape=record label="{B4|L1:\lreturn t2\l}"];
+    B5 [shape=record label="{B5|L2:\lif t3 \< x goto L3 else goto L4\l}"];
+    B6 [shape=record label="{B6|L3:\llo := t2 + 1\lgoto L6\l}"];
+    B7 [shape=record label="{B7|L4:\lhi := t2\lgoto L6\l}"];
+    B9 [shape=record label="{B9|L8:\lreturn -1\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B2 -> B3;
+    B2 -> B9;
+    B3 -> B4;
+    B3 -> B5;
+    B4 -> Exit;
+    B5 -> B6;
+    B5 -> B7;
+    B6 -> B2;
+    B7 -> B2;
+    B9 -> Exit;
+}

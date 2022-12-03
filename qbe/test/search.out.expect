@@ -1,0 +1,89 @@
+.text
+.globl search
+search:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %edx, %eax
+	movl %eax, %edx
+.Lbb2:
+	movl %edx, %eax
+	subl %esi, %eax
+	cmpl $1, %eax
+	jl .Lbb8
+	movl %edx, %eax
+	subl %esi, %eax
+	movl $2, %r9d
+	movl %edx, %r8d
+	cltd
+	idivl %r9d
+	movl %r8d, %edx
+	movl %esi, %r8d
+	addl %eax, %esi
+	imull $4, %esi, %eax
+	movslq %eax, %rax
+	movl (%rdi, %rax, 1), %eax
+	cmpl %ecx, %eax
+	jz .Lbb7
+	cmpl %ecx, %eax
+	jl .Lbb6
+	movl %esi, %edx
+	movl %r8d, %esi
+	jmp .Lbb2
+.Lbb6:
+	addl $1, %esi
+	jmp .Lbb2
+.Lbb7:
+	movl %esi, %eax
+	jmp .Lbb9
+.Lbb8:
+	movl $-1, %eax
+.Lbb9:
+	leave
+	ret
+/* end function search */
+
+.text
+.globl search
+search:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %edx, %eax
+	movl %eax, %edx
+.Lbb12:
+	movl %edx, %eax
+	subl %esi, %eax
+	cmpl $1, %eax
+	jl .Lbb18
+	movl %edx, %eax
+	subl %esi, %eax
+	movl $2, %r9d
+	movl %edx, %r8d
+	cltd
+	idivl %r9d
+	movl %r8d, %edx
+	movl %esi, %r8d
+	addl %eax, %esi
+	imull $4, %esi, %eax
+	movslq %eax, %rax
+	movl (%rdi, %rax, 1), %eax
+	cmpl %ecx, %eax
+	jz .Lbb17
+	cmpl %ecx, %eax
+	jl .Lbb16
+	movl %esi, %edx
+	movl %r8d, %esi
+	jmp .Lbb12
+.Lbb16:
+	addl $1, %esi
+	jmp .Lbb12
+.Lbb17:
+	movl %esi, %eax
+	jmp .Lbb19
+.Lbb18:
+	movl $-1, %eax
+.Lbb19:
+	leave
+	ret
+/* end function search */
+
+.section .note.GNU-stack,"",@progbits

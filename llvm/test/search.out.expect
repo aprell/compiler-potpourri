@@ -1,0 +1,90 @@
+
+----------------------------------------
+define i32 @search(* %A_0, i32 %lo_0, i32 %hi_0, i32 %x_0) {
+%search:
+  br label %L6
+
+%L6:
+  %hi_1 = phi i32 [ %hi_0, %search ], [ %hi_1, %L3 ], [ %hi_7, %L4 ]
+  %lo_1 = phi i32 [ %lo_0, %search ], [ %lo_6, %L3 ], [ %lo_1, %L4 ]
+  %$2_0 = sub i32 %hi_1, %lo_1
+  %0 = icmp sge i32 %$2_0, 1
+  br i1 %0, label %L7, label %L8
+
+%L7:
+  %t0_0 = sub i32 %hi_1, %lo_1
+  %t1_0 = sdiv i32 %t0_0, 2
+  %t2_2 = add i32 %lo_1, %t1_0
+  %$1_0 = mul i32 %t2_2, 4
+  %1 = gep * %A_0, 1 x i32 %$1_0
+  %2 = bitcast * %1 to *
+  %t3_2 = load i32, * %2, align 4
+  %3 = icmp eq i32 %t3_2, %x_0
+  br i1 %3, label %L1, label %L2
+
+%L1:
+  ret i32 %t2_2
+
+%L2:
+  %4 = icmp slt i32 %t3_2, %x_0
+  br i1 %4, label %L3, label %L4
+
+%L3:
+  %lo_6 = add i32 %t2_2, 1
+  br label %L6
+
+%L4:
+  %hi_7 = add i32 %t2_2, 0
+  br label %L6
+
+%L8:
+  ret i32 4294967295
+}
+=>
+define i32 @search(* %A_0, i32 %lo_0, i32 %hi_0, i32 %x_0) {
+%search:
+  br label %L6
+
+%L6:
+  %hi_1 = phi i32 [ %hi_0, %search ], [ %hi_1, %L3 ], [ %hi_7, %L4 ]
+  %lo_1 = phi i32 [ %lo_0, %search ], [ %lo_6, %L3 ], [ %lo_1, %L4 ]
+  %$2_0 = sub i32 %hi_1, %lo_1
+  %0 = icmp sge i32 %$2_0, 1
+  br i1 %0, label %L7, label %L8
+
+%L7:
+  %t0_0 = sub i32 %hi_1, %lo_1
+  %t1_0 = sdiv i32 %t0_0, 2
+  %t2_2 = add i32 %lo_1, %t1_0
+  %$1_0 = mul i32 %t2_2, 4
+  %1 = gep * %A_0, 1 x i32 %$1_0
+  %2 = bitcast * %1 to *
+  %t3_2 = load i32, * %2, align 4
+  %3 = icmp eq i32 %t3_2, %x_0
+  br i1 %3, label %L1, label %L2
+
+%L1:
+  ret i32 %t2_2
+
+%L2:
+  %4 = icmp slt i32 %t3_2, %x_0
+  br i1 %4, label %L3, label %L4
+
+%L3:
+  %lo_6 = add i32 %t2_2, 1
+  br label %L6
+
+%L4:
+  %hi_7 = add i32 %t2_2, 0
+  br label %L6
+
+%L8:
+  ret i32 4294967295
+}
+Transformation seems to be correct! (syntactically equal)
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

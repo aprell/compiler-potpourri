@@ -1,0 +1,14 @@
+int search(int[], int, int, int)
+
+search(A, lo, hi, x) {
+    while hi - lo >= 1 {
+        t0 := hi - lo
+        t1 := t0 / 2
+        t2 := lo + t1
+        t3 := A[t2]
+        if t3 == x { return t2 }
+        if t3 < x { lo := t2 + 1 }
+        else { hi := t2 }
+    }
+    return -1
+}

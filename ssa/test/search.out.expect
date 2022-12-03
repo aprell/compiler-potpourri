@@ -1,0 +1,296 @@
+[B1]
+search(A, lo, hi, x):
+    goto L6
+[B2]
+L6:
+    $2 := hi - lo
+    if $2 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    t0 := hi - lo
+    t1 := t0 / 2
+    t2 := lo + t1
+    $1 := t2 * 4
+    t3 := *(A + $1)
+    if t3 == x goto L1 else goto L2
+[B4]
+L1:
+    return t2
+[B5]
+L2:
+    if t3 < x goto L3 else goto L4
+[B6]
+L3:
+    lo := t2 + 1
+    goto L6
+[B7]
+L4:
+    hi := t2
+    goto L6
+[B9]
+L8:
+    return -1
+
+--------------------------------------------------------------------------------
+
+[B1]
+search(A, lo, hi, x):
+    goto L6(A, hi, lo, t2, t3, x)
+[B2]
+L6(A, hi, lo, t2, t3, x):
+    $2 := hi - lo
+    if $2 >= 1 goto L7(A, hi, lo, t2, t3, x) else goto L8(A, hi, lo, t2, t3, x)
+[B3]
+L7(A, hi, lo, t2, t3, x):
+    t0 := hi - lo
+    t1 := t0 / 2
+    t2 := lo + t1
+    $1 := t2 * 4
+    t3 := *(A + $1)
+    if t3 == x goto L1(A, hi, lo, t2, t3, x) else goto L2(A, hi, lo, t2, t3, x)
+[B4]
+L1(A, hi, lo, t2, t3, x):
+    return t2
+[B5]
+L2(A, hi, lo, t2, t3, x):
+    if t3 < x goto L3(A, hi, lo, t2, t3, x) else goto L4(A, hi, lo, t2, t3, x)
+[B6]
+L3(A, hi, lo, t2, t3, x):
+    lo := t2 + 1
+    goto L6(A, hi, lo, t2, t3, x)
+[B7]
+L4(A, hi, lo, t2, t3, x):
+    hi := t2
+    goto L6(A, hi, lo, t2, t3, x)
+[B9]
+L8(A, hi, lo, t2, t3, x):
+    return -1
+
+--------------------------------------------------------------------------------
+
+[B1]
+search(A_0, lo_0, hi_0, x_0):
+    goto L6(A_0, hi_0, lo_0, t2_-1, t3_-1, x_0)
+[B2]
+L6(A_1, hi_1, lo_1, t2_0, t3_0, x_1):
+    $2_0 := hi_1 - lo_1
+    if $2_0 >= 1 goto L7(A_1, hi_1, lo_1, t2_0, t3_0, x_1) else goto L8(A_1, hi_1, lo_1, t2_0, t3_0, x_1)
+[B3]
+L7(A_2, hi_2, lo_2, t2_1, t3_1, x_2):
+    t0_0 := hi_2 - lo_2
+    t1_0 := t0_0 / 2
+    t2_2 := lo_2 + t1_0
+    $1_0 := t2_2 * 4
+    t3_2 := *(A_2 + $1_0)
+    if t3_2 == x_2 goto L1(A_2, hi_2, lo_2, t2_2, t3_2, x_2) else goto L2(A_2, hi_2, lo_2, t2_2, t3_2, x_2)
+[B4]
+L1(A_3, hi_3, lo_3, t2_3, t3_3, x_3):
+    return t2_3
+[B5]
+L2(A_4, hi_4, lo_4, t2_4, t3_4, x_4):
+    if t3_4 < x_4 goto L3(A_4, hi_4, lo_4, t2_4, t3_4, x_4) else goto L4(A_4, hi_4, lo_4, t2_4, t3_4, x_4)
+[B6]
+L3(A_5, hi_5, lo_5, t2_5, t3_5, x_5):
+    lo_6 := t2_5 + 1
+    goto L6(A_5, hi_5, lo_6, t2_5, t3_5, x_5)
+[B7]
+L4(A_6, hi_6, lo_7, t2_6, t3_6, x_6):
+    hi_7 := t2_6
+    goto L6(A_6, hi_7, lo_7, t2_6, t3_6, x_6)
+[B9]
+L8(A_7, hi_8, lo_8, t2_7, t3_7, x_7):
+    return -1
+
+--------------------------------------------------------------------------------
+
+[B1]
+search(A_0, lo_0, hi_0, x_0):
+    goto L6
+[B2]
+L6:
+    A_1 := PHI(A_0, A_5, A_6)
+    hi_1 := PHI(hi_0, hi_5, hi_7)
+    lo_1 := PHI(lo_0, lo_6, lo_7)
+    t2_0 := PHI(t2_-1, t2_5, t2_6)
+    t3_0 := PHI(t3_-1, t3_5, t3_6)
+    x_1 := PHI(x_0, x_5, x_6)
+    $2_0 := hi_1 - lo_1
+    if $2_0 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    A_2 := PHI(A_1)
+    hi_2 := PHI(hi_1)
+    lo_2 := PHI(lo_1)
+    t2_1 := PHI(t2_0)
+    t3_1 := PHI(t3_0)
+    x_2 := PHI(x_1)
+    t0_0 := hi_2 - lo_2
+    t1_0 := t0_0 / 2
+    t2_2 := lo_2 + t1_0
+    $1_0 := t2_2 * 4
+    t3_2 := *(A_2 + $1_0)
+    if t3_2 == x_2 goto L1 else goto L2
+[B4]
+L1:
+    A_3 := PHI(A_2)
+    hi_3 := PHI(hi_2)
+    lo_3 := PHI(lo_2)
+    t2_3 := PHI(t2_2)
+    t3_3 := PHI(t3_2)
+    x_3 := PHI(x_2)
+    return t2_3
+[B5]
+L2:
+    A_4 := PHI(A_2)
+    hi_4 := PHI(hi_2)
+    lo_4 := PHI(lo_2)
+    t2_4 := PHI(t2_2)
+    t3_4 := PHI(t3_2)
+    x_4 := PHI(x_2)
+    if t3_4 < x_4 goto L3 else goto L4
+[B6]
+L3:
+    A_5 := PHI(A_4)
+    hi_5 := PHI(hi_4)
+    lo_5 := PHI(lo_4)
+    t2_5 := PHI(t2_4)
+    t3_5 := PHI(t3_4)
+    x_5 := PHI(x_4)
+    lo_6 := t2_5 + 1
+    goto L6
+[B7]
+L4:
+    A_6 := PHI(A_4)
+    hi_6 := PHI(hi_4)
+    lo_7 := PHI(lo_4)
+    t2_6 := PHI(t2_4)
+    t3_6 := PHI(t3_4)
+    x_6 := PHI(x_4)
+    hi_7 := t2_6
+    goto L6
+[B9]
+L8:
+    A_7 := PHI(A_1)
+    hi_8 := PHI(hi_1)
+    lo_8 := PHI(lo_1)
+    t2_7 := PHI(t2_0)
+    t3_7 := PHI(t3_0)
+    x_7 := PHI(x_1)
+    return -1
+
+--------------------------------------------------------------------------------
+
+[B1]
+search(A_0, lo_0, hi_0, x_0):
+    goto L6
+[B2]
+L6:
+    hi_1 := PHI(hi_0, hi_1, hi_7)
+    lo_1 := PHI(lo_0, lo_6, lo_1)
+    $2_0 := hi_1 - lo_1
+    if $2_0 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    t0_0 := hi_1 - lo_1
+    t1_0 := t0_0 / 2
+    t2_2 := lo_1 + t1_0
+    $1_0 := t2_2 * 4
+    t3_2 := *(A_0 + $1_0)
+    if t3_2 == x_0 goto L1 else goto L2
+[B4]
+L1:
+    return t2_2
+[B5]
+L2:
+    if t3_2 < x_0 goto L3 else goto L4
+[B6]
+L3:
+    lo_6 := t2_2 + 1
+    goto L6
+[B7]
+L4:
+    hi_7 := t2_2
+    goto L6
+[B9]
+L8:
+    return -1
+
+--------------------------------------------------------------------------------
+
+[B1]
+search(A_0, lo_0, hi_0, x_0):
+    goto L6
+[B2]
+L6:
+    hi_1 := PHI(hi_0, hi_1, hi_7)
+    lo_1 := PHI(lo_0, lo_6, lo_1)
+    $2_0 := hi_1 - lo_1
+    if $2_0 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    t0_0 := hi_1 - lo_1
+    t1_0 := t0_0 / 2
+    t2_2 := lo_1 + t1_0
+    $1_0 := t2_2 * 4
+    t3_2 := *(A_0 + $1_0)
+    if t3_2 == x_0 goto L1 else goto L2
+[B4]
+L1:
+    return t2_2
+[B5]
+L2:
+    if t3_2 < x_0 goto L3 else goto L4
+[B6]
+L3:
+    lo_6 := t2_2 + 1
+    goto L6
+[B7]
+L4:
+    hi_7 := t2_2
+    goto L6
+[B9]
+L8:
+    return -1
+
+--------------------------------------------------------------------------------
+
+[B1]
+search(A_0, lo_0, hi_0, x_0):
+    hi := hi_0
+    lo := lo_0
+    goto L6
+[B2]
+L6:
+    hi_1 := hi
+    lo_1 := lo
+    $2_0 := hi_1 - lo_1
+    if $2_0 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    t0_0 := hi_1 - lo_1
+    t1_0 := t0_0 / 2
+    t2_2 := lo_1 + t1_0
+    $1_0 := t2_2 * 4
+    t3_2 := *(A_0 + $1_0)
+    if t3_2 == x_0 goto L1 else goto L2
+[B4]
+L1:
+    return t2_2
+[B5]
+L2:
+    if t3_2 < x_0 goto L3 else goto L4
+[B6]
+L3:
+    lo_6 := t2_2 + 1
+    hi := hi_1
+    lo := lo_6
+    goto L6
+[B7]
+L4:
+    hi_7 := t2_2
+    hi := hi_7
+    lo := lo_1
+    goto L6
+[B9]
+L8:
+    return -1

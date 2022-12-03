@@ -1,0 +1,74 @@
+[B1]
+search(A_0, lo_0, hi_0, x_0):
+    goto L6
+[B2]
+L6:
+    hi_1 := PHI(hi_0, hi_1, hi_7)
+    lo_1 := PHI(lo_0, lo_6, lo_1)
+    $2_0 := hi_1 - lo_1
+    if $2_0 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    t0_0 := hi_1 - lo_1
+    t1_0 := t0_0 / 2
+    t2_2 := lo_1 + t1_0
+    $1_0 := t2_2 * 4
+    t3_2 := *(A_0 + $1_0)
+    if t3_2 == x_0 goto L1 else goto L2
+[B4]
+L1:
+    return t2_2
+[B5]
+L2:
+    if t3_2 < x_0 goto L3 else goto L4
+[B6]
+L3:
+    lo_6 := t2_2 + 1
+    goto L6
+[B7]
+L4:
+    hi_7 := t2_2
+    goto L6
+[B9]
+L8:
+    return -1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| $1_0     | Bottom |
+| $2_0     | Bottom |
+| A_0      | Bottom |
+| hi_0     | Bottom |
+| hi_1     | Bottom |
+| hi_7     | Bottom |
+| lo_0     | Bottom |
+| lo_1     | Bottom |
+| lo_6     | Bottom |
+| t0_0     | Bottom |
+| t1_0     | Bottom |
+| t2_2     | Bottom |
+| t3_2     | Bottom |
+| x_0      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| $1_0     | Bottom |
+| $2_0     | Bottom |
+| A_0      | Bottom |
+| hi_0     | Bottom |
+| hi_1     | Bottom |
+| hi_7     | Bottom |
+| lo_0     | Bottom |
+| lo_1     | Bottom |
+| lo_6     | Bottom |
+| t0_0     | Bottom |
+| t1_0     | Bottom |
+| t2_2     | Bottom |
+| t3_2     | Bottom |
+| x_0      | Bottom |
++----------+--------+

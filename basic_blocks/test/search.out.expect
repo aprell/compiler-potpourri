@@ -1,0 +1,49 @@
+[B1]
+search(A, lo, hi, x):
+    goto L6
+[B2]
+L6:
+    $2 := hi - lo
+    if $2 >= 1 goto L7 else goto L8
+[B3]
+L7:
+    t0 := hi - lo
+    t1 := t0 / 2
+    t2 := lo + t1
+    $1 := t2 * 4
+    t3 := *(A + $1)
+    if t3 == x goto L1 else goto L2
+[B4]
+L1:
+    return t2
+[B5]
+L2:
+    if t3 < x goto L3 else goto L4
+[B6]
+L3:
+    lo := t2 + 1
+    goto L5
+[B7]
+L4:
+    hi := t2
+    goto L5
+[B8]
+L5:
+    goto L6
+[B9]
+L8:
+    return -1
+
++----+--------------+--------------------+
+|    | use          | def                |
++----+--------------+--------------------+
+| B1 |              | A, hi, lo, x       |
+| B2 | hi, lo       | $2                 |
+| B3 | A, hi, lo, x | $1, t0, t1, t2, t3 |
+| B4 | t2           |                    |
+| B5 | t3, x        |                    |
+| B6 | t2           | lo                 |
+| B7 | t2           | hi                 |
+| B8 |              |                    |
+| B9 |              |                    |
++----+--------------+--------------------+

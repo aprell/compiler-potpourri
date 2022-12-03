@@ -1,0 +1,24 @@
+search(A, lo, hi, x):
+L6:
+    $2 := hi - lo
+    if $2 >= 1 goto L7 else goto L8
+L7:
+    t0 := hi - lo
+    t1 := t0 / 2
+    t2 := lo + t1
+    $1 := t2 * 4
+    t3 := *(A + $1)
+    if t3 == x goto L1 else goto L2
+L1:
+    return t2
+L2:
+    if t3 < x goto L3 else goto L4
+L3:
+    lo := t2 + 1
+    goto L5
+L4:
+    hi := t2
+L5:
+    goto L6
+L8:
+    return -1
