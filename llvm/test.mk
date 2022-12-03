@@ -7,7 +7,7 @@ CFLAGS += -fsanitize=address,undefined
 test: a.out
 	./$<
 
-a.out: main.c func.ll
+a.out: ../utils/main.c func.ll
 	$(CC) $(CFLAGS) $^
 
 func.ll: _build/default/test_llvm.exe

@@ -6,7 +6,7 @@ CFLAGS += -fsanitize=address,undefined
 test: a.out
 	./$<
 
-a.out: main.c func.s
+a.out: ../utils/main.c func.s
 	$(CC) $(CFLAGS) $^
 
 func.s: func.ssa
