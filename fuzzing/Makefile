@@ -1,7 +1,3 @@
-PROGS := parse opt
-
-all: $(PROGS)
-
-.PHONY: all
+EXES := parse opt
 
 include ../utils/common.mk
