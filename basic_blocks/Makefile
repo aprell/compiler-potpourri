@@ -1,18 +1,17 @@
-LIB := basic_block
+LIBS := basic_block
+EXES := test_basic_block test/expect
 
-PROGS := test_basic_block test/expect
-
-all: $(LIB) $(PROGS) test
+all: test
 
 test: test/expect
 	@echo "Running expect tests"
 	@../utils/expect.sh
 
-test_utils:
-	@echo "\n--- test_utils ----------"
+test-utils:
+	@echo "\n--- test-utils ----------"
 	@./test_utils.sh
 	@echo
 
-.PHONY: all test test_utils
+.PHONY: all test test-utils
 
 include ../utils/common.mk

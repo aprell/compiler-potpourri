@@ -1,9 +1,8 @@
-LIB := ssa analysis optim
+LIBS := ssa analysis optim
+EXES := test_ssa test_optim test_sscp test_sccp test_reachability
+EXES += test/expect analysis/test/expect
 
-PROGS := test_ssa test_optim test_sscp test_sccp test_reachability
-PROGS += test/expect analysis/test/expect
-
-all: $(LIB) $(PROGS) test
+all: test
 
 test: test/expect analysis/test/expect
 	@echo "Running expect tests"

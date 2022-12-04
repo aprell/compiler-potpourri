@@ -1,18 +1,17 @@
-LIB := three_address_code
+LIBS := three_address_code
+EXES := test_IR test/expect
 
-PROGS := test_IR test/expect
-
-all: $(LIB) $(PROGS) test
+all: test
 
 test: test/expect
 	@echo "Running expect tests"
 	@../../utils/expect.sh
 
-test_parse:
-	@echo "\n--- test_parse ----------"
+test-parse:
+	@echo "\n--- test-parse ----------"
 	@./test_parse.sh
 	@echo
 
-.PHONY: all test test_parse
+.PHONY: all test test-parse
 
 include ../../utils/common.mk

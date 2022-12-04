@@ -1,11 +1,13 @@
-$(LIB):
+all: $(LIBS) $(EXES)
+
+$(LIBS):
 	dune build $(addsuffix .a,$@)
 
-$(PROGS):
+$(EXES):
 	dune build $(addsuffix .exe,$@)
 
 clean:
 	dune clean
 	rm -rf _test
 
-.PHONY: clean
+.PHONY: all clean

@@ -1,8 +1,7 @@
-LIB := data_flow dominators liveness
+LIBS := data_flow dominators liveness
+EXES := test/expect
 
-PROGS := test/expect
-
-all: $(LIB) $(PROGS) test
+all: test
 
 test: test/expect
 	@echo "Running expect tests"

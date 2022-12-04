@@ -1,10 +1,9 @@
-LIB := qbe
+LIBS := qbe
+EXES := test_qbe test/expect
 
-PROGS := test_qbe test/expect
+all: test
 
-all: $(LIB) $(PROGS)
-
-test: all test/expect
+test: test/expect
 	@$(MAKE) --no-print-directory -f test.mk
 	@echo "Running expect tests"
 	@test/expect.sh

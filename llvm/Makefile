@@ -1,10 +1,9 @@
-LIB := llvm
+LIBS := llvm
+EXES := test_llvm test/expect
 
-PROGS := test_llvm test/expect
+all: test
 
-all: $(LIB) $(PROGS)
-
-test: all test/expect
+test: test/expect
 	@$(MAKE) --no-print-directory -f test.mk
 	@echo "Running expect tests"
 	@test/expect.sh

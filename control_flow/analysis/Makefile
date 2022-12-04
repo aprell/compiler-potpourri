@@ -1,8 +1,7 @@
-LIB := control_flow
+LIBS := control_flow
+EXES := test_control_flow test/expect
 
-PROGS := test_control_flow test/expect
-
-all: $(LIB) $(PROGS) test
+all: test
 
 test: test/expect
 	@echo "Running expect tests"
