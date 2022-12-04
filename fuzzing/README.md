@@ -14,11 +14,10 @@ this is what we will do:
 Here is a graphical overview of our fuzzing approach:
 ![Fuzzing](fuzzing.png)
 
-The process is not fully automated at this point, so let's walk through an
-example. We use [mutate.sh](mutate.sh) to generate *n* variants of an input
-program, say [examples/fib.hir](../basic_blocks/three_address_code/examples/fib.hir).
+Let's walk through an example. We use [mutate.sh](mutate.sh) to generate *n*
+variants of an input program, say
+[examples/fib.hir](../basic_blocks/three_address_code/examples/fib.hir).
 Let's choose *n* = 3 for brevity of output:
-
 
 ```console
 $ ./mutate.sh examples/fib.hir 1-3
@@ -84,7 +83,7 @@ index b8d74d0..610ad59 100644
 ```
 
 The generated test cases, numbered 001 through 003, are collected in a
-subdirectory to keep things tidy. Then, we fuzz:
+subdirectory to keep things tidy. Then we fuzz:
 
 ```console
 $ ./fuzz.sh examples/fib.hir
@@ -92,7 +91,7 @@ $ ./fuzz.sh examples/fib.hir
 
 No output, no failures. Feel free to inspect *fib.fuzz.out* for details.
 
-Okay, let's start getting serious:
+Okay, it's time to get serious:
 
 ```console
 $ for x in examples/*.hir; do ./mutate.sh $x 1-10; done > /dev/null
