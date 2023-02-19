@@ -75,7 +75,17 @@
 %left PLUS MINUS
 %left MUL DIV MOD
 
-%start <IR.decl option * IR.stmt list> prog
+%type <IR.decl option * IR.stmt list> prog
+%type <IR.decl> fundecl
+%type <IR.stmt> stmt
+%type <IR.stmt list> func block hir_stmt
+%type <IR.var list> params
+%type <IR.name * IR.var list option> label
+%type <IR.expr> expr
+%type <IR.Type.t> type_
+%type <IR.Type.t list> types
+
+%start prog
 
 %%
 
@@ -132,29 +142,29 @@ label:
   ;
 
 hir_stmt:
-  | NAME GETS mem                        { `Load (Var $1, $3) |> lower }
-  | mem GETS expr                        { `Store ($1, $3)    |> lower }
-  | IF expr block                        { `If ($2, $3, [])   |> lower }
-  | IF expr block ELSE block             { `If ($2, $3, $5)   |> lower }
-  | WHILE expr block                     { `While ($2, $3)    |> lower }
-  | stmt                                 { normalize $1       |> peephole }
+  | NAME GETS mem               { `Load (Var $1, $3) |> lower }
+  | mem GETS expr               { `Store ($1, $3)    |> lower }
+  | IF expr block               { `If ($2, $3, [])   |> lower }
+  | IF expr block ELSE block    { `If ($2, $3, $5)   |> lower }
+  | WHILE expr block            { `While ($2, $3)    |> lower }
+  | stmt                        { normalize $1       |> peephole }
   ;
 
 stmt:
-  | NAME GETS expr                       { Move (Var $1, $3) }
-  | label COL                            { Label $1 }
-  | GOTO label                           { Jump $2 }
-  | IF expr GOTO label ELSE GOTO label   { Cond ($2, $4, $7) }
-  | RET expr?                            { Return $2 }
-  | NAME GETS "PHI" params               { Phi (Var $1, $4) }
+  | NAME GETS expr                        { Move (Var $1, $3) }
+  | label COL                             { Label $1 }
+  | GOTO label                            { Jump $2 }
+  | IF expr GOTO label ELSE GOTO label    { Cond ($2, $4, $7) }
+  | RET expr?                             { Return $2 }
+  | NAME GETS "PHI" params                { Phi (Var $1, $4) }
   ;
 
 expr:
-  | INT               { Const $1 }
-  | NAME              { Val (Var $1) }
-  | MINUS expr        { Binop (Minus, Const 0, $2) |> constant_fold }
-  | expr binop expr   { Binop ($2, $1, $3)         |> constant_fold }
-  | expr relop expr   { Relop ($2, $1, $3)         |> constant_fold }
+  | INT                { Const $1 }
+  | NAME               { Val (Var $1) }
+  | MINUS expr         { Binop (Minus, Const 0, $2) |> constant_fold }
+  | expr binop expr    { Binop ($2, $1, $3)         |> constant_fold }
+  | expr relop expr    { Relop ($2, $1, $3)         |> constant_fold }
   ;
 
 mem:
@@ -171,10 +181,10 @@ mem:
   ;
 
 %inline relop:
-  | EQ   { EQ }
-  | NE   { NE }
-  | LT   { LT }
-  | GT   { GT }
-  | LE   { LE }
-  | GE   { GE }
+  | EQ { EQ }
+  | NE { NE }
+  | LT { LT }
+  | GT { GT }
+  | LE { LE }
+  | GE { GE }
   ;
