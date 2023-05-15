@@ -6,6 +6,14 @@ module rec Node : sig
     mutable doms : NodeSet.t;
     mutable idom : Node.t option;
   }
+
+  (* Add an edge from node a to node b *)
+  val ( => ) : t -> t -> unit
+
+  (* Remove the edge between node a and node b *)
+  val ( =|> ) : t -> t -> unit
+
+  val combine : t -> t -> t
 end
 
 and NodeSet : Set.S with type elt = Node.t
@@ -19,6 +27,8 @@ val construct : Basic_block.t list -> t
 val add_node : Node.t -> t -> t
 
 val add_nodes : NodeSet.t -> t -> t
+
+val remove_node : Node.t -> t -> t
 
 val get_node : int -> t -> Node.t
 
@@ -36,6 +46,8 @@ val equal : t -> t -> bool
 
 val iter : (Node.t -> unit) -> t -> unit
 
+val filter : (int -> Node.t -> bool) -> t -> t
+
 val dfs_reverse_postorder : t -> Node.t list
 
 val dfs_postorder : t -> Node.t list
@@ -49,8 +61,6 @@ val print_basic_blocks : t -> unit
 val output_dot : ?filename:string -> t -> unit
 
 val inspect : t -> unit
-
-val simplify : t -> t
 
 val split_edge : Node.t * Node.t -> Node.t
 

@@ -79,6 +79,9 @@ let add_node (node : Node.t) (graph : t) : t =
 let add_nodes (nodes : NodeSet.t) (graph : t) : t =
   NodeSet.fold add_node nodes graph
 
+let remove_node (node : Node.t) (graph : t) : t =
+  M.remove node.block.number graph
+
 let get_node (number : int) (graph : t) : Node.t =
   M.find number graph
 
@@ -127,8 +130,10 @@ let equal (a : t) (b : t) : bool =
 let iter (f : Node.t -> unit) (graph : t) =
   M.iter (fun _ node -> f node) graph
 
+let filter (p : int -> Node.t -> bool) (graph : t) =
+  M.filter p graph
+
 let define ~(nodes : int list) ~(edges : (int * int) list) : t =
-  let open Basic_block in
   let open Node in
   let graph =
     Basic_block.(
@@ -137,7 +142,7 @@ let define ~(nodes : int list) ~(edges : (int * int) list) : t =
       @ [create ~number:(List.length nodes + 1) ~name:"Exit" ()]
     )
     |> List.fold_left (fun graph block ->
-        M.add block.number (Node.create block) graph
+        add_node (Node.create block) graph
       ) M.empty
   in
   let entry = 0 in
@@ -168,7 +173,7 @@ let dfs_postorder (graph : t) =
 let remove_unreachable_nodes (graph : t) : t =
   let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder graph) in
   let reachable node = NodeSet.mem node reachable_nodes in
-  M.filter (fun _ node ->
+  filter (fun _ node ->
       if not (reachable node) then (
         NodeSet.iter (fun succ ->
             if (reachable succ) then
@@ -277,8 +282,9 @@ let simplify (graph : t) : t =
     | Some node ->
       assert (NodeSet.cardinal node.succ = 1);
       let succ = NodeSet.choose node.succ in
-      M.remove node.block.number graph
-      |> M.remove succ.block.number
+      graph
+      |> remove_node node
+      |> remove_node succ
       |> add_node (Node.combine node succ)
       |> combine_nodes
     | None ->
@@ -319,8 +325,11 @@ let split_critical_edges (graph : t) : t =
   (* Update graph with new nodes *)
   add_nodes !nodes graph
 
+let rec repeat ~equal f x =
+  let x' = f x in
+  if not (equal x x') then repeat ~equal f x' else x'
+
 let construct (basic_blocks : Basic_block.t list) : t =
-  let open Basic_block in
   let open Node in
   let graph =
     Basic_block.(
@@ -329,7 +338,7 @@ let construct (basic_blocks : Basic_block.t list) : t =
       @ [create ~number:Int.max_int ~name:"Exit" ()]
     )
     |> List.fold_left (fun graph block ->
-        M.add block.number (Node.create block) graph
+        add_node (Node.create block) graph
       ) M.empty
   in
   (* Create a list that associates labels with basic block numbers *)
@@ -363,7 +372,7 @@ let construct (basic_blocks : Basic_block.t list) : t =
       | _ ->
         assert (name = "Entry" || name = "Exit")
     ) graph;
-  simplify graph
+  repeat simplify graph (* until *) ~equal:(M.equal Node.equal)
 
 let output_dot ?filename (graph : t) =
   let open Node in
