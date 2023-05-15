@@ -198,7 +198,7 @@ let retarget_branch node ~label succ =
   end;
   Node.(node => succ)
 
-let simplify_control_flow ?(_dump = false) graph _ssa_graph =
+let simplify_control_flow ?(_dump = false) graph ssa_graph =
   let open Cfg in
   let simplify_branch (node : Node.t) =
     match Basic_block.last_stmt node.block with
@@ -212,6 +212,11 @@ let simplify_control_flow ?(_dump = false) graph _ssa_graph =
           stmt := Jump then_;
           if else_ <> then_ then
             remove_branch node ~label:else_
+        | Cond (e, then_, else_) when then_ = else_ ->
+          Vars.iter (fun x ->
+              Ssa.Graph.remove_use x (ref node.block, ref stmt) ssa_graph;
+            ) (collect_variables e);
+          stmt := Jump then_
         | _ -> ()
       )
     | None -> ()

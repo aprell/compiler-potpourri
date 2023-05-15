@@ -235,6 +235,8 @@ let simplify (graph : t) : t =
           stmt := Jump then_;
           if else_ <> then_ then
             remove_branch node ~label:else_
+        | Cond (_, then_, else_) when then_ = else_ ->
+          stmt := Jump then_
         | _ -> ()
       )
     | None -> ()

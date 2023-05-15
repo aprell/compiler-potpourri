@@ -7,11 +7,7 @@ define i32 @test06(i32 %p_0) {
 
 %L3:
   %0 = icmp sgt i32 %p_0, 10
-  br i1 %0, label %L4, label %L5
-
-%L4:
-  %1 = icmp ne i32 %x_0, 1
-  br i1 %1, label %L3, label %L3
+  br i1 %0, label %L3, label %L5
 
 %L5:
   ret i32 %x_0

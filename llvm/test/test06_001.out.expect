@@ -6,16 +6,12 @@ define i32 @test06(i32 %p_0) {
   br label %L3
 
 %L3:
-  %x_1 = phi i32 [ %x_0, %test06 ], [ %x_4, %L2 ]
+  %x_1 = phi i32 [ %x_0, %test06 ], [ %x_3, %L2 ]
   %0 = icmp sgt i32 %p_0, 10
-  br i1 %0, label %L4, label %L5
-
-%L4:
-  %1 = icmp ne i32 %x_1, 1
-  br i1 %1, label %L2, label %L2
+  br i1 %0, label %L2, label %L5
 
 %L2:
-  %x_4 = add i32 2, 0
+  %x_3 = add i32 2, 0
   br label %L3
 
 %L5:
@@ -28,16 +24,12 @@ define i32 @test06(i32 %p_0) {
   br label %L3
 
 %L3:
-  %x_1 = phi i32 [ %x_0, %test06 ], [ %x_4, %L2 ]
+  %x_1 = phi i32 [ %x_0, %test06 ], [ %x_3, %L2 ]
   %0 = icmp sgt i32 %p_0, 10
-  br i1 %0, label %L4, label %L5
-
-%L4:
-  %1 = icmp ne i32 %x_1, 1
-  br i1 %1, label %L2, label %L2
+  br i1 %0, label %L2, label %L5
 
 %L2:
-  %x_4 = add i32 2, 0
+  %x_3 = add i32 2, 0
   br label %L3
 
 %L5:
