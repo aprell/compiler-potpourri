@@ -3,8 +3,8 @@ let optimize = ref false
 
 let parse_args () =
   let prog = Sys.argv.(0) in
-  let usage = Printf.sprintf "Usage: %s [-opt] filename" prog in
-  let options = ["-opt", Arg.Set optimize, "Enable optimization"] in
+  let usage = Printf.sprintf "Usage: %s [-O] filename" prog in
+  let options = ["-O", Arg.Set optimize, "Enable optimization"] in
   Arg.parse options (fun filename -> input := Some filename) usage
 
 let () =
