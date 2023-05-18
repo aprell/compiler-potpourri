@@ -279,7 +279,7 @@ let simplify (graph : t) : t =
     )
   in
 
-  let rec combine_nodes (graph : t) =
+  let combine_nodes (graph : t) =
     match List.find_opt can_combine (get_nodes graph) with
     | Some node ->
       assert (NodeSet.cardinal node.succ = 1);
@@ -288,7 +288,6 @@ let simplify (graph : t) : t =
       |> remove_node node
       |> remove_node succ
       |> add_node (Node.combine node succ)
-      |> combine_nodes
     | None ->
       graph
   in
