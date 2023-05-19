@@ -16,7 +16,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 ## References
 
 ### Books
-- [Engineering a Compiler](https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-088478-0)
+- [Engineering a Compiler](https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-815412-0)
 - [Modern Compiler Implementation in ML](https://www.cs.princeton.edu/~appel/modern/ml)
 - [Compilers: Principles, Techniques, and Tools](https://www.pearson.com/us/higher-education/program/Aho-Compilers-Principles-Techniques-and-Tools-2nd-Edition/PGM167067.html)
 - [High-Performance Compilers for Parallel Computing](https://dl.acm.org/doi/10.5555/572937)
