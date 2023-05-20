@@ -1,0 +1,33 @@
+
+----------------------------------------
+define i32 @test05() {
+%test05:
+  %x_0 = add i32 65535, 0
+  %0 = icmp slt i32 %x_0, 2
+  br i1 %0, label %L1, label %L2
+
+%L2:
+  %y_3 = sub i32 %x_0, 42
+  br label %L3
+
+%L1:
+  %y_1 = add i32 5, %x_0
+  br label %L3
+
+%L3:
+  %y_4 = phi i32 [ %y_1, %L1 ], [ %y_3, %L2 ]
+  %z_0 = mul i32 %y_4, %y_4
+  ret i32 %z_0
+}
+=>
+define i32 @test05() {
+%test05:
+  ret i32 4289333049
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

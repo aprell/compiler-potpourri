@@ -45,6 +45,7 @@ let can_optimize =
   )
 
 let propagate_constants ?(dump = false) graph ssa_graph =
+  if dump then print_endline "Propagating constants";
   Analysis.Sccp.(run !graph ssa_graph |> get_constants)
   |> List.iter (fun (x, n) ->
       if can_optimize (Ssa.Graph.get_use_def x ssa_graph) then (
@@ -60,6 +61,7 @@ let propagate_constants ?(dump = false) graph ssa_graph =
   false
 
 let propagate_copies ?(dump = false) ssa_graph =
+  if dump then print_endline "Propagating copies";
   match (
     (* Find a copy to propagate *)
     Ssa.Graph.find_first (fun ((_, stmt), uses) ->
@@ -80,6 +82,7 @@ let propagate_copies ?(dump = false) ssa_graph =
   | _ -> false
 
 let eliminate_dead_code ?(dump = false) ssa_graph =
+  if dump then print_endline "Eliminating dead code";
   match (
     (* Find a dead variable *)
     Ssa.Graph.find_first (fun ((_, def), uses) ->
@@ -110,14 +113,11 @@ let reachable { Basic_block.number; _ } graph =
   Option.is_some (Cfg.get_node_opt number graph)
 
 let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
-  match (
-    (* Find a definition that has become unreachable *)
-    Ssa.Graph.find_first (fun ((block, _), _) ->
-        not (reachable !block !graph)
-      ) ssa_graph
-  ) with
-  | Some (x, ((_, stmt), uses)) ->
-    List.iter (fun ((block, stmt), _) ->
+  if dump then print_endline "Eliminating unreachable code";
+
+  let eliminate_def x =
+    let uses = Ssa.Graph.get_uses x ssa_graph in
+    List.iter (fun (block, stmt) ->
         if reachable !block !graph then (
           match !(!stmt) with
           | Phi (xn, xs) -> (
@@ -136,20 +136,49 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
           | _ -> assert false
         )
       ) uses;
-    Ssa.Graph.remove_def x ssa_graph;
-    if dump then (
-      print_endline ("After removing " ^ string_of_stmt !(!stmt) ^ ":");
-      Ssa.Graph.print ssa_graph;
-      print_newline ()
-    );
-    true
-  | _ -> false
+    Ssa.Graph.remove_def x ssa_graph
+  in
 
-let remove_unreachable_nodes (graph : Cfg.t) : Cfg.t =
+  let eliminate_use x use =
+    Ssa.Graph.remove_use x use ssa_graph
+  in
+
+  let eliminate_unreachable block =
+    let visit stmt =
+      let eliminate_use' =
+        Fun.flip eliminate_use (ref block, ref stmt)
+      in
+      match !stmt with
+      | Move (x, _)
+      | Load (x, _)
+      | Phi (x, _) ->
+        eliminate_def x;
+        if dump then (
+          print_endline ("After removing " ^ string_of_stmt !stmt ^ ":");
+          Ssa.Graph.print ssa_graph;
+          print_newline ()
+        )
+      | Store (Mem (b, Val o), e) ->
+        eliminate_use' b;
+        eliminate_use' o;
+        collect_variables e |> Vars.iter eliminate_use'
+      | Store (Mem (b, Const _), e) ->
+        eliminate_use' b;
+        collect_variables e |> Vars.iter eliminate_use'
+      | Cond (e, _, _)
+      | Return (Some e) ->
+        collect_variables e |> Vars.iter eliminate_use'
+      | _ -> ()
+    in
+    List.iter visit block.stmts
+  in
+
   let open Cfg in
-  let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder graph) in
+  let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder !graph) in
   let reachable node = NodeSet.mem node reachable_nodes in
-  filter (fun _ node ->
+  let eliminated = ref false in
+
+  graph := filter (fun _ node ->
       if not (reachable node) then (
         NodeSet.iter (fun succ ->
             if (reachable succ) then
@@ -157,13 +186,17 @@ let remove_unreachable_nodes (graph : Cfg.t) : Cfg.t =
                   Basic_block.compare pred node.block <> 0
                 ) succ.block.pred;
           ) node.succ;
+        eliminate_unreachable node.block;
+        eliminated := true;
+        if dump then print_endline ("Removed " ^ node.block.name);
         false
       ) else (
         assert (NodeSet.for_all reachable node.succ);
         node.pred <- NodeSet.filter reachable node.pred;
         true
       )
-    ) graph
+    ) !graph;
+  !eliminated
 
 let remove_branch node ~label =
   let open Cfg in
@@ -198,8 +231,12 @@ let retarget_branch node ~label succ =
   end;
   Node.(node => succ)
 
-let simplify_control_flow ?(_dump = false) graph ssa_graph =
+let simplify_control_flow ?(dump = false) graph ssa_graph =
+  if dump then print_endline "Simplifying control flow";
+
   let open Cfg in
+  let simplified = ref false in
+
   let simplify_branch (node : Node.t) =
     match Basic_block.last_stmt node.block with
     | Some stmt -> (
@@ -207,19 +244,22 @@ let simplify_control_flow ?(_dump = false) graph ssa_graph =
         | Cond (Const 0, then_, else_) ->
           stmt := Jump else_;
           if then_ <> else_ then
-            remove_branch node ~label:then_
+            remove_branch node ~label:then_;
+          true
         | Cond (Const 1, then_, else_) ->
           stmt := Jump then_;
           if else_ <> then_ then
-            remove_branch node ~label:else_
+            remove_branch node ~label:else_;
+          true
         | Cond (e, then_, else_) when then_ = else_ ->
           Vars.iter (fun x ->
               Ssa.Graph.remove_use x (ref node.block, ref stmt) ssa_graph;
             ) (collect_variables e);
-          stmt := Jump then_
-        | _ -> ()
+          stmt := Jump then_;
+          true
+        | _ -> false
       )
-    | None -> ()
+    | None -> false
   in
 
   let is_simple { Node.block = { stmts; _ }; _ } =
@@ -247,53 +287,61 @@ let simplify_control_flow ?(_dump = false) graph ssa_graph =
     NodeSet.iter (fun pred ->
         retarget_branch pred succ
           ~label:(Basic_block.entry_label node.block)
-      ) node.pred
+      ) node.pred;
+    simplified := true;
+    if dump then print_endline ("Skipped " ^ node.block.name)
   in
 
   (* Guard against invalidating def-use information *)
   let can_combine (node : Node.t) =
-    is_simple node && (
-      assert (NodeSet.cardinal node.succ = 1);
+    is_simple node && NodeSet.cardinal node.succ = 1 && (
       let succ = NodeSet.choose node.succ in
       succ != node && is_simple succ
     )
   in
 
-  let rec combine_nodes (graph : t) =
+  let combine_nodes (graph : t) =
     match List.find_opt can_combine (get_nodes graph) with
     | Some node ->
       assert (NodeSet.cardinal node.succ = 1);
       let succ = NodeSet.choose node.succ in
-      graph
-      |> remove_node node
-      |> remove_node succ
-      |> add_node (Node.combine node succ)
-      |> combine_nodes
+      let graph' = graph
+        |> remove_node node
+        |> remove_node succ
+        |> add_node (Node.combine node succ)
+      in
+      simplified := true;
+      if dump then print_endline ("Combined " ^ node.block.name ^ " and " ^ succ.block.name);
+      graph'
     | None ->
       graph
   in
 
   let simplify graph =
     iter (fun node ->
-      simplify_branch node;
+      simplified := simplify_branch node;
       if can_skip node then skip node
     ) graph;
-    remove_unreachable_nodes graph
-    |> combine_nodes
+    combine_nodes graph
   in
 
-  let graph' = simplify !graph in
-  let simplified = not (Cfg.equal graph' !graph) in
-  graph := graph';
-  simplified
+  graph := simplify !graph;
+  !simplified
+
+(* Sequence two optimizations *)
+let ( *> )
+  (opt1 : ?dump:bool -> Cfg.t ref -> Ssa.Graph.t -> bool)
+  (opt2 : ?dump:bool -> Cfg.t ref -> Ssa.Graph.t -> bool)
+  ?(dump = false) graph ssa_graph =
+  let o = opt1 graph ssa_graph ~dump in
+  opt2 graph ssa_graph ~dump || o
 
 let optimize ?(dump = false) graph ssa_graph =
   let graph = ref graph in
   let changed = ref true in
   while !changed do
     changed := List.exists (( = ) true) [
-        simplify_control_flow graph ssa_graph ~_dump:dump;
-        eliminate_unreachable_code graph ssa_graph ~dump;
+        (simplify_control_flow *> eliminate_unreachable_code) graph ssa_graph ~dump;
         eliminate_dead_code ssa_graph ~dump;
         propagate_constants graph ssa_graph ~dump;
         propagate_copies ssa_graph ~dump;

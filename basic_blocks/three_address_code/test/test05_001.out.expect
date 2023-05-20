@@ -1,0 +1,11 @@
+test05():
+    x := 65535
+    if x < 2 goto L1 else goto L2
+L1:
+    y := 5 + x
+    goto L3
+L2:
+    y := x - 42
+L3:
+    z := y * y
+    return z
