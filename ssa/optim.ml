@@ -60,7 +60,7 @@ let propagate_constants ?(dump = false) graph ssa_graph =
     );
   false
 
-let propagate_copies ?(dump = false) ssa_graph =
+let propagate_copies ?(dump = false) _graph ssa_graph =
   if dump then print_endline "Propagating copies";
   match (
     (* Find a copy to propagate *)
@@ -81,7 +81,7 @@ let propagate_copies ?(dump = false) ssa_graph =
     true
   | _ -> false
 
-let eliminate_dead_code ?(dump = false) ssa_graph =
+let eliminate_dead_code ?(dump = false) _graph ssa_graph =
   if dump then print_endline "Eliminating dead code";
   match (
     (* Find a dead variable *)
@@ -342,9 +342,9 @@ let optimize ?(dump = false) graph ssa_graph =
   while !changed do
     changed := List.exists (( = ) true) [
         (simplify_control_flow *> eliminate_unreachable_code) graph ssa_graph ~dump;
-        eliminate_dead_code ssa_graph ~dump;
+        eliminate_dead_code graph ssa_graph ~dump;
         propagate_constants graph ssa_graph ~dump;
-        propagate_copies ssa_graph ~dump;
+        propagate_copies graph ssa_graph ~dump;
       ]
   done;
   !graph
