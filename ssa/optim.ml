@@ -328,6 +328,29 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
   graph := simplify !graph;
   !simplified
 
+let check_phi_functions ?(dump = false) _graph ssa_graph =
+  match (
+    (* Look for inconsistent phi-functions *)
+    Ssa.Graph.find_first (fun ((block, def), _) ->
+        match !(!def) with
+        | Phi (_, xs) -> List.(length xs <> length !block.pred)
+        | _ -> false
+      ) ssa_graph
+  ) with
+  | Some (_, ((block, stmt), _)) -> (
+      match !(!stmt) with
+      | Phi _ ->
+        if dump then
+          Printf.eprintf
+            "Found inconsistent %s: %s has %d incoming edge(s)\n"
+            (string_of_stmt !(!stmt)) !block.name (List.length !block.pred);
+        failwith ("Inconsistent " ^ string_of_stmt !(!stmt))
+      | _ -> assert false
+    )
+  | None -> false
+
+let check = check_phi_functions
+
 (* Sequence two optimizations *)
 let ( *> )
   (opt1 : ?dump:bool -> Cfg.t ref -> Ssa.Graph.t -> bool)
@@ -341,10 +364,10 @@ let optimize ?(dump = false) graph ssa_graph =
   let changed = ref true in
   while !changed do
     changed := List.exists (( = ) true) [
-        (simplify_control_flow *> eliminate_unreachable_code) graph ssa_graph ~dump;
-        eliminate_dead_code graph ssa_graph ~dump;
-        propagate_constants graph ssa_graph ~dump;
-        propagate_copies graph ssa_graph ~dump;
+        (simplify_control_flow *> eliminate_unreachable_code *> check) graph ssa_graph ~dump;
+        (eliminate_dead_code *> check) graph ssa_graph ~dump;
+        (propagate_constants *> check) graph ssa_graph ~dump;
+        (propagate_copies *> check) graph ssa_graph ~dump;
       ]
   done;
   !graph
