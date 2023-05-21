@@ -109,16 +109,17 @@ let eliminate_dead_code ?(dump = false) _graph ssa_graph =
     )
   | None -> false
 
-let reachable { Basic_block.number; _ } graph =
-  Option.is_some (Cfg.get_node_opt number graph)
-
 let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
   if dump then print_endline "Eliminating unreachable code";
+
+  let reachable { Basic_block.number; _ } =
+    Option.is_some (Cfg.get_node_opt number !graph)
+  in
 
   let eliminate_def x =
     let uses = Ssa.Graph.get_uses x ssa_graph in
     List.iter (fun (block, stmt) ->
-        if reachable !block !graph then (
+        if reachable !block then (
           match !(!stmt) with
           | Phi (xn, xs) -> (
               assert (List.mem x xs);

@@ -243,7 +243,7 @@ let simplify (graph : t) : t =
   in
 
   let is_simple { Node.block = { stmts; _ }; _ } =
-    List.length stmts = 2 &&
+    List.length stmts >= 2 &&
     match !(List.hd stmts), !(List.(hd (tl stmts))) with
     | Label (_, Some []), Jump (_, None)
     | Label (_, None), Jump (_, None)
@@ -270,10 +270,8 @@ let simplify (graph : t) : t =
       ) node.pred
   in
 
-  (* Guard against invalidating def-use information *)
   let can_combine (node : Node.t) =
-    is_simple node && (
-      assert (NodeSet.cardinal node.succ = 1);
+    is_simple node && NodeSet.cardinal node.succ = 1 && (
       let succ = NodeSet.choose node.succ in
       succ != node && is_simple succ
     )
@@ -297,8 +295,8 @@ let simplify (graph : t) : t =
       if can_skip node then skip node
     ) graph;
 
-  remove_unreachable_nodes graph
-  |> combine_nodes
+  combine_nodes graph
+  |> remove_unreachable_nodes
 
 let split_edge ((n, m) : Node.t * Node.t) : Node.t =
   let open Node in
