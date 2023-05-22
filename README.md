@@ -48,6 +48,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [E-Graphs and Equality Saturation](https://docs.rs/egg/0.9.0/egg/tutorials/_01_background/index.html)
 - [Snapshot Testing for Compilers and Compiler-Like Things](https://www.cs.cornell.edu/~asampson/blog/turnt.html)
 - [Critical Edge Splitting](https://nickdesaulniers.github.io/blog/2023/01/27/critical-edge-splitting)
+- [CPS Soup (A Functional Intermediate Language)](https://wingolog.org/archives/2023/05/20/approaching-cps-soup)
 
 ### Courses
 - Compiler Design (CMU): [Fall 2014](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html), [Fall 2018](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html), [Fall 2020](https://www.cs.cmu.edu/afs/cs/academic/class/15411-f20/www/schedule.html)
