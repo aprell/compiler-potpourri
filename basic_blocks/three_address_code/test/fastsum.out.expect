@@ -1,0 +1,14 @@
+fastsum(n):
+    s := 0
+    i := 1
+L1:
+    if i <= n goto L2 else goto L3
+L2:
+    i := i + 1
+    goto L1
+L3:
+    t0 := n + 1
+    t1 := n * t0
+    t2 := t1 / 2
+    s := t2
+    return s

@@ -1,0 +1,14 @@
+int fastsum(int)
+
+fastsum(n) {
+    s := 0
+    i := 1
+    while i <= n {
+        i := i + 1
+    }
+    t0 := n + 1
+    t1 := n * t0
+    t2 := t1 / 2
+    s := t2
+    return s
+}

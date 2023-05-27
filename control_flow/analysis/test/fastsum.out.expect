@@ -1,0 +1,24 @@
+digraph CFG {
+    B1 [shape=record label="{B1|fastsum(n):\ls := 0\li := 1\lgoto L1\l}"];
+    B2 [shape=record label="{B2|L1:\lif i \<= n goto L2 else goto L3\l}"];
+    B3 [shape=record label="{B3|L2:\li := i + 1\lgoto L1\l}"];
+    B4 [shape=record label="{B4|L3:\lt0 := n + 1\lt1 := n * t0\lt2 := t1 / 2\ls := t2\lreturn s\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B2 -> B3;
+    B2 -> B4;
+    B3 -> B2;
+    B4 -> Exit;
+}
+
+graph DominatorTree {
+    Entry -- B1;
+    B1 -- B2;
+    B2 -- B3;
+    B2 -- B4;
+    B4 -- Exit;
+}
+
+graph LoopNestingForest {
+    B2 -- B3;
+}

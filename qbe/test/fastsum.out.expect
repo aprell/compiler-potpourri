@@ -1,0 +1,45 @@
+.text
+.globl fastsum
+fastsum:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $1, %eax
+.Lbb2:
+	cmpl %edi, %eax
+	jg .Lbb4
+	addl $1, %eax
+	jmp .Lbb2
+.Lbb4:
+	movl %edi, %eax
+	addl $1, %eax
+	imull %edi, %eax
+	movl $2, %ecx
+	cltd
+	idivl %ecx
+	leave
+	ret
+/* end function fastsum */
+
+.text
+.globl fastsum
+fastsum:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $1, %eax
+.Lbb8:
+	cmpl %edi, %eax
+	jg .Lbb10
+	addl $1, %eax
+	jmp .Lbb8
+.Lbb10:
+	movl %edi, %eax
+	addl $1, %eax
+	imull %edi, %eax
+	movl $2, %ecx
+	cltd
+	idivl %ecx
+	leave
+	ret
+/* end function fastsum */
+
+.section .note.GNU-stack,"",@progbits
