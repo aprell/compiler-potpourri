@@ -7,7 +7,9 @@ test: test/expect
 	@echo "Running expect tests"
 	@../../utils/expect.sh basic_blocks/examples
 
-DOTS := $(wildcard examples/*.dot)
+HIRS := $(addprefix examples/,$(notdir $(wildcard basic_blocks/examples/*.hir)))
+DOTS := $(patsubst %.hir,%_cfg.dot,$(HIRS))
+DOTS += $(patsubst %.hir,%_domtree.dot,$(HIRS))
 PNGS := $(DOTS:.dot=.png)
 
 png: $(PNGS)
@@ -19,5 +21,6 @@ png: $(PNGS)
 	$< basic_blocks/$*.hir > /dev/null
 
 .PHONY: all test png
+.PRECIOUS: %_cfg.dot %_domtree.dot
 
 include ../../utils/common.mk
