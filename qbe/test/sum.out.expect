@@ -1,0 +1,39 @@
+.text
+.globl sum
+sum:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $0, %ecx
+	movl $1, %eax
+.Lbb2:
+	cmpl %edi, %eax
+	jg .Lbb4
+	addl %eax, %ecx
+	addl $1, %eax
+	jmp .Lbb2
+.Lbb4:
+	movl %ecx, %eax
+	leave
+	ret
+/* end function sum */
+
+.text
+.globl sum
+sum:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $0, %ecx
+	movl $1, %eax
+.Lbb8:
+	cmpl %edi, %eax
+	jg .Lbb10
+	addl %eax, %ecx
+	addl $1, %eax
+	jmp .Lbb8
+.Lbb10:
+	movl %ecx, %eax
+	leave
+	ret
+/* end function sum */
+
+.section .note.GNU-stack,"",@progbits

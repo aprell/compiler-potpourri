@@ -1,0 +1,50 @@
+
+----------------------------------------
+define i32 @sum(i32 %n_0) {
+%sum:
+  %s_0 = add i32 0, 0
+  %i_0 = add i32 1, 0
+  br label %L1
+
+%L1:
+  %i_1 = phi i32 [ %i_0, %sum ], [ %i_3, %L2 ]
+  %s_1 = phi i32 [ %s_0, %sum ], [ %s_3, %L2 ]
+  %0 = icmp sle i32 %i_1, %n_0
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %s_3 = add i32 %s_1, %i_1
+  %i_3 = add i32 %i_1, 1
+  br label %L1
+
+%L3:
+  ret i32 %s_1
+}
+=>
+define i32 @sum(i32 %n_0) {
+%sum:
+  %s_0 = add i32 0, 0
+  %i_0 = add i32 1, 0
+  br label %L1
+
+%L1:
+  %i_1 = phi i32 [ %i_0, %sum ], [ %i_3, %L2 ]
+  %s_1 = phi i32 [ %s_0, %sum ], [ %s_3, %L2 ]
+  %0 = icmp sle i32 %i_1, %n_0
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %s_3 = add i32 %s_1, %i_1
+  %i_3 = add i32 %i_1, 1
+  br label %L1
+
+%L3:
+  ret i32 %s_1
+}
+Transformation seems to be correct! (syntactically equal)
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

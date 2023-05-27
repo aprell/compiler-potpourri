@@ -1,0 +1,44 @@
+[B1]
+sum(n_0):
+    s_0 := 0
+    i_0 := 1
+    goto L1
+[B2]
+L1:
+    i_1 := PHI(i_0, i_3)
+    s_1 := PHI(s_0, s_3)
+    if i_1 <= n_0 goto L2 else goto L3
+[B3]
+L2:
+    s_3 := s_1 + i_1
+    i_3 := i_1 + 1
+    goto L1
+[B4]
+L3:
+    return s_1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_0      | 1      |
+| i_1      | Bottom |
+| i_3      | Bottom |
+| n_0      | Bottom |
+| s_0      | 0      |
+| s_1      | Bottom |
+| s_3      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_0      | 1      |
+| i_1      | Bottom |
+| i_3      | Bottom |
+| n_0      | Bottom |
+| s_0      | 0      |
+| s_1      | Bottom |
+| s_3      | Bottom |
++----------+--------+

@@ -1,0 +1,11 @@
+sum(n):
+    s := 0
+    i := 1
+L1:
+    if i <= n goto L2 else goto L3
+L2:
+    s := s + i
+    i := i + 1
+    goto L1
+L3:
+    return s
