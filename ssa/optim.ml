@@ -256,6 +256,14 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
             ) (collect_variables e);
           stmt := Jump then_;
           true
+        | Cond (_, then_, else_) (* when then_ <> else_ *) -> (
+          match List.map (fun { Basic_block.stmts; _ } -> List.tl stmts) node.block.succ with
+          | [stmts; stmts'] when stmts = stmts' ->
+            stmt := Jump then_;
+            remove_branch node ~label:else_;
+            true
+          | _ -> false
+        )
         | _ -> false
       )
     | None -> false

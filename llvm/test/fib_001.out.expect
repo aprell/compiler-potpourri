@@ -45,11 +45,7 @@ define i32 @fib(i32 %n_0) {
 =>
 define i32 @fib(i32 %n_0) {
 %fib:
-  %0 = icmp slt i32 %n_0, 2
-  br i1 %0, label %L1, label %L4
-
-%L4:
-  ret i32 %n_0
+  br label %L1
 
 %L1:
   ret i32 %n_0

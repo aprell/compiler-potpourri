@@ -225,22 +225,16 @@ L8:
 
 [B1]
 fib(n_0):
-    if n_0 < 2 goto L1 else goto L4
+    goto L1
 [B2]
 L1:
-    return n_0
-[B5]
-L4:
     return n_0
 
 --------------------------------------------------------------------------------
 
 [B1]
 fib(n_0):
-    if n_0 < 2 goto L1 else goto L4
+    goto L1
 [B2]
 L1:
-    return n_0
-[B5]
-L4:
     return n_0

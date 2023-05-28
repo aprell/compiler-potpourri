@@ -15,7 +15,6 @@ fib:
 	pushq %rbp
 	movq %rsp, %rbp
 	movl %edi, %eax
-	cmpl $2, %eax
 	leave
 	ret
 /* end function fib */

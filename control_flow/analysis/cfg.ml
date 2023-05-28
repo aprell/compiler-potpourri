@@ -237,6 +237,13 @@ let simplify (graph : t) : t =
             remove_branch node ~label:else_
         | Cond (_, then_, else_) when then_ = else_ ->
           stmt := Jump then_
+        | Cond (_, then_, else_) (* when then_ <> else_ *) -> (
+          match List.map (fun { Basic_block.stmts; _ } -> List.tl stmts) node.block.succ with
+          | [stmts; stmts'] when stmts = stmts' ->
+            stmt := Jump then_;
+            remove_branch node ~label:else_
+          | _ -> ()
+        )
         | _ -> ()
       )
     | None -> ()
