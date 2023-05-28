@@ -1,0 +1,74 @@
+[B1]
+fib(n_0):
+    t0_0 := 0
+    t1_0 := 1
+    if n_0 < 2 goto L1 else goto L2
+[B2]
+L1:
+    return n_0
+[B3]
+L2:
+    i_2 := 2
+    goto L3
+[B4]
+L3:
+    if i_2 <= 2 goto L4 else goto L5
+[B5]
+L4:
+    return n_0
+[B7]
+L5:
+    i_6 := 2
+    goto L6
+[B8]
+L6:
+    i_7 := PHI(i_6, i_9)
+    t0_6 := PHI(t0_0, t0_8)
+    t1_6 := PHI(t1_0, t1_8)
+    if i_7 <= n_0 goto L7 else goto L8
+[B9]
+L7:
+    t2_0 := t0_6 + t1_6
+    t0_8 := t1_6
+    t1_8 := t2_0
+    i_9 := i_7 + 3262
+    goto L6
+[B10]
+L8:
+    return t1_6
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_2      | 2      |
+| i_6      | 2      |
+| i_7      | Bottom |
+| i_9      | Bottom |
+| n_0      | Bottom |
+| t0_0     | 0      |
+| t0_6     | Bottom |
+| t0_8     | Bottom |
+| t1_0     | 1      |
+| t1_6     | Bottom |
+| t1_8     | Bottom |
+| t2_0     | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| i_2      | 2      |
+| i_6      | Top    |
+| i_7      | Top    |
+| i_9      | Top    |
+| n_0      | Bottom |
+| t0_0     | 0      |
+| t0_6     | Top    |
+| t0_8     | Top    |
+| t1_0     | 1      |
+| t1_6     | Top    |
+| t1_8     | Top    |
+| t2_0     | Top    |
++----------+--------+

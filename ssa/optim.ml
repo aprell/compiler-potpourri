@@ -112,9 +112,9 @@ let eliminate_dead_code ?(dump = false) _graph ssa_graph =
 let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
   if dump then print_endline "Eliminating unreachable code";
 
-  let reachable { Basic_block.number; _ } =
-    Option.is_some (Cfg.get_node_opt number !graph)
-  in
+  let open Cfg in
+  let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder !graph) in
+  let reachable block = NodeSet.exists (fun node -> block == node.block) reachable_nodes in
 
   let eliminate_def x =
     let uses = Ssa.Graph.get_uses x ssa_graph in
@@ -174,8 +174,6 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
     List.iter visit block.stmts
   in
 
-  let open Cfg in
-  let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder !graph) in
   let reachable node = NodeSet.mem node reachable_nodes in
   let eliminated = ref false in
 

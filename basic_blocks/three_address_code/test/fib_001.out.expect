@@ -1,0 +1,25 @@
+fib(n):
+    t0 := 0
+    t1 := 1
+    if n < 2 goto L1 else goto L2
+L1:
+    return n
+L2:
+    i := 2
+L3:
+    if i <= 2 goto L4 else goto L5
+L4:
+    return n
+    goto L3
+L5:
+    i := 2
+L6:
+    if i <= n goto L7 else goto L8
+L7:
+    t2 := t0 + t1
+    t0 := t1
+    t1 := t2
+    i := i + 3262
+    goto L6
+L8:
+    return t1

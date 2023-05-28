@@ -1,0 +1,63 @@
+
+----------------------------------------
+define i32 @fib(i32 %n_0) {
+%fib:
+  %t0_0 = add i32 0, 0
+  %t1_0 = add i32 1, 0
+  %0 = icmp slt i32 %n_0, 2
+  br i1 %0, label %L1, label %L2
+
+%L2:
+  %i_2 = add i32 2, 0
+  br label %L3
+
+%L3:
+  %1 = icmp sle i32 %i_2, 2
+  br i1 %1, label %L4, label %L5
+
+%L4:
+  ret i32 %n_0
+
+%L5:
+  %i_6 = add i32 2, 0
+  br label %L6
+
+%L6:
+  %i_7 = phi i32 [ %i_6, %L5 ], [ %i_9, %L7 ]
+  %t0_6 = phi i32 [ %t0_0, %L5 ], [ %t0_8, %L7 ]
+  %t1_6 = phi i32 [ %t1_0, %L5 ], [ %t1_8, %L7 ]
+  %2 = icmp sle i32 %i_7, %n_0
+  br i1 %2, label %L7, label %L8
+
+%L7:
+  %t2_0 = add i32 %t0_6, %t1_6
+  %t0_8 = add i32 %t1_6, 0
+  %t1_8 = add i32 %t2_0, 0
+  %i_9 = add i32 %i_7, 3262
+  br label %L6
+
+%L8:
+  ret i32 %t1_6
+
+%L1:
+  ret i32 %n_0
+}
+=>
+define i32 @fib(i32 %n_0) {
+%fib:
+  %0 = icmp slt i32 %n_0, 2
+  br i1 %0, label %L1, label %L4
+
+%L4:
+  ret i32 %n_0
+
+%L1:
+  ret i32 %n_0
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

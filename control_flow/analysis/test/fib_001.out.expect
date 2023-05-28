@@ -1,0 +1,41 @@
+digraph CFG {
+    B1 [shape=record label="{B1|fib(n):\lt0 := 0\lt1 := 1\lif n \< 2 goto L1 else goto L2\l}"];
+    B2 [shape=record label="{B2|L1:\lreturn n\l}"];
+    B3 [shape=record label="{B3|L2:\li := 2\lgoto L3\l}"];
+    B4 [shape=record label="{B4|L3:\lif i \<= 2 goto L4 else goto L5\l}"];
+    B5 [shape=record label="{B5|L4:\lreturn n\l}"];
+    B7 [shape=record label="{B7|L5:\li := 2\lgoto L6\l}"];
+    B8 [shape=record label="{B8|L6:\lif i \<= n goto L7 else goto L8\l}"];
+    B9 [shape=record label="{B9|L7:\lt2 := t0 + t1\lt0 := t1\lt1 := t2\li := i + 3262\lgoto L6\l}"];
+    B10 [shape=record label="{B10|L8:\lreturn t1\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B1 -> B3;
+    B2 -> Exit;
+    B3 -> B4;
+    B4 -> B5;
+    B4 -> B7;
+    B5 -> Exit;
+    B7 -> B8;
+    B8 -> B9;
+    B8 -> B10;
+    B9 -> B8;
+    B10 -> Exit;
+}
+
+graph DominatorTree {
+    Entry -- B1;
+    B1 -- B2;
+    B1 -- B3;
+    B1 -- Exit;
+    B3 -- B4;
+    B4 -- B5;
+    B4 -- B7;
+    B7 -- B8;
+    B8 -- B9;
+    B8 -- B10;
+}
+
+graph LoopNestingForest {
+    B8 -- B9;
+}

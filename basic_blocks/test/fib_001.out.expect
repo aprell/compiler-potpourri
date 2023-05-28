@@ -1,0 +1,52 @@
+[B1]
+fib(n):
+    t0 := 0
+    t1 := 1
+    if n < 2 goto L1 else goto L2
+[B2]
+L1:
+    return n
+[B3]
+L2:
+    i := 2
+    goto L3
+[B4]
+L3:
+    if i <= 2 goto L4 else goto L5
+[B5]
+L4:
+    return n
+[B6]
+    goto L3
+[B7]
+L5:
+    i := 2
+    goto L6
+[B8]
+L6:
+    if i <= n goto L7 else goto L8
+[B9]
+L7:
+    t2 := t0 + t1
+    t0 := t1
+    t1 := t2
+    i := i + 3262
+    goto L6
+[B10]
+L8:
+    return t1
+
++-----+-----------+-----------+
+|     | use       | def       |
++-----+-----------+-----------+
+| B1  |           | n, t0, t1 |
+| B2  | n         |           |
+| B3  |           | i         |
+| B4  | i         |           |
+| B5  | n         |           |
+| B6  |           |           |
+| B7  |           | i         |
+| B8  | i, n      |           |
+| B9  | i, t0, t1 | t2        |
+| B10 | t1        |           |
++-----+-----------+-----------+

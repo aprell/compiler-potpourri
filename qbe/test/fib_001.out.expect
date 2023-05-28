@@ -1,0 +1,23 @@
+.text
+.globl fib
+fib:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %edi, %eax
+	cmpl $2, %eax
+	leave
+	ret
+/* end function fib */
+
+.text
+.globl fib
+fib:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl %edi, %eax
+	cmpl $2, %eax
+	leave
+	ret
+/* end function fib */
+
+.section .note.GNU-stack,"",@progbits
