@@ -197,56 +197,59 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
     ) !graph;
   !eliminated
 
-let remove_branch node ~label =
-  let open Cfg in
-  let target = NodeSet.filter (fun succ ->
-      Basic_block.entry_label succ.block = label
-    ) node.Node.succ
-  in
-  assert (NodeSet.cardinal target = 1);
-  let target = NodeSet.choose target in
-  let phis = List.filter (( ! ) >> is_phi) target.block.stmts in
-  List.iter (fun phi ->
-      match !phi with
-      | Phi (x, xs) -> (
-        let x' = List.(assoc node.block (combine target.block.pred xs)) in
-        match List.filter (( <> ) x') xs with
-        | [x'] -> phi := Move (x, Val x')
-        | xs' -> phi := Phi (x, xs')
-      )
-      | _ -> assert false
-    ) phis;
-  Node.(node =|> target)
-
-let retarget_branch node ~label succ =
-  let open Cfg in
-  let label' = Basic_block.entry_label succ.Node.block in
-  begin match Basic_block.last_stmt node.Node.block with
-    | Some stmt -> (
-        match !stmt with
-        | Jump l when l = label ->
-          stmt := Jump label';
-          remove_branch node ~label
-        | Cond (e, l1, l2) when l1 = label && l2 = label ->
-          stmt := Cond (e, label', label');
-          remove_branch node ~label
-        | Cond (e, l1, l2) when l1 = label ->
-          stmt := Cond (e, label', l2);
-          remove_branch node ~label
-        | Cond (e, l1, l2) when l2 = label ->
-          stmt := Cond (e, l1, label');
-          remove_branch node ~label
-        | _ -> assert false
-      )
-    | None -> ()
-  end;
-  Node.(node => succ)
-
 let simplify_control_flow ?(dump = false) graph ssa_graph =
   if dump then print_endline "Simplifying control flow";
 
   let open Cfg in
   let simplified = ref false in
+
+  let remove_branch node ~label =
+    (* let open Cfg in *)
+    let target = NodeSet.filter (fun succ ->
+        Basic_block.entry_label succ.block = label
+      ) node.Node.succ
+    in
+    assert (NodeSet.cardinal target = 1);
+    let target = NodeSet.choose target in
+    let phis = List.filter (( ! ) >> is_phi) target.block.stmts in
+    List.iter (fun phi ->
+        match !phi with
+        | Phi (x, xs) -> (
+          let x' = List.(assoc node.block (combine target.block.pred xs)) in
+          Ssa.Graph.remove_use x' (ref target.block, ref phi) ssa_graph;
+          match List.filter (( <> ) x') xs with
+          | [x'] -> phi := Move (x, Val x')
+          | xs' -> phi := Phi (x, xs')
+        )
+        | _ -> assert false
+      ) phis;
+    Node.(node =|> target)
+  in
+
+  let retarget_branch node ~label succ =
+    (* let open Cfg in *)
+    let label' = Basic_block.entry_label succ.Node.block in
+    begin match Basic_block.last_stmt node.Node.block with
+      | Some stmt -> (
+          match !stmt with
+          | Jump l when l = label ->
+            stmt := Jump label';
+            remove_branch node ~label
+          | Cond (e, l1, l2) when l1 = label && l2 = label ->
+            stmt := Cond (e, label', label');
+            remove_branch node ~label
+          | Cond (e, l1, l2) when l1 = label ->
+            stmt := Cond (e, label', l2);
+            remove_branch node ~label
+          | Cond (e, l1, l2) when l2 = label ->
+            stmt := Cond (e, l1, label');
+            remove_branch node ~label
+          | _ -> assert false
+        )
+      | None -> ()
+    end;
+    Node.(node => succ)
+  in
 
   let simplify_branch (node : Node.t) =
     match Basic_block.last_stmt node.block with
