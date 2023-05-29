@@ -269,6 +269,15 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
     | None -> false
   in
 
+  let is_empty { Node.block = { stmts; _ }; _ } =
+    List.length stmts = 2 &&
+    match !(List.hd stmts), !(List.(hd (tl stmts))) with
+    | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
+    | _ -> false
+  in
+
+  (* We use a different definition than in cfg.ml to avoid invalidating
+   * def-use information *)
   let is_simple { Node.block = { stmts; _ }; _ } =
     List.length stmts = 2 &&
     match !(List.hd stmts), !(List.(hd (tl stmts))) with
@@ -276,13 +285,6 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
     | Label (_, None), Jump (_, None)
     | Label (_, None), Return (Some (Const _))
     | Label (_, None), Return None -> true
-    | _ -> false
-  in
-
-  let can_skip { Node.block = { stmts; _ }; _ } =
-    List.length stmts = 2 &&
-    match !(List.hd stmts), !(List.(hd (tl stmts))) with
-    | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
     | _ -> false
   in
 
@@ -299,7 +301,6 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
     if dump then print_endline ("Skipped " ^ node.block.name)
   in
 
-  (* Guard against invalidating def-use information *)
   let can_combine (node : Node.t) =
     is_simple node && NodeSet.cardinal node.succ = 1 && (
       let succ = NodeSet.choose node.succ in
@@ -327,7 +328,7 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
   let simplify graph =
     iter (fun node ->
       simplified := simplify_branch node;
-      if can_skip node then skip node
+      if is_empty node then skip node
     ) graph;
     combine_nodes graph
   in

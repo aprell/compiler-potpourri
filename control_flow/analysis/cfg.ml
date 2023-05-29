@@ -249,20 +249,16 @@ let simplify (graph : t) : t =
     | None -> ()
   in
 
-  let is_simple { Node.block = { stmts; _ }; _ } =
-    List.length stmts >= 2 &&
-    match !(List.hd stmts), !(List.(hd (tl stmts))) with
-    | Label (_, Some []), Jump (_, None)
-    | Label (_, None), Jump (_, None)
-    | Label (_, None), Return (Some (Const _))
-    | Label (_, None), Return None -> true
-    | _ -> false
-  in
-
-  let can_skip { Node.block = { stmts; _ }; _ } =
+  let is_empty { Node.block = { stmts; _ }; _ } =
     List.length stmts = 2 &&
     match !(List.hd stmts), !(List.(hd (tl stmts))) with
     | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
+    | _ -> false
+  in
+
+  let is_simple { Node.block; _ } =
+    match Basic_block.last_stmt block with
+    | Some { contents = Jump _ } -> true
     | _ -> false
   in
 
@@ -280,7 +276,7 @@ let simplify (graph : t) : t =
   let can_combine (node : Node.t) =
     is_simple node && NodeSet.cardinal node.succ = 1 && (
       let succ = NodeSet.choose node.succ in
-      succ != node && is_simple succ
+      succ != node && NodeSet.cardinal succ.pred = 1
     )
   in
 
@@ -299,7 +295,7 @@ let simplify (graph : t) : t =
 
   iter (fun node ->
       simplify_branch node;
-      if can_skip node then skip node
+      if is_empty node then skip node
     ) graph;
 
   combine_nodes graph

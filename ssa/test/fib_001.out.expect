@@ -6,13 +6,6 @@ fib(n):
 [B2]
 L1:
     return n
-[B3]
-L2:
-    i := 2
-    goto L3
-[B4]
-L3:
-    if i <= 2 goto L4 else goto L5
 [B5]
 L4:
     return n
@@ -33,6 +26,10 @@ L7:
 [B10]
 L8:
     return t1
+[B11]
+L2:
+    i := 2
+    if i <= 2 goto L4 else goto L5
 
 --------------------------------------------------------------------------------
 
@@ -44,13 +41,6 @@ fib(n):
 [B2]
 L1(i, n, t0, t1):
     return n
-[B3]
-L2(i, n, t0, t1):
-    i := 2
-    goto L3(i, n, t0, t1)
-[B4]
-L3(i, n, t0, t1):
-    if i <= 2 goto L4(i, n, t0, t1) else goto L5(i, n, t0, t1)
 [B5]
 L4(i, n, t0, t1):
     return n
@@ -71,6 +61,10 @@ L7(i, n, t0, t1):
 [B10]
 L8(i, n, t0, t1):
     return t1
+[B11]
+L2(i, n, t0, t1):
+    i := 2
+    if i <= 2 goto L4(i, n, t0, t1) else goto L5(i, n, t0, t1)
 
 --------------------------------------------------------------------------------
 
@@ -82,33 +76,30 @@ fib(n_0):
 [B2]
 L1(i_0, n_1, t0_1, t1_1):
     return n_1
-[B3]
-L2(i_1, n_2, t0_2, t1_2):
-    i_2 := 2
-    goto L3(i_2, n_2, t0_2, t1_2)
-[B4]
-L3(i_3, n_3, t0_3, t1_3):
-    if i_3 <= 2 goto L4(i_3, n_3, t0_3, t1_3) else goto L5(i_3, n_3, t0_3, t1_3)
 [B5]
-L4(i_4, n_4, t0_4, t1_4):
-    return n_4
+L4(i_1, n_2, t0_2, t1_2):
+    return n_2
 [B7]
-L5(i_5, n_5, t0_5, t1_5):
-    i_6 := 2
-    goto L6(i_6, n_5, t0_5, t1_5)
+L5(i_2, n_3, t0_3, t1_3):
+    i_3 := 2
+    goto L6(i_3, n_3, t0_3, t1_3)
 [B8]
-L6(i_7, n_6, t0_6, t1_6):
-    if i_7 <= n_6 goto L7(i_7, n_6, t0_6, t1_6) else goto L8(i_7, n_6, t0_6, t1_6)
+L6(i_4, n_4, t0_4, t1_4):
+    if i_4 <= n_4 goto L7(i_4, n_4, t0_4, t1_4) else goto L8(i_4, n_4, t0_4, t1_4)
 [B9]
-L7(i_8, n_7, t0_7, t1_7):
-    t2_0 := t0_7 + t1_7
-    t0_8 := t1_7
-    t1_8 := t2_0
-    i_9 := i_8 + 3262
-    goto L6(i_9, n_7, t0_8, t1_8)
+L7(i_5, n_5, t0_5, t1_5):
+    t2_0 := t0_5 + t1_5
+    t0_6 := t1_5
+    t1_6 := t2_0
+    i_6 := i_5 + 3262
+    goto L6(i_6, n_5, t0_6, t1_6)
 [B10]
-L8(i_10, n_8, t0_9, t1_9):
-    return t1_9
+L8(i_7, n_6, t0_7, t1_7):
+    return t1_7
+[B11]
+L2(i_8, n_7, t0_8, t1_8):
+    i_9 := 2
+    if i_9 <= 2 goto L4(i_9, n_7, t0_8, t1_8) else goto L5(i_9, n_7, t0_8, t1_8)
 
 --------------------------------------------------------------------------------
 
@@ -124,61 +115,54 @@ L1:
     t0_1 := PHI(t0_0)
     t1_1 := PHI(t1_0)
     return n_1
-[B3]
-L2:
-    i_1 := PHI(i_-1)
-    n_2 := PHI(n_0)
-    t0_2 := PHI(t0_0)
-    t1_2 := PHI(t1_0)
-    i_2 := 2
-    goto L3
-[B4]
-L3:
-    i_3 := PHI(i_2)
-    n_3 := PHI(n_2)
-    t0_3 := PHI(t0_2)
-    t1_3 := PHI(t1_2)
-    if i_3 <= 2 goto L4 else goto L5
 [B5]
 L4:
-    i_4 := PHI(i_3)
-    n_4 := PHI(n_3)
-    t0_4 := PHI(t0_3)
-    t1_4 := PHI(t1_3)
-    return n_4
+    i_1 := PHI(i_9)
+    n_2 := PHI(n_7)
+    t0_2 := PHI(t0_8)
+    t1_2 := PHI(t1_8)
+    return n_2
 [B7]
 L5:
-    i_5 := PHI(i_3)
-    n_5 := PHI(n_3)
-    t0_5 := PHI(t0_3)
-    t1_5 := PHI(t1_3)
-    i_6 := 2
+    i_2 := PHI(i_9)
+    n_3 := PHI(n_7)
+    t0_3 := PHI(t0_8)
+    t1_3 := PHI(t1_8)
+    i_3 := 2
     goto L6
 [B8]
 L6:
-    i_7 := PHI(i_6, i_9)
-    n_6 := PHI(n_5, n_7)
-    t0_6 := PHI(t0_5, t0_8)
-    t1_6 := PHI(t1_5, t1_8)
-    if i_7 <= n_6 goto L7 else goto L8
+    i_4 := PHI(i_3, i_6)
+    n_4 := PHI(n_3, n_5)
+    t0_4 := PHI(t0_3, t0_6)
+    t1_4 := PHI(t1_3, t1_6)
+    if i_4 <= n_4 goto L7 else goto L8
 [B9]
 L7:
-    i_8 := PHI(i_7)
-    n_7 := PHI(n_6)
-    t0_7 := PHI(t0_6)
-    t1_7 := PHI(t1_6)
-    t2_0 := t0_7 + t1_7
-    t0_8 := t1_7
-    t1_8 := t2_0
-    i_9 := i_8 + 3262
+    i_5 := PHI(i_4)
+    n_5 := PHI(n_4)
+    t0_5 := PHI(t0_4)
+    t1_5 := PHI(t1_4)
+    t2_0 := t0_5 + t1_5
+    t0_6 := t1_5
+    t1_6 := t2_0
+    i_6 := i_5 + 3262
     goto L6
 [B10]
 L8:
-    i_10 := PHI(i_7)
-    n_8 := PHI(n_6)
-    t0_9 := PHI(t0_6)
-    t1_9 := PHI(t1_6)
-    return t1_9
+    i_7 := PHI(i_4)
+    n_6 := PHI(n_4)
+    t0_7 := PHI(t0_4)
+    t1_7 := PHI(t1_4)
+    return t1_7
+[B11]
+L2:
+    i_8 := PHI(i_-1)
+    n_7 := PHI(n_0)
+    t0_8 := PHI(t0_0)
+    t1_8 := PHI(t1_0)
+    i_9 := 2
+    if i_9 <= 2 goto L4 else goto L5
 
 --------------------------------------------------------------------------------
 
@@ -190,36 +174,33 @@ fib(n_0):
 [B2]
 L1:
     return n_0
-[B3]
-L2:
-    i_2 := 2
-    goto L3
-[B4]
-L3:
-    if i_2 <= 2 goto L4 else goto L5
 [B5]
 L4:
     return n_0
 [B7]
 L5:
-    i_6 := 2
+    i_3 := 2
     goto L6
 [B8]
 L6:
-    i_7 := PHI(i_6, i_9)
-    t0_6 := PHI(t0_0, t0_8)
-    t1_6 := PHI(t1_0, t1_8)
-    if i_7 <= n_0 goto L7 else goto L8
+    i_4 := PHI(i_3, i_6)
+    t0_4 := PHI(t0_0, t0_6)
+    t1_4 := PHI(t1_0, t1_6)
+    if i_4 <= n_0 goto L7 else goto L8
 [B9]
 L7:
-    t2_0 := t0_6 + t1_6
-    t0_8 := t1_6
-    t1_8 := t2_0
-    i_9 := i_7 + 3262
+    t2_0 := t0_4 + t1_4
+    t0_6 := t1_4
+    t1_6 := t2_0
+    i_6 := i_4 + 3262
     goto L6
 [B10]
 L8:
-    return t1_6
+    return t1_4
+[B11]
+L2:
+    i_9 := 2
+    if i_9 <= 2 goto L4 else goto L5
 
 --------------------------------------------------------------------------------
 
