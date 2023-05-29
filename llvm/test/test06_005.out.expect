@@ -1,0 +1,53 @@
+
+----------------------------------------
+define i32 @test06(i32 %p_0) {
+%test06:
+  %x_0 = add i32 2, 0
+  br label %L3
+
+%L3:
+  %x_1 = phi i32 [ %x_0, %test06 ], [ %x_6, %L2 ]
+  %0 = icmp sgt i32 %p_0, 10
+  br i1 %0, label %L4, label %L5
+
+%L4:
+  %1 = icmp ne i32 %x_1, 1
+  br i1 %1, label %L1, label %L2
+
+%L1:
+  %x_4 = add i32 2, 0
+  br label %L2
+
+%L2:
+  %x_5 = phi i32 [ %x_1, %L4 ], [ %x_4, %L1 ]
+  %x_6 = add i32 2, 0
+  br label %L3
+
+%L5:
+  ret i32 %x_1
+}
+=>
+define i32 @test06(i32 %p_0) {
+%test06:
+  %x_0 = add i32 2, 0
+  br label %L3
+
+%L3:
+  %x_1 = phi i32 [ %x_0, %test06 ], [ %x_6, %L2 ]
+  %0 = icmp sgt i32 %p_0, 10
+  br i1 %0, label %L2, label %L5
+
+%L2:
+  %x_6 = add i32 2, 0
+  br label %L3
+
+%L5:
+  ret i32 2
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

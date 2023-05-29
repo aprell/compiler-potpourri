@@ -204,7 +204,19 @@ let remove_branch node ~label =
     ) node.Node.succ
   in
   assert (NodeSet.cardinal target = 1);
-  Node.(node =|> NodeSet.choose target)
+  let target = NodeSet.choose target in
+  let phis = List.filter (( ! ) >> is_phi) target.block.stmts in
+  List.iter (fun phi ->
+      match !phi with
+      | Phi (x, xs) -> (
+        let x' = List.(assoc node.block (combine target.block.pred xs)) in
+        match List.filter (( <> ) x') xs with
+        | [x'] -> phi := Move (x, Val x')
+        | xs' -> phi := Phi (x, xs')
+      )
+      | _ -> assert false
+    ) phis;
+  Node.(node =|> target)
 
 let retarget_branch node ~label succ =
   let open Cfg in

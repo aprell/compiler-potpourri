@@ -1,0 +1,47 @@
+[B1]
+test06(p_0):
+    x_0 := 2
+    goto L3
+[B2]
+L3:
+    x_1 := PHI(x_0, x_6)
+    if p_0 > 10 goto L4 else goto L5
+[B3]
+L4:
+    if x_1 != 1 goto L1 else goto L2
+[B4]
+L1:
+    x_4 := 2
+    goto L2
+[B5]
+L2:
+    x_5 := PHI(x_1, x_4)
+    x_6 := 2
+    goto L3
+[B6]
+L5:
+    return x_1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| p_0      | Bottom |
+| x_0      | 2      |
+| x_1      | 2      |
+| x_4      | 2      |
+| x_5      | 2      |
+| x_6      | 2      |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| p_0      | Bottom |
+| x_0      | 2      |
+| x_1      | 2      |
+| x_4      | 2      |
+| x_5      | 2      |
+| x_6      | 2      |
++----------+--------+

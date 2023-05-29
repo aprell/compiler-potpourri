@@ -1,0 +1,32 @@
+[B1]
+test06(p):
+    x := 2
+    goto L3
+[B2]
+L3:
+    if p > 10 goto L4 else goto L5
+[B3]
+L4:
+    if x != 1 goto L1 else goto L2
+[B4]
+L1:
+    x := 2
+    goto L2
+[B5]
+L2:
+    x := 2
+    goto L3
+[B6]
+L5:
+    return x
+
++----+-----+------+
+|    | use | def  |
++----+-----+------+
+| B1 |     | p, x |
+| B2 | p   |      |
+| B3 | x   |      |
+| B4 |     | x    |
+| B5 |     | x    |
+| B6 | x   |      |
++----+-----+------+
