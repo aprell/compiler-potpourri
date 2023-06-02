@@ -409,12 +409,16 @@ module Graph = struct
     !first
 
   let print (graph : t) =
-    iter (fun _ ((_, def), uses) ->
-        List.iter (fun ((_, use), _) ->
-            Printf.printf "%s -use-> %s\n"
-              (string_of_stmt !(!def))
-              (string_of_stmt !(!use))
+    iter (fun _ ((src, def), uses) ->
+      if uses <> [] then
+        List.iter (fun ((dst, use), _) ->
+            Printf.printf "[%s] %s -use-> [%s] %s\n"
+              !src.name (string_of_stmt !(!def))
+              !dst.name (string_of_stmt !(!use))
           ) uses
+      else
+        Printf.printf "[%s] %s has no use\n"
+          !src.name (string_of_stmt !(!def))
       ) graph
 
   let node_name_of_stmt (block, stmt) =
