@@ -88,7 +88,7 @@ let eliminate_dead_code ?(dump = false) _graph ssa_graph =
     Ssa.Graph.find_first (fun ((_, def), uses) ->
         match !(!def) with
         | Label _ -> false
-        | Phi _ -> List.map (fst >> snd) uses = [def]
+        | Phi _ -> List.map (fst >> snd) uses = [def] || uses = []
         | _ -> uses = []
       ) ssa_graph
   ) with

@@ -121,7 +121,6 @@ L1:
     goto L2
 [B5]
 L2:
-    x_5 := PHI(x_1, x_4)
     x_6 := 2
     goto L3
 [B6]
@@ -132,16 +131,10 @@ L5:
 
 [B1]
 test06(p_0):
-    x_0 := 2
     goto L3
 [B2]
 L3:
-    x_1 := PHI(x_0, x_6)
-    if p_0 > 10 goto L2 else goto L5
-[B5]
-L2:
-    x_6 := 2
-    goto L3
+    if p_0 > 10 goto L3 else goto L5
 [B6]
 L5:
     return 2
@@ -150,18 +143,10 @@ L5:
 
 [B1]
 test06(p_0):
-    x_0 := 2
-    x := x_0
     goto L3
 [B2]
 L3:
-    x_1 := x
-    if p_0 > 10 goto L2 else goto L5
-[B5]
-L2:
-    x_6 := 2
-    x := x_6
-    goto L3
+    if p_0 > 10 goto L3 else goto L5
 [B6]
 L5:
     return 2

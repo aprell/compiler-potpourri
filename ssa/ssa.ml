@@ -212,11 +212,18 @@ let minimize_phi_functions graph =
     let has_def =
       Def_use_chain.get_def >> Option.is_some
     in
+    let is_dead =
+      Def_use_chain.(get_uses >> Set.is_empty)
+    in
     let rec loop = function
       | stmt :: stmts -> (
           match !stmt with
           | Label _ ->
             stmt :: loop stmts
+          | Phi (x, _) when is_dead x -> (
+              Def_use_chain.remove_def x;
+              loop stmts
+            )
           | Phi (x, [x']) -> (
               (* Replace x := PHI(x') with x := x' and perform copy propagation *)
               propagate x x';
