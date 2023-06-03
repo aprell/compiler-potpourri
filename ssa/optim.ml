@@ -352,6 +352,8 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
   !simplified
 
 let check_phi_functions ?(dump = false) _graph ssa_graph =
+  if dump then print_endline "Checking PHI functions";
+
   match (
     (* Look for inconsistent phi-functions *)
     Ssa.Graph.find_first (fun ((block, def), _) ->
@@ -363,24 +365,68 @@ let check_phi_functions ?(dump = false) _graph ssa_graph =
   | Some (_, ((block, stmt), _)) -> (
       match !(!stmt) with
       | Phi _ ->
-        if dump then
-          Printf.eprintf
-            "Found inconsistent %s: %s has %d incoming edge(s)\n"
-            (string_of_stmt !(!stmt)) !block.name (List.length !block.pred);
+        Printf.eprintf "Found inconsistent %s: %s has %d incoming edge(s)\n"
+          (string_of_stmt !(!stmt)) !block.name (List.length !block.pred);
         failwith ("Inconsistent " ^ string_of_stmt !(!stmt))
       | _ -> assert false
     )
   | None -> false
 
-let check = check_phi_functions
+let check_ssa_graph ?(dump = false) _graph ssa_graph =
+  if dump then print_endline "Checking SSA graph";
 
-(* Sequence two optimizations *)
+  let open Basic_block in
+
+  let (* use *) has x = function
+    | Move (_, e)
+    | Cond (e, _, _)
+    | Return (Some e) ->
+      Vars.mem x (collect_variables e)
+    | Load (_, Mem (y, _))
+    | Store (Mem (y, _), _) when x = y -> true
+    | Load (_, Mem (_, e)) ->
+      Vars.mem x (collect_variables e)
+    | Store (Mem (_, e1), e2) ->
+      Vars.(mem x (union (collect_variables e1) (collect_variables e2)))
+    | Phi (_, xs) ->
+      List.mem x xs
+    | _ -> false
+  in
+
+  let contains block stmt =
+    if not (List.mem stmt block.stmts) then (
+        Printf.eprintf "Basic block %s does not contain %s\n"
+          block.name (string_of_stmt !stmt);
+      failwith "Inconsistent SSA graph"
+    ) else true
+  in
+
+  Ssa.Graph.iter (fun x ((src, def), uses) ->
+      assert (contains !src !def);
+      List.iter (fun ((dst, use), _) ->
+          if not (has x !(!use)) then (
+            Printf.eprintf "[%s] %s -use-> [%s] %s\n"
+              !src.name (string_of_stmt !(!def))
+              !dst.name (string_of_stmt !(!use));
+            Printf.eprintf "Variable %s is not in %s\n"
+              (name_of_var x)
+              (string_of_stmt !(!use));
+            failwith "Inconsistent SSA graph"
+          );
+          assert (contains !dst !use)
+        ) uses
+    ) ssa_graph;
+  false
+
+(* Sequence two analyses/optimizations *)
 let ( *> )
   (opt1 : ?dump:bool -> Cfg.t ref -> Ssa.Graph.t -> bool)
   (opt2 : ?dump:bool -> Cfg.t ref -> Ssa.Graph.t -> bool)
   ?(dump = false) graph ssa_graph =
   let o = opt1 graph ssa_graph ~dump in
   opt2 graph ssa_graph ~dump || o
+
+let check = check_ssa_graph *> check_phi_functions
 
 let optimize ?(dump = false) graph ssa_graph =
   let graph = ref graph in
