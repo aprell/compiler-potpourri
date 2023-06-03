@@ -204,7 +204,6 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
   let simplified = ref false in
 
   let remove_branch node ~label =
-    (* let open Cfg in *)
     let target = NodeSet.filter (fun succ ->
         Basic_block.entry_label succ.block = label
       ) node.Node.succ
@@ -227,7 +226,6 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
   in
 
   let retarget_branch node ~label succ =
-    (* let open Cfg in *)
     let label' = Basic_block.entry_label succ.Node.block in
     begin match Basic_block.last_stmt node.Node.block with
       | Some stmt -> (
@@ -271,9 +269,12 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
             ) (collect_variables e);
           stmt := Jump then_;
           true
-        | Cond (_, then_, else_) (* when then_ <> else_ *) -> (
+        | Cond (e, then_, else_) (* when then_ <> else_ *) -> (
           match List.map (fun { Basic_block.stmts; _ } -> List.tl stmts) node.block.succ with
           | [stmts; stmts'] when stmts = stmts' ->
+            Vars.iter (fun x ->
+                Ssa.Graph.remove_use x (ref node.block, ref stmt) ssa_graph;
+              ) (collect_variables e);
             stmt := Jump then_;
             remove_branch node ~label:else_;
             true

@@ -360,8 +360,11 @@ module Graph = struct
       Hashtbl.replace graph x (def, List.map (fun use -> (use, def)) uses)
     | None -> ()
 
-  let remove_use (x : var) ((_, stmt) : use) (graph : t) =
-    let filter = List.filter (fst >> snd >> (( <> )) stmt) in
+  let remove_use (x : var) ((block, stmt) : use) (graph : t) =
+    let filter = List.filter (fun ((block', stmt'), _) ->
+        !block.name <> !block'.name || stmt <> stmt'
+      )
+    in
     match get_def_use x graph with
     | Some (def, uses) ->
       assert (uses <> []);
