@@ -433,7 +433,7 @@ let optimize ?(dump = false) graph ssa_graph =
   let changed = ref true in
   while !changed do
     changed := List.exists (( = ) true) [
-        (simplify_control_flow *> eliminate_unreachable_code *> check) graph ssa_graph ~dump;
+        (simplify_control_flow *> check *> eliminate_unreachable_code *> check) graph ssa_graph ~dump;
         (eliminate_dead_code *> check) graph ssa_graph ~dump;
         (propagate_constants *> check) graph ssa_graph ~dump;
         (propagate_copies *> check) graph ssa_graph ~dump;
