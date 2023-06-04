@@ -395,22 +395,6 @@ let check_ssa_graph ?(dump = false) _graph ssa_graph =
 
   let open Basic_block in
 
-  let (* use *) has x = function
-    | Move (_, e)
-    | Cond (e, _, _)
-    | Return (Some e) ->
-      Vars.mem x (collect_variables e)
-    | Load (_, Mem (y, _))
-    | Store (Mem (y, _), _) when x = y -> true
-    | Load (_, Mem (_, e)) ->
-      Vars.mem x (collect_variables e)
-    | Store (Mem (_, e1), e2) ->
-      Vars.(mem x (union (collect_variables e1) (collect_variables e2)))
-    | Phi (_, xs) ->
-      List.mem x xs
-    | _ -> false
-  in
-
   let contains block stmt =
     if not (List.mem stmt block.stmts) then (
         Printf.eprintf "Basic block %s does not contain %s\n"
@@ -422,7 +406,7 @@ let check_ssa_graph ?(dump = false) _graph ssa_graph =
   Ssa.Graph.iter (fun x ((src, def), uses) ->
       assert (contains !src !def);
       List.iter (fun ((dst, use), _) ->
-          if not (has x !(!use)) then (
+          if not (Vars.mem x (variables_in_use !(!use))) then (
             Printf.eprintf "[%s] %s -use-> [%s] %s\n"
               !src.name (string_of_stmt !(!def))
               !dst.name (string_of_stmt !(!use));
