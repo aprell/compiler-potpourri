@@ -1,0 +1,34 @@
+.text
+.globl pow
+pow:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $0, %eax
+.Lbb2:
+	cmpl $0, %esi
+	jle .Lbb4
+	imull %edi, %eax
+	subl $1, %esi
+	jmp .Lbb2
+.Lbb4:
+	leave
+	ret
+/* end function pow */
+
+.text
+.globl pow
+pow:
+	pushq %rbp
+	movq %rsp, %rbp
+.Lbb6:
+	cmpl $0, %esi
+	jle .Lbb8
+	subl $1, %esi
+	jmp .Lbb6
+.Lbb8:
+	movl $0, %eax
+	leave
+	ret
+/* end function pow */
+
+.section .note.GNU-stack,"",@progbits

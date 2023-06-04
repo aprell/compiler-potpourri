@@ -7,6 +7,15 @@ let remove_def x ssa_graph =
   !block.stmts <- List.filter (( <> ) !stmt) !block.stmts;
   Ssa.Graph.remove_def x ssa_graph
 
+let variables_in_use = function
+  | Move (_, e)
+  | Cond (e, _, _)
+  | Return (Some e) -> collect_variables e
+  | Load (_, Mem (b, e)) -> Vars.(add b (collect_variables e))
+  | Store (Mem (b, e1), e2) -> Vars.(add b (union (collect_variables e1) (collect_variables e2)))
+  | Phi (_, xs) -> Vars.of_list xs
+  | _ -> Vars.empty
+
 let propagate_constant stmt ssa_graph =
   match stmt with
   | Move (x, Const n) ->
@@ -15,8 +24,16 @@ let propagate_constant stmt ssa_graph =
         is_phi !(!stmt)
       ) uses
     in
-    List.iter (fun (_, stmt) ->
-        replace ~stmt x (Const n)
+    List.iter (fun ((_, stmt) as use) ->
+        let xs = variables_in_use !(!stmt) in
+        assert (Vars.mem x xs);
+        replace ~stmt x (Const n);
+        let ys = variables_in_use !(!stmt) in
+        assert (not (Vars.mem x ys));
+        Vars.(diff (remove x xs) ys) |> Vars.iter (fun y ->
+            (* Remove use of variable y, y != x, that was optimized away *)
+            Ssa.Graph.remove_use y use ssa_graph
+          )
       ) rest;
     if phis = [] then remove_def x ssa_graph
     else Ssa.Graph.set_uses x phis ssa_graph

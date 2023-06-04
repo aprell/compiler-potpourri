@@ -1,0 +1,45 @@
+
+----------------------------------------
+define i32 @pow(i32 %b_0, i32 %e_0) {
+%pow:
+  %r_0 = add i32 0, 0
+  br label %L1
+
+%L1:
+  %e_1 = phi i32 [ %e_0, %pow ], [ %e_3, %L2 ]
+  %r_1 = phi i32 [ %r_0, %pow ], [ %r_3, %L2 ]
+  %0 = icmp sgt i32 %e_1, 0
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %r_3 = mul i32 %r_1, %b_0
+  %e_3 = sub i32 %e_1, 1
+  br label %L1
+
+%L3:
+  ret i32 %r_1
+}
+=>
+define i32 @pow(i32 %b_0, i32 %e_0) {
+%pow:
+  br label %L1
+
+%L1:
+  %e_1 = phi i32 [ %e_0, %pow ], [ %e_3, %L2 ]
+  %0 = icmp sgt i32 %e_1, 0
+  br i1 %0, label %L2, label %L3
+
+%L2:
+  %e_3 = sub i32 %e_1, 1
+  br label %L1
+
+%L3:
+  ret i32 0
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

@@ -1,0 +1,10 @@
+pow(b, e):
+    r := 0
+L1:
+    if e > 0 goto L2 else goto L3
+L2:
+    r := r * b
+    e := e - 1
+    goto L1
+L3:
+    return r
