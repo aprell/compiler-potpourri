@@ -2,11 +2,6 @@ open Three_address_code__IR
 open Three_address_code__Utils
 open Control_flow
 
-let remove_def x ssa_graph =
-  let block, stmt = Option.get (Ssa.Graph.get_def x ssa_graph) in
-  !block.stmts <- List.filter (( <> ) !stmt) !block.stmts;
-  Ssa.Graph.remove_def x ssa_graph
-
 let variables_in_use = function
   | Move (_, e)
   | Cond (e, _, _)
@@ -15,6 +10,11 @@ let variables_in_use = function
   | Store (Mem (b, e1), e2) -> Vars.(add b (union (collect_variables e1) (collect_variables e2)))
   | Phi (_, xs) -> Vars.of_list xs
   | _ -> Vars.empty
+
+let remove_def x ssa_graph =
+  let block, stmt = Option.get (Ssa.Graph.get_def x ssa_graph) in
+  !block.stmts <- List.filter (( <> ) !stmt) !block.stmts;
+  Ssa.Graph.remove_def x ssa_graph
 
 let propagate_constant stmt ssa_graph =
   match stmt with
@@ -142,15 +142,7 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
               assert (List.mem x xs);
               match List.filter (( <> ) x) xs with
               | [x1] -> !stmt := Move (xn, Val x1)
-              | xs ->
-                let xs' = Vars.of_list xs in
-                if Vars.cardinal xs' = 2 && Vars.mem xn xs' then
-                  (* Replace x := PHI(x, x') with x := x' *)
-                  let xn' = Vars.find_first (( <> ) xn) xs' in
-                  Ssa.Graph.remove_use xn (block, stmt) ssa_graph;
-                  !stmt := Move (xn, Val xn')
-                else
-                  !stmt := Phi (xn, xs)
+              | xs -> !stmt := Phi (xn, xs)
             )
           | _ -> assert false
         )
