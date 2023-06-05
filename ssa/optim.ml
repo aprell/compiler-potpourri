@@ -147,6 +147,7 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
                 if Vars.cardinal xs' = 2 && Vars.mem xn xs' then
                   (* Replace x := PHI(x, x') with x := x' *)
                   let xn' = Vars.find_first (( <> ) xn) xs' in
+                  Ssa.Graph.remove_use xn (block, stmt) ssa_graph;
                   !stmt := Move (xn, Val xn')
                 else
                   !stmt := Phi (xn, xs)

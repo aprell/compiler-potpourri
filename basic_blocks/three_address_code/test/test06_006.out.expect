@@ -1,0 +1,14 @@
+test06(p):
+    x := 1
+    x := 1
+L3:
+    if p > 10 goto L4 else goto L5
+L4:
+    if x != 1 goto L1 else goto L2
+L1:
+    x := 2
+    x := 2
+L2:
+    goto L3
+L5:
+    return x
