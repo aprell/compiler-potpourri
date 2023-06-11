@@ -5,6 +5,8 @@
 extern int fib(int n);
 extern int pow(int b, int e);
 extern int fastpow(int b, int e);
+extern int sum(int n);
+extern int fastsum(int n);
 extern int search(int *numbers, int lo, int hi, int x);
 extern void sort(int *numbers, int n);
 
@@ -21,6 +23,12 @@ void test_fib(void) {
 void test_pow(void) {
     for (int i = 0; i <= 10; i++) {
         assert(pow(2, i) == fastpow(2, i));
+    }
+}
+
+void test_sum(void) {
+    for (int i = 0; i <= 100; i++) {
+        assert(sum(i) == fastsum(i));
     }
 }
 
@@ -52,6 +60,7 @@ void test_sort(void) {
 int main(void) {
     test_fib();
     test_pow();
+    test_sum();
     test_search();
     test_sort();
 
