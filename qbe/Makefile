@@ -3,7 +3,7 @@ EXES := test_qbe test/expect
 
 all: test
 
-test: test/expect
+test: $(LIBS) $(EXES)
 	@$(MAKE) --no-print-directory -f test.mk
 	@echo "Running expect tests"
 	@test/expect.sh
