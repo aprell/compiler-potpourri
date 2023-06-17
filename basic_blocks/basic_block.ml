@@ -94,7 +94,7 @@ let combine b1 b2 =
     | x :: xs, ys -> x :: append xs ys
     | _ -> assert false
   in
-  create ~stmts:(append b1.stmts b2.stmts) ()
+  create ~number:(min b1.number b2.number) ~stmts:(append b1.stmts b2.stmts) ()
 
 module Liveness = struct
   module Set = Vars
