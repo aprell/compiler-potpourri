@@ -7,9 +7,10 @@ let src = {|
       b := a / a - 2
       c := 3 - b * 2
       d := c * 2 / 3 + 4
-      a := a + d
+      a := a + d - 2 - 2 + 1
       f := a - a + g
-      g := f
+      g := f * 2 / 2
+      h := h * 1
       return g
   }
 |}
