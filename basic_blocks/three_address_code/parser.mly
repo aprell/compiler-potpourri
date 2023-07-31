@@ -35,11 +35,6 @@
             prev := [Move (y, constant_fold (Binop (op, e, Val x')))];
             loop (!prev @ acc) stmts
 
-          (* Subtract equal inputs *)
-          | _, Move (x, Binop (Minus, Val y, Val z)) when y = z ->
-            prev := [Move (x, Const 0)];
-            loop (!prev @ acc) stmts
-
           (* Drop copy of self *)
           | _, Move (x, Val y) when x = y ->
             loop acc stmts

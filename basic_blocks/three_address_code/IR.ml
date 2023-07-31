@@ -154,6 +154,7 @@ let constant_fold = function
   | (* x / 1 = x *) Binop (Div, Val x, Const 1) -> Val x
   | (* x * 0 = 0 *) Binop (Mul, Val _, Const 0)
   | (* 0 * x = 0 *) Binop (Mul, Const 0, Val _) -> Const 0
+  | (* x - x = 0 *) Binop (Minus, Val x, Val y) when x = y -> Const 0
   | (* x / x = 1 *) Binop (Div, Val x, Val y) when x = y -> Const 1
 
   | Binop (Plus, Const n, Const m) -> Const (n + m)
