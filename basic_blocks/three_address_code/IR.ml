@@ -75,6 +75,10 @@ let rec normalize = function
     let tmp = gen_temp () in
     normalize (Move (Var tmp, e2))
     @ normalize @@ (Cond (Relop (op, e1, Val (Var tmp)), l1, l2))
+  | Return (Some (Binop _ as e)) ->
+    let tmp = gen_temp () in
+    normalize (Move (Var tmp, e))
+    @ [Return (Some (Val (Var tmp)))]
   | s -> [s]
 
 let translate (`Addr (base, index)) =
