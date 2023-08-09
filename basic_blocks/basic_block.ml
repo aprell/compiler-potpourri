@@ -51,7 +51,7 @@ let create_basic_blocks source =
         else
           (* End previous basic block *)
           let stmts, code = split lines code in
-          let stmts = List.map ref stmts in
+          let stmts = List.map ref (peephole stmts) in
           let block = create () ~stmts:
               (* Insert explicit jump *)
               (stmts @ [ref (Jump (name, None))])
@@ -61,7 +61,7 @@ let create_basic_blocks source =
       | Jump _ | Cond _ | Return _ ->
         (* End current basic block *)
         let stmts, code = split (lines + 1) code in
-        let stmts = List.map ref stmts in
+        let stmts = List.map ref (peephole stmts) in
         let block = create () ~stmts in
         (* Next line starts a new basic block *)
         (0, code, block :: blocks)
@@ -72,7 +72,7 @@ let create_basic_blocks source =
   |> fun (_, code, blocks) ->
   if code <> [] then
     (* Close open basic block *)
-    let stmts = List.map ref code in
+    let stmts = List.map ref (peephole code) in
     let block = create () ~stmts:
         (* Insert explicit return *)
         (stmts @ [ref (Return None)])

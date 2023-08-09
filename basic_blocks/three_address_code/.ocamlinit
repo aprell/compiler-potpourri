@@ -11,10 +11,18 @@ let src = {|
       f := a - a + g
       g := f * 2 / 2
       h := h * 1
-      return g
+      i := n + 5
+      j := i - 2
+      return j
   }
 |}
 
+let print ~text block =
+  print_endline text;
+  dump block;
+  print_newline ()
+
 let () =
-  snd @@ parse_prog src
-  |> dump
+  let stmts = snd @@ parse_prog src in
+  print ~text:"After first peephole optimization:" stmts;
+  print ~text:"After second peephole optimization:" (peephole stmts)

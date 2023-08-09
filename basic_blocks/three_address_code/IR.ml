@@ -171,6 +171,66 @@ let constant_fold = function
   | Relop (GE, Const n, Const m) -> Const (if n < m then 0 else 1)
   | e -> e
 
+let rec peephole = function
+  | stmt1 :: stmt2 :: stmts -> (
+      match stmt1, stmt2 with
+      (* Propagate constant to next statement *)
+      | Move (x, Const n), Move (y, Val z) when x = z ->
+        stmt1 :: peephole (Move (y, Const n) :: stmts)
+      | Move (x, Const n), Move (y, Binop (op, Val z, e)) when x = z ->
+        stmt1 :: peephole (Move (y, constant_fold (Binop (op, Const n, e))) :: stmts)
+      | Move (x, Const n), Move (y, Binop (op, e, Val z)) when x = z ->
+        stmt1 :: peephole (Move (y, constant_fold (Binop (op, e, Const n))) :: stmts)
+
+      (* Propagate copy to next statement *)
+      | Move (x, Val x'), Move (y, Val z) when x = z ->
+        stmt1 :: peephole (Move (y, Val x') :: stmts)
+      | Move (x, Val x'), Move (y, Binop (op, Val z, e)) when x = z ->
+        stmt1 :: peephole (Move (y, constant_fold (Binop (op, Val x', e))) :: stmts)
+      | Move (x, Val x'), Move (y, Binop (op, e, Val z)) when x = z ->
+        stmt1 :: peephole (Move (y, constant_fold (Binop (op, e, Val x'))) :: stmts)
+
+      (* Simplify statements *)
+      (* (a + b) - b => a *)
+      | Move (x, Binop (Plus, a, b)), Move (y, Binop (Minus, Val z, c))
+      (* (a - b) + b => a *)
+      | Move (x, Binop (Minus, a, b)), Move (y, Binop (Plus, Val z, c))
+      (* (a * b) / b => a *)
+      | Move (x, Binop (Mul, a, b)), Move (y, Binop (Div, Val z, c)) when b = c && x = z ->
+        stmt1 :: peephole (Move (y, a) :: stmts)
+
+      (* Simplify statements *)
+      (* (a + n) + m => a + (n + m) *)
+      | Move (x, Binop (Plus, Val a, Const n)), Move (y, Binop (Plus, Val z, Const m)) when x = z ->
+        stmt1 :: peephole (Move (y, Binop (Plus, Val a, Const (n + m))) :: stmts)
+      (* (a + n) - m => a + (n - m) *)
+      | Move (x, Binop (Plus, Val a, Const n)), Move (y, Binop (Minus, Val z, Const m)) when x = z ->
+        stmt1 :: peephole (Move (y, Binop (Plus, Val a, Const (n - m))) :: stmts)
+      (* (a - n) + m => a - (n - m) *)
+      | Move (x, Binop (Minus, Val a, Const n)), Move (y, Binop (Plus, Val z, Const m)) when x = z ->
+        stmt1 :: peephole (Move (y, Binop (Minus, Val a, Const (n - m))) :: stmts)
+      (* (a - n) - m => a - (n + m) *)
+      | Move (x, Binop (Minus, Val a, Const n)), Move (y, Binop (Minus, Val z, Const m)) when x = z ->
+        stmt1 :: peephole (Move (y, Binop (Minus, Val a, Const (n + m))) :: stmts)
+
+      (* Simplify statements *)
+      (* (a * n) * m => a * (n * m) *)
+      | Move (x, Binop (Mul, Val a, Const n)), Move (y, Binop (Mul, Val z, Const m)) when x = z ->
+        stmt1 :: peephole (Move (y, Binop (Mul, Val a, Const (n * m))) :: stmts)
+
+      (* Drop copy of self *)
+      | Move (x, Val y), _ when x = y -> peephole (stmt2 :: stmts)
+
+      | _ -> stmt1 :: peephole (stmt2 :: stmts)
+    )
+  | stmt1 :: stmts  -> (
+      match stmt1 with
+      (* Drop copy of self *)
+      | Move (x, Val y) when x = y -> peephole stmts
+      | _ -> stmt1 :: peephole stmts
+    )
+  | _ -> []
+
 module Vars = Set.Make (struct
   type t = var
   let compare = Stdlib.compare

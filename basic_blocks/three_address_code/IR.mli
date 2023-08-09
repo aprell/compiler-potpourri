@@ -58,6 +58,8 @@ val lower :
 
 val constant_fold : expr -> expr
 
+val peephole : stmt list -> stmt list
+
 module Vars : Set.S with type elt = var
 
 val collect_variables : expr -> Vars.t
