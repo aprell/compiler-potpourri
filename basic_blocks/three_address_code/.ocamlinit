@@ -1,8 +1,8 @@
 open Three_address_code__IR
 open Three_address_code__Parse
 
-let src = {|
-  test() {
+let test1 = {|
+  test1() {
       a := 1 + 2 * 3 - 4
       b := a / a - 2
       c := 3 - b * 2
@@ -17,12 +17,21 @@ let src = {|
   }
 |}
 
+let test2 = {|
+  test2(n) {
+      return n - 2 - 2 + 5 - 3
+  }
+|}
+
 let print ~text block =
   print_endline text;
   dump block;
   print_newline ()
 
-let () =
-  let stmts = snd @@ parse_prog src in
+let run test =
+  let stmts = snd @@ parse_prog test in
   print ~text:"After first peephole optimization:" stmts;
   print ~text:"After second peephole optimization:" (peephole stmts)
+
+let () =
+  List.iter run [test1; test2]
