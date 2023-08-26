@@ -2,9 +2,9 @@
 
 set -eu
 
-test="$(basename ${1%.*})"
+test="$(basename "${1%.*}")"
 
-for t in "corpus/${test}"_*.hir; do
+for t in "corpus/${test}"_[0-9][0-9][0-9].hir; do
     ./check.sh "$t" && echo "[PASS] $t" || echo "[FAIL] $t"
     rm -f "${t%.*}."{ll,opt.ll}
 done > "$test.fuzz.out" 2>&1
