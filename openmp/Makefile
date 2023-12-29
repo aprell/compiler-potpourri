@@ -24,15 +24,13 @@ libomp.a: $(OMP_SRCS:.c=.o)
 test: lit.cfg.py $(EXES)
 	@lit .
 
-clean:
-	$(RM) $(OBJS) $(EXES)
-	$(RM) libomp.a depend.mk
+clean: ; $(RM) $(OBJS) $(EXES) libomp.a depend.mk
 
 depend.mk: $(SRCS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MM $^ > $@
 
-ifneq ($(MAKECMDGOALS),clean)
-  -include depend.mk
+ifneq ($(MAKECMDGOALS), clean)
+  include depend.mk
 endif
 
 .PHONY: all test clean
