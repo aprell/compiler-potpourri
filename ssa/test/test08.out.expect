@@ -1,0 +1,139 @@
+[B1]
+test08(flag):
+    x := 4
+    y := 0
+    if y != 0 goto L1 else goto L2
+[B2]
+L1:
+    x := 3
+    goto L2
+[B3]
+L2:
+    if flag == 0 goto L3 else goto L4
+[B4]
+L3:
+    z := 10
+    goto L4
+[B5]
+L4:
+    z := x + 5
+    return z
+
+--------------------------------------------------------------------------------
+
+[B1]
+test08(flag):
+    x := 4
+    y := 0
+    if y != 0 goto L1(flag, x) else goto L2(flag, x)
+[B2]
+L1(flag, x):
+    x := 3
+    goto L2(flag, x)
+[B3]
+L2(flag, x):
+    if flag == 0 goto L3(flag, x) else goto L4(flag, x)
+[B4]
+L3(flag, x):
+    z := 10
+    goto L4(flag, x)
+[B5]
+L4(flag, x):
+    z := x + 5
+    return z
+
+--------------------------------------------------------------------------------
+
+[B1]
+test08(flag_0):
+    x_0 := 4
+    y_0 := 0
+    if y_0 != 0 goto L1(flag_0, x_0) else goto L2(flag_0, x_0)
+[B2]
+L1(flag_1, x_1):
+    x_2 := 3
+    goto L2(flag_1, x_2)
+[B3]
+L2(flag_2, x_3):
+    if flag_2 == 0 goto L3(flag_2, x_3) else goto L4(flag_2, x_3)
+[B4]
+L3(flag_3, x_4):
+    z_0 := 10
+    goto L4(flag_3, x_4)
+[B5]
+L4(flag_4, x_5):
+    z_1 := x_5 + 5
+    return z_1
+
+--------------------------------------------------------------------------------
+
+[B1]
+test08(flag_0):
+    x_0 := 4
+    y_0 := 0
+    if y_0 != 0 goto L1 else goto L2
+[B2]
+L1:
+    flag_1 := PHI(flag_0)
+    x_1 := PHI(x_0)
+    x_2 := 3
+    goto L2
+[B3]
+L2:
+    flag_2 := PHI(flag_0, flag_1)
+    x_3 := PHI(x_0, x_2)
+    if flag_2 == 0 goto L3 else goto L4
+[B4]
+L3:
+    flag_3 := PHI(flag_2)
+    x_4 := PHI(x_3)
+    z_0 := 10
+    goto L4
+[B5]
+L4:
+    flag_4 := PHI(flag_2, flag_3)
+    x_5 := PHI(x_3, x_4)
+    z_1 := x_5 + 5
+    return z_1
+
+--------------------------------------------------------------------------------
+
+[B1]
+test08(flag_0):
+    x_0 := 4
+    y_0 := 0
+    if y_0 != 0 goto L1 else goto L2
+[B2]
+L1:
+    x_2 := 3
+    goto L2
+[B3]
+L2:
+    x_3 := PHI(x_0, x_2)
+    if flag_0 == 0 goto L3 else goto L4
+[B4]
+L3:
+    z_0 := 10
+    goto L4
+[B5]
+L4:
+    z_1 := x_3 + 5
+    return z_1
+
+--------------------------------------------------------------------------------
+
+[B1]
+test08(flag_0):
+    goto L4
+[B5]
+L4:
+    return 9
+
+--------------------------------------------------------------------------------
+
+[B1]
+test08(flag_0):
+    goto L4
+[B5]
+L4:
+    return 9

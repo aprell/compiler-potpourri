@@ -1,0 +1,13 @@
+test08(flag):
+    x := 4
+    y := 0
+    if y != 0 goto L1 else goto L2
+L1:
+    x := 3
+L2:
+    if flag == 0 goto L3 else goto L4
+L3:
+    z := 10
+L4:
+    z := x + 5
+    return z

@@ -1,0 +1,30 @@
+[B1]
+test08(flag):
+    x := 4
+    y := 0
+    if y != 0 goto L1 else goto L2
+[B2]
+L1:
+    x := 3
+    goto L2
+[B3]
+L2:
+    if flag == 0 goto L3 else goto L4
+[B4]
+L3:
+    z := 10
+    goto L4
+[B5]
+L4:
+    z := x + 5
+    return z
+
++----+------+------------+
+|    | use  | def        |
++----+------+------------+
+| B1 |      | flag, x, y |
+| B2 |      | x          |
+| B3 | flag |            |
+| B4 |      | z          |
+| B5 | x    | z          |
++----+------+------------+

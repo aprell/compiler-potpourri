@@ -1,0 +1,41 @@
+
+----------------------------------------
+define i32 @test08(i32 %flag_0) {
+%test08:
+  %x_0 = add i32 4, 0
+  %y_0 = add i32 0, 0
+  %0 = icmp ne i32 %y_0, 0
+  br i1 %0, label %L1, label %L2
+
+%L1:
+  %x_2 = add i32 3, 0
+  br label %L2
+
+%L2:
+  %x_3 = phi i32 [ %x_0, %test08 ], [ %x_2, %L1 ]
+  %1 = icmp eq i32 %flag_0, 0
+  br i1 %1, label %L3, label %L4
+
+%L3:
+  %z_0 = add i32 10, 0
+  br label %L4
+
+%L4:
+  %z_1 = add i32 %x_3, 5
+  ret i32 %z_1
+}
+=>
+define i32 @test08(i32 %flag_0) {
+%test08:
+  br label %L4
+
+%L4:
+  ret i32 9
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

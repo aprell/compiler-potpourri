@@ -1,0 +1,47 @@
+[B1]
+test08(flag_0):
+    x_0 := 4
+    y_0 := 0
+    if y_0 != 0 goto L1 else goto L2
+[B2]
+L1:
+    x_2 := 3
+    goto L2
+[B3]
+L2:
+    x_3 := PHI(x_0, x_2)
+    if flag_0 == 0 goto L3 else goto L4
+[B4]
+L3:
+    z_0 := 10
+    goto L4
+[B5]
+L4:
+    z_1 := x_3 + 5
+    return z_1
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| flag_0   | Bottom |
+| x_0      | 4      |
+| x_2      | 3      |
+| x_3      | Bottom |
+| y_0      | 0      |
+| z_0      | 10     |
+| z_1      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| flag_0   | Bottom |
+| x_0      | 4      |
+| x_2      | Top    |
+| x_3      | 4      |
+| y_0      | 0      |
+| z_0      | 10     |
+| z_1      | 9      |
++----------+--------+

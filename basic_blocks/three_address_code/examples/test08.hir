@@ -1,0 +1,14 @@
+int test08(int)
+
+test08(flag) {
+    x := 4
+    y := 4 - x
+    if y != 0 {
+        x := 3
+    }
+    if flag == 0 {
+        z := 10
+    }
+    z := x + 5
+    return z
+}
