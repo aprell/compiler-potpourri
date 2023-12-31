@@ -51,8 +51,20 @@ end = struct
     b.block.pred <- NodeSet.elements b.pred |> List.map destruct
 
   let combine (n : t) (m : t) : t =
+    (* Precondition: node m must not have a back edge to itself *)
+    assert (not (NodeSet.mem m m.succ));
     let block = Basic_block.combine n.block m.block in
     let node = create block in
+    (* If we chose to support back edges, we could do this:
+    if NodeSet.mem m m.succ then (
+      begin match Basic_block.first_stmt block, Basic_block.last_stmt block with
+        | Some { contents = Label l }, Some jump ->
+          jump := Jump l
+        | _ -> assert false
+      end;
+      m =|> m;
+      m => node
+    ); *)
     NodeSet.iter (fun pred ->
         pred =|> n;
         pred => node

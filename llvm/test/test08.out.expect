@@ -27,9 +27,6 @@ define i32 @test08(i32 %flag_0) {
 =>
 define i32 @test08(i32 %flag_0) {
 %test08:
-  br label %L4
-
-%L4:
   ret i32 9
 }
 Transformation seems to be correct!
