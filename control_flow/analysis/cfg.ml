@@ -263,14 +263,16 @@ let simplify (graph : t) : t =
 
   let is_empty { Node.block = { stmts; _ }; _ } =
     List.length stmts = 2 &&
-    match !(List.hd stmts), !(List.(hd (tl stmts))) with
+    match !(List.nth stmts 0), !(List.nth stmts 1) with
     | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
     | _ -> false
   in
 
   let is_simple { Node.block; _ } =
-    match Basic_block.last_stmt block with
-    | Some { contents = Jump _ } -> true
+    match Basic_block.first_stmt block, Basic_block.last_stmt block with
+    | Some { contents = Label (l1, None) },
+      Some { contents = Jump (l2, None) }
+      when l1 <> l2 -> true
     | _ -> false
   in
 

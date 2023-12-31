@@ -297,7 +297,7 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
 
   let is_empty { Node.block = { stmts; _ }; _ } =
     List.length stmts = 2 &&
-    match !(List.hd stmts), !(List.(hd (tl stmts))) with
+    match !(List.nth stmts 0), !(List.nth stmts 1) with
     | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
     | _ -> false
   in
@@ -306,10 +306,10 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
    * def-use information *)
   let is_simple { Node.block = { stmts; _ }; _ } =
     List.length stmts = 2 &&
-    match !(List.hd stmts), !(List.(hd (tl stmts))) with
-    | Label (_, Some params), Jump (_, None) ->
+    match !(List.nth stmts 0), !(List.nth stmts 1) with
+    | Label (l1, Some params), Jump (l2, None) when l1 <> l2 ->
       List.for_all (fun param -> Ssa.Graph.get_uses param ssa_graph = []) params
-    | Label (_, None), Jump (_, None)
+    | Label (l1, None), Jump (l2, None) when l1 <> l2 -> true
     | Label (_, None), Return (Some (Const _))
     | Label (_, None), Return None -> true
     | _ -> false
@@ -328,12 +328,10 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
     if dump then print_endline ("Skipped " ^ node.block.name)
   in
 
-  let has_cycle node = NodeSet.mem node node.succ in
-
   let can_combine (node : Node.t) =
     is_simple node && NodeSet.cardinal node.succ = 1 && (
       let succ = NodeSet.choose node.succ in
-      succ != node && not (has_cycle succ) && is_simple succ
+      succ != node && is_simple succ
     )
   in
 
