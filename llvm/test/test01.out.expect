@@ -17,7 +17,6 @@ define i32 @test01(i32 %a_0, i32 %b_0) {
   ret i32 %a_0
 
 %L2:
-  %c_0 = add i32 %b_0, 1
   ret i32 %b_0
 }
 =>

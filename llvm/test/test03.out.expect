@@ -11,7 +11,6 @@ define void @test03(i32 %x_0) {
   br i1 %0, label %L2, label %L3
 
 %L2:
-  %x_1 = mul i32 2, %i_1
   %i_3 = add i32 %i_1, 1
   br label %L1
 
@@ -36,11 +35,10 @@ define void @test03(i32 %x_0) {
 %L3:
   ret void
 }
-ERROR: The source program doesn't reach a return instruction.
-Consider increasing the unroll factor if it has loops
+Transformation seems to be correct!
 
 Summary:
-  0 correct transformations
+  1 correct transformations
   0 incorrect transformations
-  1 failed-to-prove transformations
+  0 failed-to-prove transformations
   0 Alive2 errors

@@ -17,7 +17,6 @@ define i32 @test08(i32 %flag_0) {
   br i1 %1, label %L3, label %L4
 
 %L3:
-  %z_0 = add i32 10, 0
   br label %L4
 
 %L4:

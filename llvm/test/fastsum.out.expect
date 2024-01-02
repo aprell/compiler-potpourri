@@ -2,7 +2,6 @@
 ----------------------------------------
 define i32 @fastsum(i32 %n_0) {
 %fastsum:
-  %s_0 = add i32 0, 0
   %i_0 = add i32 1, 0
   br label %L1
 

@@ -3,11 +3,10 @@ open Three_address_code__IR
 open Three_address_code__Utils
 open Control_flow
 
-let rec string_of_type = function
+let string_of_type = function
   | Type.Int -> "i32"
   | Type.Void -> "void"
-  | Type.Ptr Type.Int -> "i8*"
-  | Type.Ptr t -> string_of_type t ^ "*"
+  | Type.Ptr _ -> "ptr"
 
 let string_of_binop = function
   | Plus -> "add i32"
@@ -56,23 +55,17 @@ let emit_basic_block (FunDecl { typesig = (return_type, _); _ }) (block : Basic_
       printf ~indent "%s = %s\n"
         (local x) (string_of_expr e)
     | Load (Var x, Mem (Var b, o)) ->
-      let tmp1 = !gen_temp () in
-      let tmp2 = !gen_temp () in
-      printf ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
-        tmp1 (local b) (string_of_expr o);
-      printf ~indent "%s = bitcast i8* %s to i32*\n"
-        tmp2 tmp1;
-      printf ~indent "%s = load i32, i32* %s\n"
-        (local x) tmp2
+      let tmp = !gen_temp () in
+      printf ~indent "%s = getelementptr i8, ptr %s, i32 %s\n"
+        tmp (local b) (string_of_expr o);
+      printf ~indent "%s = load i32, ptr %s\n"
+        (local x) tmp
     | Store (Mem (Var b, o), e) ->
-      let tmp1 = !gen_temp () in
-      let tmp2 = !gen_temp () in
-      printf ~indent "%s = getelementptr i8, i8* %s, i32 %s\n"
-        tmp1 (local b) (string_of_expr o);
-      printf ~indent "%s = bitcast i8* %s to i32*\n"
-        tmp2 tmp1;
-      printf ~indent "store i32 %s, i32* %s\n"
-        (string_of_expr e) tmp2
+      let tmp = !gen_temp () in
+      printf ~indent "%s = getelementptr i8, ptr %s, i32 %s\n"
+        tmp (local b) (string_of_expr o);
+      printf ~indent "store i32 %s, ptr %s\n"
+        (string_of_expr e) tmp
     | Label (name, _) ->
       printf "%s:\n"
         name

@@ -1,6 +1,6 @@
 
 ----------------------------------------
-define void @test04(* %A_0, i32 %N_0) {
+define void @test04(ptr %A_0, i32 %N_0) {
 %test04:
   %i_0 = add i32 1, 0
   %j_0 = add i32 0, 0
@@ -15,14 +15,12 @@ define void @test04(* %A_0, i32 %N_0) {
   %$1_0 = sub i32 %i_1, 1
   %$2_0 = mul i32 %$1_0, 4
   %$3_0 = add i32 %i_1, 1
-  %1 = gep * %A_0, 1 x i32 %$2_0
-  %2 = bitcast * %1 to *
-  store i32 %$3_0, * %2, align 4
+  %1 = gep ptr %A_0, 1 x i32 %$2_0
+  store i32 %$3_0, ptr %1, align 4
   %$4_0 = mul i32 %j_0, 4
   %$5_0 = add i32 %$1_0, 0
-  %3 = gep * %A_0, 1 x i32 %$4_0
-  %4 = bitcast * %3 to *
-  store i32 %$5_0, * %4, align 4
+  %2 = gep ptr %A_0, 1 x i32 %$4_0
+  store i32 %$5_0, ptr %2, align 4
   %i_3 = add i32 %$3_0, 0
   br label %L1
 
@@ -30,7 +28,7 @@ define void @test04(* %A_0, i32 %N_0) {
   ret void
 }
 =>
-define void @test04(* %A_0, i32 %N_0) {
+define void @test04(ptr %A_0, i32 %N_0) {
 %test04:
   %i_0 = add i32 1, 0
   br label %L1
@@ -44,12 +42,10 @@ define void @test04(* %A_0, i32 %N_0) {
   %$1_0 = sub i32 %i_1, 1
   %$2_0 = mul i32 %$1_0, 4
   %$3_0 = add i32 %i_1, 1
-  %1 = gep * %A_0, 1 x i32 %$2_0
-  %2 = bitcast * %1 to *
-  store i32 %$3_0, * %2, align 4
-  %3 = gep * %A_0, 1 x i32 0
-  %4 = bitcast * %3 to *
-  store i32 %$1_0, * %4, align 4
+  %1 = gep ptr %A_0, 1 x i32 %$2_0
+  store i32 %$3_0, ptr %1, align 4
+  %2 = gep ptr %A_0, 1 x i32 0
+  store i32 %$1_0, ptr %2, align 4
   %i_3 = add i32 %$3_0, 0
   br label %L1
 

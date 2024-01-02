@@ -14,7 +14,6 @@ define i32 @test07(i32 %p_0) {
 
 %L2:
   %j_0 = add i32 %i_1, 0
-  %i_3 = add i32 %i_1, 1
   %i_4 = add i32 %j_0, 0
   %x_3 = add i32 %x_1, %j_0
   br label %L1

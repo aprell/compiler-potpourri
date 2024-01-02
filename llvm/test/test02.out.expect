@@ -3,9 +3,7 @@
 define i32 @test02() {
 %test02:
   %a_0 = add i32 1, 0
-  %b_0 = add i32 2, 0
   %c_0 = mul i32 %a_0, 3
-  %d_0 = sub i32 %c_0, 1
   ret i32 %c_0
 }
 =>
