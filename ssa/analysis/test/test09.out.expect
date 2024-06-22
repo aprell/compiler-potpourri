@@ -1,0 +1,53 @@
+[B1]
+test09(z_0):
+    x_0 := 1
+    y_0 := 2
+    if x_0 > z_0 goto L1 else goto L2
+[B2]
+L1:
+    a_1 := x_0 + 1
+    goto L4
+[B3]
+L2:
+    a_3 := y_0
+    goto L4
+[B5]
+L4:
+    a_4 := PHI(a_1, a_3, a_6)
+    if a_4 > 4 goto L5 else goto L6
+[B6]
+L5:
+    a_6 := a_4 + z_0
+    goto L4
+[B7]
+L6:
+    b_0 := a_4 * a_4
+    return b_0
+
+Result of SSCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| a_1      | 2      |
+| a_3      | 2      |
+| a_4      | Bottom |
+| a_6      | Bottom |
+| b_0      | Bottom |
+| x_0      | 1      |
+| y_0      | 2      |
+| z_0      | Bottom |
++----------+--------+
+
+Result of SCCP:
++----------+--------+
+| Variable | Value  |
++----------+--------+
+| a_1      | 2      |
+| a_3      | 2      |
+| a_4      | 2      |
+| a_6      | Top    |
+| b_0      | 4      |
+| x_0      | 1      |
+| y_0      | 2      |
+| z_0      | Bottom |
++----------+--------+

@@ -1,0 +1,17 @@
+digraph CFG {
+    B1 [shape=record label="{B1|test09(z):\lx := 1\ly := 2\lif x \> z goto L1 else goto L2\l}"];
+    B2 [shape=record label="{B2|L1:\la := x + 1\lgoto L4\l}"];
+    B3 [shape=record label="{B3|L2:\la := y\lgoto L4\l}"];
+    B5 [shape=record label="{B5|L4:\lif a \> 4 goto L5 else goto L6\l}"];
+    B6 [shape=record label="{B6|L5:\la := a + z\lgoto L4\l}"];
+    B7 [shape=record label="{B7|L6:\lb := a * a\lreturn b\l}"];
+    Entry -> B1;
+    B1 -> B2;
+    B1 -> B3;
+    B2 -> B5;
+    B3 -> B5;
+    B5 -> B6;
+    B5 -> B7;
+    B6 -> B5;
+    B7 -> Exit;
+}

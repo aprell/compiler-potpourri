@@ -17,4 +17,5 @@ let () =
     "examples/test06.hir";
     "examples/test07.hir";
     "examples/test08.hir";
+    "examples/test09.hir";
   ]

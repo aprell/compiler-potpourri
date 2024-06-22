@@ -1,0 +1,16 @@
+int test09(int)
+
+test09(z) {
+    x := 1
+    y := 2
+    if x > z {
+        a := x + 1
+    } else {
+        a := y
+    }
+    while a > 4 {
+        a := a + z
+    }
+    b := a * a
+    return b
+}

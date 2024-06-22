@@ -1,0 +1,39 @@
+[B1]
+test09(z):
+    x := 1
+    y := 2
+    if x > z goto L1 else goto L2
+[B2]
+L1:
+    a := x + 1
+    goto L3
+[B3]
+L2:
+    a := y
+    goto L3
+[B4]
+L3:
+    goto L4
+[B5]
+L4:
+    if a > 4 goto L5 else goto L6
+[B6]
+L5:
+    a := a + z
+    goto L4
+[B7]
+L6:
+    b := a * a
+    return b
+
++----+------+---------+
+|    | use  | def     |
++----+------+---------+
+| B1 |      | x, y, z |
+| B2 | x    | a       |
+| B3 | y    | a       |
+| B4 |      |         |
+| B5 | a    |         |
+| B6 | a, z |         |
+| B7 | a    | b       |
++----+------+---------+

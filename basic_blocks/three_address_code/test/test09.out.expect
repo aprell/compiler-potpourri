@@ -1,0 +1,18 @@
+test09(z):
+    x := 1
+    y := 2
+    if x > z goto L1 else goto L2
+L1:
+    a := x + 1
+    goto L3
+L2:
+    a := y
+L3:
+L4:
+    if a > 4 goto L5 else goto L6
+L5:
+    a := a + z
+    goto L4
+L6:
+    b := a * a
+    return b
