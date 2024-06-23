@@ -52,6 +52,15 @@ open Utils
 
   p "return n" = \
    Return (Some (Val (Var "n")))
+
+  p "x := PHI()" = \
+   Phi (Var "x", [])
+
+  p "x := PHI(y)" = \
+   Phi (Var "x", [Var "y"])
+
+  p "x := PHI(y, z)" = \
+   Phi (Var "x", [Var "y"; Var "z"])
 *)
 (*$>*)
 let parse_line line =

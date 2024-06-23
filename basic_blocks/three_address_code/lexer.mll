@@ -42,6 +42,7 @@ rule read = parse
   | "while"            { WHILE }
   | "goto"             { GOTO }
   | "return"           { RET }
+  | "PHI"              { PHI }
   | "("                { LPAREN }
   | ")"                { RPAREN }
   | "{"                { LBRACE }
