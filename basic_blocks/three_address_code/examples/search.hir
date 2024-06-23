@@ -1,6 +1,4 @@
-int search(int[], int, int, int)
-
-search(A, lo, hi, x) {
+fun search(A: int[], lo: int, hi: int, x: int): int {
     while hi - lo >= 1 {
         t0 := hi - lo
         t1 := t0 / 2

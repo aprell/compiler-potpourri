@@ -1,6 +1,4 @@
-int test02()
-
-test02() {
+fun test02(): int {
     a := 1
     b := 2
     c := a * 3

@@ -1,6 +1,4 @@
-void test04(int[], int)
-
-test04(A, N) {
+fun test04(A: int[], N: int): void {
     i := 1
     j := i - 1
     while i < N {

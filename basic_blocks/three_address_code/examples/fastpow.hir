@@ -1,6 +1,4 @@
-int fastpow(int, int)
-
-fastpow(b, e) {
+fun fastpow(b: int, e: int): int {
     r := 1
     while e > 0 {
         if e % 2 != 0 {

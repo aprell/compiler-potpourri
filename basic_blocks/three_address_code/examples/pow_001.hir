@@ -1,6 +1,4 @@
-int pow(int, int)
-
-pow(b, e) {
+fun pow(b: int, e: int): int {
     r := 0
     while e > 0 {
         r := r * b

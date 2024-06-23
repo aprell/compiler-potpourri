@@ -37,6 +37,7 @@ rule read = parse
   | ">="               { GE }
   | ":="               { GETS }
   | ":"                { COL }
+  | "fun"              { FUN }
   | "if"               { IF }
   | "else"             { ELSE }
   | "while"            { WHILE }

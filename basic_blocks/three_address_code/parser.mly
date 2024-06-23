@@ -61,6 +61,7 @@
 %token COMMA
 %token EOF
 %token PHI "PHI"
+%token FUN "fun"
 
 %left EQ NE
 %left LT GT LE GE
@@ -68,14 +69,13 @@
 %left MUL DIV MOD
 
 %type <IR.decl option * IR.stmt list> prog
-%type <IR.decl> fundecl
+%type <IR.decl * IR.stmt list> func
 %type <IR.stmt> stmt
-%type <IR.stmt list> func block hir_stmt
+%type <IR.stmt list> block hir_stmt
 %type <IR.var list> params
+%type <(IR.var * IR.Type.t) list> typed_params
 %type <IR.name * IR.var list option> label
 %type <IR.expr> expr
-%type <IR.Type.t> type_
-%type <IR.Type.t list> types
 
 %start prog
 
@@ -83,15 +83,17 @@
 
 prog:
   | func EOF
+    { Some (fst $1), snd $1 }
   | stmt* EOF
-    { (None, $1) }
-  | fundecl func EOF
-    { (Some $1, $2) }
+    { None, $1 }
   ;
 
 func:
-  | name = NAME; params = params; body = block
-    { `Function (name, params, body) |> lower }
+  | "fun" name = NAME; params = typed_params; return_type = type_annot; body = block
+    { let params, param_types = List.split params in
+        FunDecl { name; typesig = (return_type, param_types) },
+        `Function (name, params, body) |> lower
+    }
   ;
 
 params:
@@ -99,18 +101,23 @@ params:
     { List.map (fun x -> Var x) $1 }
   ;
 
+typed_params:
+  | delimited(LPAREN, separated_list(COMMA, typed_name), RPAREN)
+    { List.map (fun (x, y) -> Var x, y) $1 }
+  ;
+
 block:
   | block_entry delimited(LBRACE, flatten(hir_stmt*), RBRACE)
     { $2 }
   ;
 
-fundecl:
-  | return_type = type_; name = NAME; param_types = types
-    { FunDecl { name; typesig = (return_type, param_types) } }
+typed_name:
+  | NAME type_annot
+    { $1, $2 }
   ;
 
-types:
-  | delimited(LPAREN, separated_list(COMMA, type_), RPAREN)
+type_annot:
+  | preceded(COL, type_)
     { $1 }
   ;
 
@@ -130,7 +137,7 @@ block_entry: { prev := [] }
 
 label:
   | NAME params?
-    { ($1, $2) }
+    { $1, $2 }
   ;
 
 hir_stmt:

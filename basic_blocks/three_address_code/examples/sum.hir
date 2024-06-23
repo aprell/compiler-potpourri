@@ -1,6 +1,4 @@
-int sum(int)
-
-sum(n) {
+fun sum(n: int): int {
     s := 0
     i := 1
     while i <= n {

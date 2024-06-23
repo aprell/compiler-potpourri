@@ -1,6 +1,4 @@
-int test01(int, int)
-
-test01(a, b) {
+fun test01(a: int, b: int): int {
     if a > b {
         if a < 100 {
             return a

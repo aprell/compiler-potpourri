@@ -1,6 +1,4 @@
-int test05()
-
-test05() {
+fun test05(): int {
     x := 65535
     if x < 2 {
         y := 5 + x

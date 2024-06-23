@@ -1,6 +1,4 @@
-int test07(int)
-
-test07(p) {
+fun test07(p: int): int {
     x := 0
     i := 1
     while p > 10 {

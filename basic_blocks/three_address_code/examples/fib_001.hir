@@ -1,6 +1,4 @@
-int fib(int)
-
-fib(n) {
+fun fib(n: int): int {
     t0 := 0
     t1 := 1
     if n < 2 {

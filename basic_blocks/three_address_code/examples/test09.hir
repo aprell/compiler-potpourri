@@ -1,6 +1,4 @@
-int test09(int)
-
-test09(z) {
+fun test09(z: int): int {
     x := 1
     y := 2
     if x > z {
