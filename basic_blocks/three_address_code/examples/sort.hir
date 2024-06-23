@@ -1,4 +1,4 @@
-fun sort(A: int[], n: int): void {
+fun sort(A: int[], n: int) {
     i := 0
     while i < n - 1 {
         min := i

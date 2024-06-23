@@ -89,8 +89,9 @@ prog:
   ;
 
 func:
-  | "fun" name = NAME; params = typed_params; return_type = type_annot; body = block
+  | "fun" name = NAME; params = typed_params; return_type = type_annot?; body = block
     { let params, param_types = List.split params in
+      let return_type = Option.value return_type ~default:IR.Type.Void in
         FunDecl { name; typesig = (return_type, param_types) },
         `Function (name, params, body) |> lower
     }
