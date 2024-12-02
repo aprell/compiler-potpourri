@@ -1,14 +1,14 @@
 TEST_DIRS := \
+  backend/llvm \
+  backend/qbe \
   basic_blocks \
   basic_blocks/three_address_code \
   control_flow \
   control_flow/analysis \
   data_dependences \
   data_flow/analysis \
-  llvm \
   loop_transformations \
   openmp \
-  qbe \
   scheduling \
   ssa
 

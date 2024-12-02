@@ -1,5 +1,5 @@
-LIBS := llvm
-EXES := test_llvm test/expect
+LIBS := qbe
+EXES := test_qbe test/expect
 
 all: test
 
@@ -10,4 +10,4 @@ test: $(LIBS) $(EXES)
 
 .PHONY: all test
 
-include ../utils/common.mk
+include ../../utils/common.mk
