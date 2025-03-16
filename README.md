@@ -13,7 +13,7 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - Parallel loops and tasks in OpenMP
 - List scheduling
 
-## References
+## References and Further Reading
 
 ### Books
 - [Engineering a Compiler](https://www.elsevier.com/books/engineering-a-compiler/cooper/978-0-12-815412-0)
@@ -50,6 +50,8 @@ A potpourri of programs, scripts, and tools for a compilers course covering:
 - [Critical Edge Splitting](https://nickdesaulniers.github.io/blog/2023/01/27/critical-edge-splitting)
 - [CPS Soup (A Functional Intermediate Language)](https://wingolog.org/archives/2023/05/20/approaching-cps-soup)
 - [A Gentle Introduction to LLVM IR](https://mcyoung.xyz/2023/08/01/llvm-ir)
+- [A Catalog of Ways to Generate SSA](https://bernsteinbear.com/blog/ssa)
+- [The Problem of Register Allocation](https://langdev.stackexchange.com/a/4326)
 
 ### Courses
 - Compiler Design (CMU): [Fall 2014](http://www.cs.cmu.edu/~fp/courses/15411-f14/schedule.html), [Fall 2018](https://www.cs.cmu.edu/~janh/courses/411/18/schedule.html), [Fall 2020](https://www.cs.cmu.edu/afs/cs/academic/class/15411-f20/www/schedule.html)
