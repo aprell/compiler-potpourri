@@ -4,7 +4,7 @@ config.name = 'Loop transformations'
 
 config.test_format = lit.formats.ShTest()
 
-config.suffixes = ['.lua']
+config.suffixes = ['.lua', '.mlir']
 
 config.excludes = [
     'loop.lua',
