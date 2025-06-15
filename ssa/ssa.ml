@@ -320,8 +320,13 @@ module Graph = struct
             Def_use_chain.Set.elements uses
             |> List.map (fun use -> (use, def))
           in
-          if List.for_all (fun ((_, stmt) as use, def) ->
-              is_phi !(!stmt) || dominates def use cfg
+          if List.for_all (fun ((block, stmt) as use, def) ->
+              match !(!stmt) with
+              | Phi (_, xs) ->
+                (* Definition must dominate the PHI's incoming block *)
+                let in_block = ref List.(assoc x (combine xs !block.pred)) in
+                dominates def (in_block, stmt) cfg
+              | _ -> dominates def use cfg
             ) uses
           then
             Hashtbl.add graph x (def, uses)
