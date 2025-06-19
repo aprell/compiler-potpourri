@@ -7,16 +7,18 @@ let verbose = ref false
 let dot_cfg = ref false
 let dot_dom = ref false
 let dot_ssa = ref false
+let print_ir = ref false
 
 let parse_args () =
   let prog = Sys.argv.(0) in
   let usage = Printf.sprintf "Usage: %s [OPTION] filename" prog in
   let options =
-    ["-O",        Arg.Set optimize, "Enable optimization";
-     "-v",        Arg.Set verbose,  "Print information during optimization";
-     "--dot-cfg", Arg.Set dot_cfg,  "Print CFG of function as DOT graph (in .dot file)";
-     "--dot-dom", Arg.Set dot_dom,  "Print dominator tree of function as DOT graph (in .dot file)";
-     "--dot-ssa", Arg.Set dot_ssa,  "Print SSA graph of function as DOT graph (in .dot file)"]
+    ["-O",         Arg.Set optimize, "Enable optimization";
+     "-v",         Arg.Set verbose,  "Print information during optimization";
+     "--dot-cfg",  Arg.Set dot_cfg,  "Print CFG of function as DOT graph (in .dot file)";
+     "--dot-dom",  Arg.Set dot_dom,  "Print dominator tree of function as DOT graph (in .dot file)";
+     "--dot-ssa",  Arg.Set dot_ssa,  "Print SSA graph of function as DOT graph (in .dot file)";
+     "--print-ir", Arg.Set print_ir, "Print IR instead of LLVM IR"]
   in
   Arg.parse options (fun filename -> input_file := Some filename) usage
 
@@ -47,5 +49,8 @@ let () =
       Printf.eprintf "Writing %s\n%!" output;
       Ssa.Graph.output_dot ssa ~filename:output
     end;
-    Llvm.emit_function (Option.get fundecl) cfg
+    if !print_ir then
+      Cfg.print_basic_blocks cfg
+    else
+      Llvm.emit_function (Option.get fundecl) cfg
   | None -> ()
