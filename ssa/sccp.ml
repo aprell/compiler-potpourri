@@ -116,6 +116,7 @@ let reachable block =
 let init ?(verbose = false) (graph : Cfg.t) (ssa_graph : Ssa.Graph.t) =
   verbose_flag := verbose;
   Hashtbl.reset values;
+  Hashtbl.reset edges;
   let { Cfg.Node.block = entry; _ } = Cfg.get_entry_node graph in
 
   let worklist = Queue.create () in
