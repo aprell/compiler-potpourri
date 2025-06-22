@@ -370,6 +370,12 @@ let optimize_memory_accesses ?(dump = false) graph ssa_graph =
   let stored : (mem, expr) Hashtbl.t = Hashtbl.create 10 in
   let optimized = ref false in
 
+  let print_replacement a b =
+    print_endline ("After replacing " ^ string_of_stmt a ^ " with " ^ string_of_stmt b ^ ":");
+    Ssa.Graph.print ssa_graph;
+    print_newline ()
+  in
+
   let optimize block =
     let remove_use (Mem (b, o)) stmt =
       Ssa.Graph.remove_use b (ref block, ref stmt) ssa_graph;
@@ -388,13 +394,9 @@ let optimize_memory_accesses ?(dump = false) graph ssa_graph =
         stmt := Move (x, Val y);
         remove_use mem stmt;
         add_use y stmt;
-		Hashtbl.replace loaded mem x;
+        Hashtbl.replace loaded mem x;
         optimized := true;
-        if dump then (
-          print_endline ("After replacing " ^ string_of_stmt (Load (x, mem)) ^ " with " ^ string_of_stmt !stmt ^ ":");
-          Ssa.Graph.print ssa_graph;
-          print_newline ()
-        )
+        if dump then print_replacement (Load (x, mem)) !stmt
       | Load (x, mem) when Hashtbl.mem stored mem ->
         (* Store-to-load forwarding *)
         let e = Hashtbl.find stored mem in
@@ -403,11 +405,7 @@ let optimize_memory_accesses ?(dump = false) graph ssa_graph =
         Vars.iter (Fun.flip add_use stmt) (collect_variables e);
         Hashtbl.add loaded mem x;
         optimized := true;
-        if dump then (
-          print_endline ("After replacing " ^ string_of_stmt (Load (x, mem)) ^ " with " ^ string_of_stmt !stmt ^ ":");
-          Ssa.Graph.print ssa_graph;
-          print_newline ()
-        )
+        if dump then print_replacement (Load (x, mem)) !stmt
       | Load (x, mem) ->
         Hashtbl.add loaded mem x
       | Store (Mem (_, Const _) as mem, e) ->
