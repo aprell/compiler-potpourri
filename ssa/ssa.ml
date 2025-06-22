@@ -128,12 +128,12 @@ let rename_variables graph =
   in
 
   let rename { block; _ } =
-    List.iter rename_variables_stmt block.stmts
+    List.iter rename_variables_stmt block.stmts;
+    Hashtbl.reset Value_numbering.value_numbers;
+    Hashtbl.reset Value_numbering.available_exprs
   in
 
-  Cfg.iter rename graph;
-  Hashtbl.reset Value_numbering.value_numbers;
-  Hashtbl.reset Value_numbering.available_exprs
+  Cfg.iter rename graph
 
 let insert_phi_functions graph =
   let rec create_phi_functions res args =
