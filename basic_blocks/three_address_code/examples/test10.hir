@@ -1,0 +1,14 @@
+fun test10(A: int[]): int {
+    A[0] := 1
+    A[1] := 2
+    A[2] := 3
+    n := 1
+    a := A[0]
+    b := A[n]
+    c := A[n-1]
+    A[n+1] := 4
+    x := A[0]
+    y := A[1]
+    z := A[2]
+    return x * y + z
+}

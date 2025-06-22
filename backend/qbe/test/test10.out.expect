@@ -1,0 +1,33 @@
+.text
+.globl test10
+test10:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $1, 0(%rdi)
+	movl $2, 4(%rdi)
+	movl $3, 8(%rdi)
+	movl $4, 8(%rdi)
+	movl 0(%rdi), %eax
+	movl 4(%rdi), %edx
+	movl 8(%rdi), %ecx
+	imull %edx, %eax
+	addl %ecx, %eax
+	leave
+	ret
+/* end function test10 */
+
+.text
+.globl test10
+test10:
+	pushq %rbp
+	movq %rsp, %rbp
+	movl $1, 0(%rdi)
+	movl $2, 4(%rdi)
+	movl $3, 8(%rdi)
+	movl $4, 8(%rdi)
+	movl $6, %eax
+	leave
+	ret
+/* end function test10 */
+
+.section .note.GNU-stack,"",@progbits

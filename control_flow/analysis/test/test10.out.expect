@@ -1,0 +1,13 @@
+digraph CFG {
+    B1 [shape=record label="{B1|test10(A):\l$1 := 1\l*A := $1\l$2 := 2\l*(A + 4) := $2\l$3 := 3\l*(A + 8) := $3\ln := 1\la := *A\l$4 := n * 4\lb := *(A + $4)\l$5 := n - 1\l$6 := $5 * 4\lc := *(A + $6)\l$7 := n + 1\l$8 := $7 * 4\l$9 := 4\l*(A + $8) := $9\lx := *A\ly := *(A + 4)\lz := *(A + 8)\l$11 := x * y\l$10 := $11 + z\lreturn $10\l}"];
+    Entry -> B1;
+    B1 -> Exit;
+}
+
+graph DominatorTree {
+    Entry -- B1;
+    B1 -- Exit;
+}
+
+graph LoopNestingForest {
+}

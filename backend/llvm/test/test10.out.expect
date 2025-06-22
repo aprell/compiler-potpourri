@@ -1,0 +1,58 @@
+
+----------------------------------------
+define i32 @test10(ptr %A_0) {
+%test10:
+  %$1_0 = add i32 1, 0
+  %0 = gep ptr %A_0, 1 x i32 0
+  store i32 %$1_0, ptr %0, align 4
+  %$2_0 = add i32 2, 0
+  %1 = gep ptr %A_0, 1 x i32 4
+  store i32 %$2_0, ptr %1, align 4
+  %$3_0 = add i32 3, 0
+  %2 = gep ptr %A_0, 1 x i32 8
+  store i32 %$3_0, ptr %2, align 4
+  %n_0 = add i32 1, 0
+  %3 = gep ptr %A_0, 1 x i32 0
+  %a_0 = load i32, ptr %3, align 4
+  %$4_0 = mul i32 %n_0, 4
+  %4 = gep ptr %A_0, 1 x i32 %$4_0
+  %b_0 = load i32, ptr %4, align 4
+  %$5_0 = sub i32 %n_0, 1
+  %$6_0 = mul i32 %$5_0, 4
+  %5 = gep ptr %A_0, 1 x i32 %$6_0
+  %c_0 = load i32, ptr %5, align 4
+  %$7_0 = add i32 %n_0, 1
+  %$8_0 = mul i32 %$7_0, 4
+  %$9_0 = add i32 4, 0
+  %6 = gep ptr %A_0, 1 x i32 %$8_0
+  store i32 %$9_0, ptr %6, align 4
+  %7 = gep ptr %A_0, 1 x i32 0
+  %x_0 = load i32, ptr %7, align 4
+  %8 = gep ptr %A_0, 1 x i32 4
+  %y_0 = load i32, ptr %8, align 4
+  %9 = gep ptr %A_0, 1 x i32 8
+  %z_0 = load i32, ptr %9, align 4
+  %$11_0 = mul i32 %x_0, %y_0
+  %$10_0 = add i32 %$11_0, %z_0
+  ret i32 %$10_0
+}
+=>
+define i32 @test10(ptr %A_0) {
+%test10:
+  %0 = gep ptr %A_0, 1 x i32 0
+  store i32 1, ptr %0, align 4
+  %1 = gep ptr %A_0, 1 x i32 4
+  store i32 2, ptr %1, align 4
+  %2 = gep ptr %A_0, 1 x i32 8
+  store i32 3, ptr %2, align 4
+  %3 = gep ptr %A_0, 1 x i32 8
+  store i32 4, ptr %3, align 4
+  ret i32 6
+}
+Transformation seems to be correct!
+
+Summary:
+  1 correct transformations
+  0 incorrect transformations
+  0 failed-to-prove transformations
+  0 Alive2 errors

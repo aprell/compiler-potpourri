@@ -363,6 +363,73 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
   graph := simplify !graph;
   !simplified
 
+let optimize_memory_accesses ?(dump = false) graph ssa_graph =
+  if dump then print_endline "Optimizing memory accesses";
+
+  let loaded : (mem, var) Hashtbl.t = Hashtbl.create 10 in
+  let stored : (mem, expr) Hashtbl.t = Hashtbl.create 10 in
+  let optimized = ref false in
+
+  let optimize block =
+    let remove_use (Mem (b, o)) stmt =
+      Ssa.Graph.remove_use b (ref block, ref stmt) ssa_graph;
+      match o with
+      | Val x -> Ssa.Graph.remove_use x (ref block, ref stmt) ssa_graph
+      | _ -> ()
+    in
+    let add_use x stmt =
+      Ssa.Graph.add_use x (ref block, ref stmt) ssa_graph
+    in
+    let visit stmt =
+      match !stmt with
+      | Load (x, mem) when Hashtbl.mem loaded mem ->
+        (* Redundant load elimination *)
+        let y = Hashtbl.find loaded mem in
+        stmt := Move (x, Val y);
+        remove_use mem stmt;
+        add_use y stmt;
+		Hashtbl.replace loaded mem x;
+        optimized := true;
+        if dump then (
+          print_endline ("After replacing " ^ string_of_stmt (Load (x, mem)) ^ " with " ^ string_of_stmt !stmt ^ ":");
+          Ssa.Graph.print ssa_graph;
+          print_newline ()
+        )
+      | Load (x, mem) when Hashtbl.mem stored mem ->
+        (* Store-to-load forwarding *)
+        let e = Hashtbl.find stored mem in
+        stmt := Move (x, e);
+        remove_use mem stmt;
+        Vars.iter (Fun.flip add_use stmt) (collect_variables e);
+        Hashtbl.add loaded mem x;
+        optimized := true;
+        if dump then (
+          print_endline ("After replacing " ^ string_of_stmt (Load (x, mem)) ^ " with " ^ string_of_stmt !stmt ^ ":");
+          Ssa.Graph.print ssa_graph;
+          print_newline ()
+        )
+      | Load (x, mem) ->
+        Hashtbl.add loaded mem x
+      | Store (Mem (_, Const _) as mem, e) ->
+        Hashtbl.replace stored mem e;
+        Hashtbl.remove loaded mem
+      | Store (mem, e) ->
+        (* Assume all memory locations are clobbered *)
+        Hashtbl.clear stored;
+        Hashtbl.clear loaded;
+        Hashtbl.add stored mem e
+      | _ -> ()
+    in
+    List.iter visit block.Basic_block.stmts
+  in
+
+  Cfg.iter (fun { block; _ } ->
+      optimize block;
+      Hashtbl.reset loaded;
+      Hashtbl.reset stored
+    ) !graph;
+  !optimized
+
 let check_phi_functions ?(dump = false) _graph ssa_graph =
   if dump then print_endline "Checking PHI functions";
 
@@ -433,6 +500,7 @@ let optimize ?(dump = false) graph ssa_graph =
         (eliminate_dead_code *> check) graph ssa_graph ~dump;
         (propagate_constants *> check) graph ssa_graph ~dump;
         (propagate_copies *> check) graph ssa_graph ~dump;
+        (optimize_memory_accesses *> check) graph ssa_graph ~dump;
       ]
   done;
   !graph
