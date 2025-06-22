@@ -394,7 +394,7 @@ module Graph = struct
     | Some ((_, stmt) as def) -> (
         match !(!stmt) with
         | Move (_, e) ->
-          Vars.iter (fun y -> remove_use y def graph) (collect_variables e)
+          Vars.(iter (fun y -> remove_use y def graph) (of_expr e))
         | Load (_, Mem (b, Val o)) ->
           remove_use b def graph;
           remove_use o def graph

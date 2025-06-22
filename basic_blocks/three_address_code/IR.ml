@@ -231,17 +231,19 @@ let rec peephole = function
     )
   | _ -> []
 
-module Vars = Set.Make (struct
-  type t = var
-  let compare = Stdlib.compare
-end)
+module Vars = struct
+  include Set.Make (struct
+    type t = var
+    let compare = Stdlib.compare
+  end)
 
-let rec collect_variables = function
-  | Const _ -> Vars.empty
-  | Val x -> Vars.singleton x
-  | Binop (_, e1, e2)
-  | Relop (_, e1, e2) ->
-    Vars.union (collect_variables e1) (collect_variables e2)
+  let rec of_expr = function
+    | Const _ -> empty
+    | Val x -> singleton x
+    | Binop (_, e1, e2)
+    | Relop (_, e1, e2) ->
+      union (of_expr e1) (of_expr e2)
+end
 
 let rec replace_expr f = function
   | Val x -> f x

@@ -104,7 +104,7 @@ module Liveness = struct
       | stmt :: stmts ->
         let use', def' = match !stmt with
           | Move (x, e) ->
-            let vars = collect_variables e in
+            let vars = Vars.of_expr e in
             (* Remove x from use, then add all variables that occur in e *)
             let use' = Set.union (Set.remove x use) vars in
             (* Add x to def, then remove all variables that occur in e *)
@@ -117,7 +117,7 @@ module Liveness = struct
             let def' = Set.remove b (Set.add x def) in
             (use', def')
           | Store (Mem (b, _), e) ->
-            let vars = collect_variables e in
+            let vars = Vars.of_expr e in
             let use' = Set.add b (Set.union use vars) in
             (use', def)
           | Label (_, Some params) ->
@@ -126,7 +126,7 @@ module Liveness = struct
             let def' = Set.union def vars in
             (use', def')
           | Cond (e, _, _) | Return (Some e) ->
-            let vars = collect_variables e in
+            let vars = Vars.of_expr e in
             let use' = Set.union use vars in
             (use', def)
           | Phi (x, xs) ->

@@ -5,9 +5,9 @@ open Control_flow
 let variables_in_use = function
   | Move (_, e)
   | Cond (e, _, _)
-  | Return (Some e) -> collect_variables e
-  | Load (_, Mem (b, e)) -> Vars.(add b (collect_variables e))
-  | Store (Mem (b, e1), e2) -> Vars.(add b (union (collect_variables e1) (collect_variables e2)))
+  | Return (Some e) -> Vars.of_expr e
+  | Load (_, Mem (b, e)) -> Vars.(add b (of_expr e))
+  | Store (Mem (b, e1), e2) -> Vars.(add b (union (of_expr e1) (of_expr e2)))
   | Phi (_, xs) -> Vars.of_list xs
   | _ -> Vars.empty
 
@@ -172,13 +172,13 @@ let eliminate_unreachable_code ?(dump = false) graph ssa_graph =
       | Store (Mem (b, Val o), e) ->
         eliminate_use' b;
         eliminate_use' o;
-        collect_variables e |> Vars.iter eliminate_use'
+        Vars.(iter eliminate_use' (of_expr e))
       | Store (Mem (b, Const _), e) ->
         eliminate_use' b;
-        collect_variables e |> Vars.iter eliminate_use'
+        Vars.(iter eliminate_use' (of_expr e))
       | Cond (e, _, _)
       | Return (Some e) ->
-        collect_variables e |> Vars.iter eliminate_use'
+        Vars.(iter eliminate_use' (of_expr e))
       | _ -> ()
     in
     List.iter visit block.stmts
@@ -276,7 +276,7 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
         | Cond (e, then_, else_) when then_ = else_ ->
           Vars.iter (fun x ->
               Ssa.Graph.remove_use x (ref node.block, ref stmt) ssa_graph;
-            ) (collect_variables e);
+            ) (Vars.of_expr e);
           stmt := Jump then_;
           true
         | Cond (e, then_, else_) (* when then_ <> else_ *) -> (
@@ -284,7 +284,7 @@ let simplify_control_flow ?(dump = false) graph ssa_graph =
           | [stmts; stmts'] when stmts = stmts' ->
             Vars.iter (fun x ->
                 Ssa.Graph.remove_use x (ref node.block, ref stmt) ssa_graph;
-              ) (collect_variables e);
+              ) (Vars.of_expr e);
             stmt := Jump then_;
             remove_branch node ~label:else_;
             true
@@ -370,6 +370,9 @@ let optimize_memory_accesses ?(dump = false) graph ssa_graph =
   let stored : (mem, expr) Hashtbl.t = Hashtbl.create 10 in
   let optimized = ref false in
 
+  let previously_loaded = Hashtbl.mem loaded in
+  let previously_stored = Hashtbl.mem stored in
+
   let print_replacement a b =
     print_endline ("After replacing " ^ string_of_stmt a ^ " with " ^ string_of_stmt b ^ ":");
     Ssa.Graph.print ssa_graph;
@@ -378,31 +381,33 @@ let optimize_memory_accesses ?(dump = false) graph ssa_graph =
 
   let optimize block =
     let remove_use (Mem (b, o)) stmt =
-      Ssa.Graph.remove_use b (ref block, ref stmt) ssa_graph;
-      match o with
-      | Val x -> Ssa.Graph.remove_use x (ref block, ref stmt) ssa_graph
-      | _ -> ()
+      let use = (ref block, ref stmt) in
+      Ssa.Graph.remove_use b use ssa_graph;
+      match o with Val x -> Ssa.Graph.remove_use x use ssa_graph | _ -> ()
     in
     let add_use x stmt =
-      Ssa.Graph.add_use x (ref block, ref stmt) ssa_graph
+      let use = (ref block, ref stmt) in
+      Ssa.Graph.add_use x use ssa_graph
+    in
+    let replace_use x e stmt =
+      remove_use x stmt;
+      Vars.(iter (Fun.flip add_use stmt) (of_expr e))
     in
     let visit stmt =
       match !stmt with
-      | Load (x, mem) when Hashtbl.mem loaded mem ->
+      | Load (x, mem) when previously_loaded mem ->
         (* Redundant load elimination *)
-        let y = Hashtbl.find loaded mem in
-        stmt := Move (x, Val y);
-        remove_use mem stmt;
-        add_use y stmt;
+        let y = Val (Hashtbl.find loaded mem) in
+        stmt := Move (x, y);
+        replace_use mem y stmt;
         Hashtbl.replace loaded mem x;
         optimized := true;
         if dump then print_replacement (Load (x, mem)) !stmt
-      | Load (x, mem) when Hashtbl.mem stored mem ->
+      | Load (x, mem) when previously_stored mem ->
         (* Store-to-load forwarding *)
         let e = Hashtbl.find stored mem in
         stmt := Move (x, e);
-        remove_use mem stmt;
-        Vars.iter (Fun.flip add_use stmt) (collect_variables e);
+        replace_use mem e stmt;
         Hashtbl.add loaded mem x;
         optimized := true;
         if dump then print_replacement (Load (x, mem)) !stmt

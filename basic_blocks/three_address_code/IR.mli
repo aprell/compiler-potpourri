@@ -60,9 +60,10 @@ val constant_fold : expr -> expr
 
 val peephole : stmt list -> stmt list
 
-module Vars : Set.S with type elt = var
-
-val collect_variables : expr -> Vars.t
+module Vars : sig
+  include Set.S with type elt = var
+  val of_expr : expr -> t
+end
 
 val replace : var -> expr -> stmt:stmt ref ref -> unit
 
