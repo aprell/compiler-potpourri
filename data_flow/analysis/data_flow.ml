@@ -24,7 +24,7 @@ end
    Input signature of functor Data_flow_analysis *)
 module type DataFlowType = sig
   include AnalysisType
-  val traverse : Cfg.t -> Cfg.Node.t list
+  val traverse : Cfg.t -> int list
   (* Update in-set and out-set of a node *)
   val update : Cfg.Node.t -> (string, Set.t analysis) Hashtbl.t -> Set.t * Set.t
 end
@@ -121,7 +121,8 @@ module Data_flow_analysis (DF : DataFlowType) = struct
     );
     while !changed do
       changed := false;
-      List.iter (fun node ->
+      List.iter (fun number ->
+          let node = Cfg.get_node number graph in
           let in_set', out_set' = DF.update node sets in
           if (not (DF.Set.equal in_set' (find node).global_in) ||
               not (DF.Set.equal out_set' (find node).global_out)) then

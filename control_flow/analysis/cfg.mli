@@ -18,6 +18,8 @@ end
 
 and NodeSet : Set.S with type elt = Node.t
 
+module IntSet : Set.S with type elt = int
+
 type t
 
 val define : nodes:int list -> edges:(int * int) list -> t
@@ -48,9 +50,9 @@ val iter : (Node.t -> unit) -> t -> unit
 
 val filter : (int -> Node.t -> bool) -> t -> t
 
-val dfs_reverse_postorder : t -> Node.t list
+val dfs_reverse_postorder : t -> int list
 
-val dfs_postorder : t -> Node.t list
+val dfs_postorder : t -> int list
 
 val get_first_basic_block : t -> Basic_block.t
 

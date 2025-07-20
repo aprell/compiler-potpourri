@@ -173,7 +173,7 @@ let dfs_reverse_postorder (graph : t) =
     NodeSet.iter (fun s ->
         if not (Hashtbl.mem visited s) then visit s
       ) node.succ;
-    order := node :: !order;
+    order := node.block.number :: !order;
   in
   visit (get_entry_node graph);
   !order
@@ -182,9 +182,14 @@ let dfs_postorder (graph : t) =
   dfs_reverse_postorder graph
   |> List.rev
 
+module IntSet = Set.Make (struct
+  type t = int
+  let compare = Stdlib.compare
+end)
+
 let remove_unreachable_nodes (graph : t) : t =
-  let reachable_nodes = NodeSet.of_list (dfs_reverse_postorder graph) in
-  let reachable node = NodeSet.mem node reachable_nodes in
+  let reachable_nodes = IntSet.of_list (dfs_reverse_postorder graph) in
+  let reachable node = IntSet.mem Node.(node.block.number) reachable_nodes in
   filter (fun _ node ->
       if not (reachable node) then (
         NodeSet.iter (fun succ ->
