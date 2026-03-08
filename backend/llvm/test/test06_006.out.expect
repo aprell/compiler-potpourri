@@ -1,36 +1,36 @@
 
 ----------------------------------------
 define i32 @test06(i32 %p_0) {
-%test06:
+test06:
   %x_1 = add i32 1, 0
   br label %L3
 
-%L3:
+L3:
   %x_2 = phi i32 [ %x_1, %test06 ], [ %x_2, %L4 ], [ %x_6, %L1 ]
-  %0 = icmp sgt i32 %p_0, 10
-  br i1 %0, label %L4, label %L5
+  %#0 = icmp sgt i32 %p_0, 10
+  br i1 %#0, label %L4, label %L5
 
-%L4:
-  %1 = icmp ne i32 %x_2, 1
-  br i1 %1, label %L1, label %L3
+L4:
+  %#1 = icmp ne i32 %x_2, 1
+  br i1 %#1, label %L1, label %L3
 
-%L1:
+L1:
   %x_6 = add i32 2, 0
   br label %L3
 
-%L5:
+L5:
   ret i32 %x_2
 }
 =>
 define i32 @test06(i32 %p_0) {
-%test06:
+test06:
   br label %L3
 
-%L3:
-  %0 = icmp sgt i32 %p_0, 10
-  br i1 %0, label %L3, label %L5
+L3:
+  %#0 = icmp sgt i32 %p_0, 10
+  br i1 %#0, label %L3, label %L5
 
-%L5:
+L5:
   ret i32 1
 }
 Transformation seems to be correct!

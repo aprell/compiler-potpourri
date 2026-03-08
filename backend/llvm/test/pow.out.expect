@@ -1,42 +1,42 @@
 
 ----------------------------------------
 define i32 @pow(i32 %b_0, i32 %e_0) {
-%pow:
+pow:
   %r_0 = add i32 1, 0
   br label %L1
 
-%L1:
+L1:
   %e_1 = phi i32 [ %e_0, %pow ], [ %e_3, %L2 ]
   %r_1 = phi i32 [ %r_0, %pow ], [ %r_3, %L2 ]
-  %0 = icmp sgt i32 %e_1, 0
-  br i1 %0, label %L2, label %L3
+  %#0 = icmp sgt i32 %e_1, 0
+  br i1 %#0, label %L2, label %L3
 
-%L2:
+L2:
   %r_3 = mul i32 %r_1, %b_0
   %e_3 = sub i32 %e_1, 1
   br label %L1
 
-%L3:
+L3:
   ret i32 %r_1
 }
 =>
 define i32 @pow(i32 %b_0, i32 %e_0) {
-%pow:
+pow:
   %r_0 = add i32 1, 0
   br label %L1
 
-%L1:
+L1:
   %e_1 = phi i32 [ %e_0, %pow ], [ %e_3, %L2 ]
   %r_1 = phi i32 [ %r_0, %pow ], [ %r_3, %L2 ]
-  %0 = icmp sgt i32 %e_1, 0
-  br i1 %0, label %L2, label %L3
+  %#0 = icmp sgt i32 %e_1, 0
+  br i1 %#0, label %L2, label %L3
 
-%L2:
+L2:
   %r_3 = mul i32 %r_1, %b_0
   %e_3 = sub i32 %e_1, 1
   br label %L1
 
-%L3:
+L3:
   ret i32 %r_1
 }
 Transformation seems to be correct! (syntactically equal)

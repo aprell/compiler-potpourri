@@ -1,4 +1,4 @@
-CC := clang-16
+CC := clang
 CFLAGS := -Wall -Wextra -Wno-override-module
 # Ignore incompatible redeclaration of pow
 CFLAGS += -Wno-incompatible-library-redeclaration
