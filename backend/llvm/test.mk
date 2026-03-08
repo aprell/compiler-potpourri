@@ -5,7 +5,11 @@ CFLAGS += -Wno-incompatible-library-redeclaration
 CFLAGS += -fsanitize=address,undefined
 
 test: a.out
+ifeq ($(shell uname -s), Darwin)
+	MallocNanoZone=0 ./$<
+else
 	./$<
+endif
 
 a.out: ../../utils/test.c func.ll
 	$(CC) $(CFLAGS) $^
