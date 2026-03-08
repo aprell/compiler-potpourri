@@ -38,8 +38,19 @@ function IterationVector:current()
         local name = getlocal(3, i)
         if not name then break end
         if name == "(for generator)" then
+            -- Pre-Lua 5.4
             assert(getlocal(3, i + 1) == "(for state)")
             assert(getlocal(3, i + 2) == "(for control)")
+            t[#t + 1] = select(2, getlocal(3, i + 3))
+            i = i + 3
+        elseif name == "(for state)" then
+            -- Lua 5.4
+            assert(getlocal(3, i + 1) == "(for state)")
+            assert(getlocal(3, i + 2) == "(for state)")
+            if (getlocal(3, i + 3) == "(for state)") then
+                -- Generic for loop
+                i = i + 1
+            end
             t[#t + 1] = select(2, getlocal(3, i + 3))
             i = i + 3
         end

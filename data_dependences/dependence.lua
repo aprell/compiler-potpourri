@@ -46,9 +46,9 @@ function def(a)
             local dist = curr_iter - prev_iter
             if verbose_output then
                 printf("Output dependence in iteration %s, %s: %s written in iteration %s by %s",
-                curr_iter, curr_stmt,
-                a.name .. "[" .. concat(a.last_ref, "][") .. "]",
-                prev_iter, prev_stmt)
+                       curr_iter, curr_stmt,
+                       a.name .. "[" .. concat(a.last_ref, "][") .. "]",
+                       prev_iter, prev_stmt)
             end
             local dep = ("%s output %s, d = %s"):format(prev_stmt, curr_stmt, dist)
             a.deps[dep] = (a.deps[dep] or 0) + 1
@@ -59,9 +59,9 @@ function def(a)
             local dist = curr_iter - prev_iter
             if verbose_output then
                 printf("Anti dependence in iteration %s, %s: %s read in iteration %s by %s",
-                curr_iter, curr_stmt,
-                a.name .. "[" .. concat(a.last_ref, "][") .. "]",
-                prev_iter, prev_stmt)
+                       curr_iter, curr_stmt,
+                       a.name .. "[" .. concat(a.last_ref, "][") .. "]",
+                       prev_iter, prev_stmt)
             end
             local dep = ("%s anti %s, d = %s"):format(prev_stmt, curr_stmt, dist)
             a.deps[dep] = (a.deps[dep] or 0) + 1
@@ -87,9 +87,9 @@ function use(a)
             local dist = curr_iter - prev_iter
             if verbose_output then
                 printf("Flow dependence in iteration %s, %s: %s written in iteration %s by %s",
-                curr_iter, curr_stmt,
-                a.name .. "[" .. concat(a.last_ref, "][") .. "]",
-                prev_iter, prev_stmt)
+                       curr_iter, curr_stmt,
+                       a.name .. "[" .. concat(a.last_ref, "][") .. "]",
+                       prev_iter, prev_stmt)
             end
             local dep = ("%s flow %s, d = %s"):format(prev_stmt, curr_stmt, dist)
             a.deps[dep] = (a.deps[dep] or 0) + 1
