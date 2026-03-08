@@ -39,10 +39,10 @@ L1:
 L2:
   ret i32 %b_0
 }
-ERROR: Timeout
+Transformation seems to be correct!
 
 Summary:
-  0 correct transformations
+  1 correct transformations
   0 incorrect transformations
-  1 failed-to-prove transformations
+  0 failed-to-prove transformations
   0 Alive2 errors

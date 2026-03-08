@@ -12,7 +12,93 @@ L1:
 
 L2:
   %i_3 = add i32 %i_1, 1
-  br label %L1
+  br label %L1#2
+
+L1#2:
+  %i_1#2 = phi i32 [ %i_3, %L2 ]
+  %#0#2 = icmp slt i32 %i_1#2, 10
+  br i1 %#0#2, label %L2#2, label %L3
+
+L2#2:
+  %i_3#2 = add i32 %i_1#2, 1
+  br label %L1#3
+
+L1#3:
+  %i_1#3 = phi i32 [ %i_3#2, %L2#2 ]
+  %#0#3 = icmp slt i32 %i_1#3, 10
+  br i1 %#0#3, label %L2#3, label %L3
+
+L2#3:
+  %i_3#3 = add i32 %i_1#3, 1
+  br label %L1#4
+
+L1#4:
+  %i_1#4 = phi i32 [ %i_3#3, %L2#3 ]
+  %#0#4 = icmp slt i32 %i_1#4, 10
+  br i1 %#0#4, label %L2#4, label %L3
+
+L2#4:
+  %i_3#4 = add i32 %i_1#4, 1
+  br label %L1#5
+
+L1#5:
+  %i_1#5 = phi i32 [ %i_3#4, %L2#4 ]
+  %#0#5 = icmp slt i32 %i_1#5, 10
+  br i1 %#0#5, label %L2#5, label %L3
+
+L2#5:
+  %i_3#5 = add i32 %i_1#5, 1
+  br label %L1#6
+
+L1#6:
+  %i_1#6 = phi i32 [ %i_3#5, %L2#5 ]
+  %#0#6 = icmp slt i32 %i_1#6, 10
+  br i1 %#0#6, label %L2#6, label %L3
+
+L2#6:
+  %i_3#6 = add i32 %i_1#6, 1
+  br label %L1#7
+
+L1#7:
+  %i_1#7 = phi i32 [ %i_3#6, %L2#6 ]
+  %#0#7 = icmp slt i32 %i_1#7, 10
+  br i1 %#0#7, label %L2#7, label %L3
+
+L2#7:
+  %i_3#7 = add i32 %i_1#7, 1
+  br label %L1#8
+
+L1#8:
+  %i_1#8 = phi i32 [ %i_3#7, %L2#7 ]
+  %#0#8 = icmp slt i32 %i_1#8, 10
+  br i1 %#0#8, label %L2#8, label %L3
+
+L2#8:
+  %i_3#8 = add i32 %i_1#8, 1
+  br label %L1#9
+
+L1#9:
+  %i_1#9 = phi i32 [ %i_3#8, %L2#8 ]
+  %#0#9 = icmp slt i32 %i_1#9, 10
+  br i1 %#0#9, label %L2#9, label %L3
+
+L2#9:
+  %i_3#9 = add i32 %i_1#9, 1
+  br label %L1#10
+
+L1#10:
+  %i_1#10 = phi i32 [ %i_3#9, %L2#9 ]
+  %#0#10 = icmp slt i32 %i_1#10, 10
+  br i1 %#0#10, label %L2#10, label %L3
+
+L2#10:
+  %i_3#10 = add i32 %i_1#10, 1
+  br label %L1#exit
+
+L1#exit:
+  %i_1#exit = phi i32 [ %i_3#10, %L2#10 ]
+  %#0#exit = icmp slt i32 %i_1#exit, 10
+  br i1 %#0#exit, label #sink, label %L3
 
 L3:
   ret void
@@ -30,16 +116,101 @@ L1:
 
 L2:
   %i_3 = add i32 %i_1, 1
-  br label %L1
+  br label %L1#2
+
+L1#2:
+  %i_1#2 = phi i32 [ %i_3, %L2 ]
+  %#0#2 = icmp slt i32 %i_1#2, 10
+  br i1 %#0#2, label %L2#2, label %L3
+
+L2#2:
+  %i_3#2 = add i32 %i_1#2, 1
+  br label %L1#3
+
+L1#3:
+  %i_1#3 = phi i32 [ %i_3#2, %L2#2 ]
+  %#0#3 = icmp slt i32 %i_1#3, 10
+  br i1 %#0#3, label %L2#3, label %L3
+
+L2#3:
+  %i_3#3 = add i32 %i_1#3, 1
+  br label %L1#4
+
+L1#4:
+  %i_1#4 = phi i32 [ %i_3#3, %L2#3 ]
+  %#0#4 = icmp slt i32 %i_1#4, 10
+  br i1 %#0#4, label %L2#4, label %L3
+
+L2#4:
+  %i_3#4 = add i32 %i_1#4, 1
+  br label %L1#5
+
+L1#5:
+  %i_1#5 = phi i32 [ %i_3#4, %L2#4 ]
+  %#0#5 = icmp slt i32 %i_1#5, 10
+  br i1 %#0#5, label %L2#5, label %L3
+
+L2#5:
+  %i_3#5 = add i32 %i_1#5, 1
+  br label %L1#6
+
+L1#6:
+  %i_1#6 = phi i32 [ %i_3#5, %L2#5 ]
+  %#0#6 = icmp slt i32 %i_1#6, 10
+  br i1 %#0#6, label %L2#6, label %L3
+
+L2#6:
+  %i_3#6 = add i32 %i_1#6, 1
+  br label %L1#7
+
+L1#7:
+  %i_1#7 = phi i32 [ %i_3#6, %L2#6 ]
+  %#0#7 = icmp slt i32 %i_1#7, 10
+  br i1 %#0#7, label %L2#7, label %L3
+
+L2#7:
+  %i_3#7 = add i32 %i_1#7, 1
+  br label %L1#8
+
+L1#8:
+  %i_1#8 = phi i32 [ %i_3#7, %L2#7 ]
+  %#0#8 = icmp slt i32 %i_1#8, 10
+  br i1 %#0#8, label %L2#8, label %L3
+
+L2#8:
+  %i_3#8 = add i32 %i_1#8, 1
+  br label %L1#9
+
+L1#9:
+  %i_1#9 = phi i32 [ %i_3#8, %L2#8 ]
+  %#0#9 = icmp slt i32 %i_1#9, 10
+  br i1 %#0#9, label %L2#9, label %L3
+
+L2#9:
+  %i_3#9 = add i32 %i_1#9, 1
+  br label %L1#10
+
+L1#10:
+  %i_1#10 = phi i32 [ %i_3#9, %L2#9 ]
+  %#0#10 = icmp slt i32 %i_1#10, 10
+  br i1 %#0#10, label %L2#10, label %L3
+
+L2#10:
+  %i_3#10 = add i32 %i_1#10, 1
+  br label %L1#exit
+
+L1#exit:
+  %i_1#exit = phi i32 [ %i_3#10, %L2#10 ]
+  %#0#exit = icmp slt i32 %i_1#exit, 10
+  br i1 %#0#exit, label #sink, label %L3
 
 L3:
   ret void
 }
-ERROR: The source program doesn't reach a return instruction.
-Consider increasing the unroll factor if it has loops
+Transformation seems to be correct!
 
 Summary:
-  0 correct transformations
+  1 correct transformations
   0 incorrect transformations
-  1 failed-to-prove transformations
+  0 failed-to-prove transformations
   0 Alive2 errors

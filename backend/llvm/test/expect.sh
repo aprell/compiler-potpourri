@@ -10,11 +10,17 @@ if [ -z "$(command -v alive-tv)" ]; then
     exit 0
 fi
 
+# See https://github.com/aprell/compiler-potpourri/issues/31
+declare -A alive_tv_options=(
+    [test01.hir]="--disable-undef-input"
+    [test03.hir]="--src-unroll=10 --tgt-unroll=10"
+)
+
 for test in "${1:-examples}"/*; do
     OUTPUT="test/$(basename "${test%.*}").out"
     dune exec test/expect.exe --      "$test" > test/src.ll
     dune exec test/expect.exe -- -opt "$test" > test/tgt.ll
-    alive-tv test/src.ll test/tgt.ll > "$OUTPUT.actual"
+    alive-tv ${alive_tv_options["$(basename "$test")"]:-} test/src.ll test/tgt.ll > "$OUTPUT.actual"
     if git diff --no-index "$OUTPUT.expect" "$OUTPUT.actual"; then
         rm test/src.ll test/tgt.ll "$OUTPUT.actual"
     else
