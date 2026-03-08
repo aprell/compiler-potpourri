@@ -18,8 +18,8 @@ declare -A alive_tv_options=(
 
 for test in "${1:-examples}"/*; do
     OUTPUT="test/$(basename "${test%.*}").out"
-    dune exec test/expect.exe --      "$test" > test/src.ll
-    dune exec test/expect.exe -- -opt "$test" > test/tgt.ll
+    dune exec test/expect.exe --    "$test" > test/src.ll
+    dune exec test/expect.exe -- -O "$test" > test/tgt.ll
     alive-tv ${alive_tv_options["$(basename "$test")"]:-} test/src.ll test/tgt.ll > "$OUTPUT.actual"
     if git diff --no-index "$OUTPUT.expect" "$OUTPUT.actual"; then
         rm test/src.ll test/tgt.ll "$OUTPUT.actual"
